@@ -1,10 +1,15 @@
-/// <reference lib="deno.ns" />
 // deno-lint-ignore-file no-explicit-any
-
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+// Vercel/Next-friendly: no direct Deno type refs, no `jsr:` imports.
+// Supabase Edge (Deno) will still find `globalThis.Deno` at runtime.
 
 // ====== CONFIG ======
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")
+type DenoEnv = { env: { get(name: string): string | undefined } }
+const DENO: { env?: DenoEnv["env"]; serve?: (h: (req: Request) => Response | Promise<Response>) => void } =
+  (globalThis as unknown as { Deno?: DenoEnv & { serve?: (h: (req: Request) => Response | Promise<Response>) => void } }).Deno ?? {}
+
+const getEnv = (k: string): string | undefined => DENO.env?.get?.(k)
+
+const RESEND_API_KEY = getEnv("RESEND_API_KEY")
 const FROM = "Acme <onboarding@resend.dev>" // MUST be a verified domain in Resend
 const RESEND_ENDPOINT = "https://api.resend.com/emails"
 
@@ -12,7 +17,12 @@ const RESEND_ENDPOINT = "https://api.resend.com/emails"
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json; charset=utf-8" },
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+    },
   })
 }
 
@@ -63,27 +73,12 @@ function toPlainText({
 }
 
 // ====== MAIN HANDLER ======
-Deno.serve(async (req) => {
-  // CORS preflight (optional but useful)
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Max-Age": "86400",
-      },
-    })
-  }
+const handler = async (req: Request): Promise<Response> => {
+  // CORS preflight
+  if (req.method === "OPTIONS") return json(null, 204)
 
-  if (req.method !== "POST") {
-    return json({ error: "Method Not Allowed" }, 405)
-  }
-
-  if (!RESEND_API_KEY) {
-    return json({ error: "Missing RESEND_API_KEY" }, 500)
-  }
+  if (req.method !== "POST") return json({ error: "Method Not Allowed" }, 405)
+  if (!RESEND_API_KEY) return json({ error: "Missing RESEND_API_KEY" }, 500)
 
   let payload: any
   try {
@@ -139,17 +134,27 @@ Deno.serve(async (req) => {
       subject,
       html,
       text,
-      // optional extras:
-      // reply_to: "support@yourdomain.com",
-      // headers: { "List-Unsubscribe": `<${redeemUrl}>` },
     }),
   })
 
   if (!r.ok) {
     const body = await r.text()
-    // Common causes: invalid API key, unverified sender domain
     return json({ error: "Resend error", status: r.status, body }, 500)
   }
 
   return json({ ok: true }, 200)
-})
+}
+
+// Use Deno.serve if available (Supabase Edge)
+const maybeServe = DENO?.serve
+if (typeof maybeServe === "function") {
+  maybeServe(handler)
+} else if (typeof addEventListener !== "undefined") {
+  // Fallback for environments exposing a fetch event (keeps file inert on Vercel/Next)
+  addEventListener("fetch", (event: any) => {
+    event.respondWith(handler(event.request))
+  })
+}
+
+// Optional: export for test environments (never used by Vercel/Next)
+export default handler
