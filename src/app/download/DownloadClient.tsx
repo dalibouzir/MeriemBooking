@@ -9,19 +9,12 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // product comes from the server via props (no useSearchParams needed)
   const product = initialProduct
-
-  // Honeypot to catch bots
   const hpRef = useRef<HTMLInputElement | null>(null)
-
-  // Simple email validator
   const isValidEmail = (s: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
-
   const productMissing = useMemo(() => !product, [product])
 
   useEffect(() => {
-    // Clear messages whenever product changes
     setMessage(null)
     setError(null)
   }, [product])
@@ -29,17 +22,13 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (loading) return
-
     setLoading(true)
     setMessage(null)
     setError(null)
 
     try {
       const fd = new FormData(e.currentTarget)
-      // honeypot check
-      if ((hpRef.current?.value || '').trim() !== '') {
-        throw new Error('Spam detected')
-      }
+      if ((hpRef.current?.value || '').trim() !== '') throw new Error('Spam detected')
 
       const name = String(fd.get('name') || '').trim()
       const email = String(fd.get('email') || '').trim()
@@ -54,20 +43,13 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, country, product }),
       })
-
       const data: ApiError = await res.json().catch(() => ({} as ApiError))
 
       if (!res.ok) {
-        const msg =
-          data.error ||
-          data.message ||
-          'تعذّر الإرسال، حاول/ي مجددًا.'
-
+        const msg = data.error || data.message || 'تعذّر الإرسال، حاول/ي مجددًا.'
         if (msg.includes('Resend error') && msg.includes('only send testing emails')) {
           setError('وضع الاختبار في Resend يسمح بإرسال الرسائل فقط إلى بريدك المسجّل في Resend. جرّب نفس بريدك أو فعّل نطاق الإرسال.')
-        } else {
-          setError(msg)
-        }
+        } else setError(msg)
         return
       }
 
@@ -98,7 +80,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       <form onSubmit={onSubmit} className="space-y-4">
         <input type="hidden" name="product" value={product} />
 
-        {/* Honeypot (hidden from users) – kept outside disabled fieldset */}
+        {/* Honeypot */}
         <input
           ref={hpRef}
           name="website"
@@ -111,49 +93,25 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         <fieldset disabled={loading || productMissing} className="space-y-4">
           <div className="space-y-1">
             <label className="block text-sm">الإسم الكامل</label>
-            <input
-              name="name"
-              required
-              className="w-full border rounded-lg p-2"
-              placeholder="مثال: مريم بن..."
-            />
+            <input name="name" required className="w-full border rounded-lg p-2" placeholder="مثال: مريم بن..." />
           </div>
 
           <div className="space-y-1">
-            <label className="block text.sm">البريد الإلكتروني</label>
-            <input
-              name="email"
-              type="email"
-              inputMode="email"
-              required
-              className="w-full border rounded-lg p-2"
-              placeholder="you@example.com"
-            />
+            <label className="block text-sm">البريد الإلكتروني</label>
+            <input name="email" type="email" inputMode="email" required className="w-full border rounded-lg p-2" placeholder="you@example.com" />
           </div>
 
           <div className="space-y-1">
             <label className="block text-sm">الدولة (اختياري)</label>
-            <input
-              name="country"
-              className="w-full border rounded-lg p-2"
-              placeholder="Tunisia"
-            />
+            <input name="country" className="w-full border rounded-lg p-2" placeholder="Tunisia" />
           </div>
 
-          {/* Placeholder للكابتشا */}
           <div className="space-y-1">
             <label className="block text-sm">التحقق (Captcha)</label>
-            <input
-              name="captcha_token"
-              className="w-full border rounded-lg p-2"
-              placeholder="(اختياري الآن)"
-            />
+            <input name="captcha_token" className="w-full border rounded-lg p-2" placeholder="(اختياري الآن)" />
           </div>
 
-          <button
-            type="submit"
-            className="w-full rounded-xl p-3 bg-purple-600 text-white font-semibold hover:opacity-90 disabled:opacity-60"
-          >
+          <button type="submit" className="w-full rounded-xl p-3 bg-purple-600 text-white font-semibold hover:opacity-90 disabled:opacity-60">
             {loading ? 'يرجى الإنتظار…' : 'إرسال وإستلام رابط التحميل'}
           </button>
         </fieldset>
