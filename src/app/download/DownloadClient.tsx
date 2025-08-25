@@ -1,131 +1,166 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Calendar from 'react-calendar'
-import type { CalendarProps } from 'react-calendar'
-import 'react-calendar/dist/Calendar.css'
-import { motion } from 'motion/react'
-import Image from 'next/image'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-export default function FreeCallClient({ initialToken = '' }: { initialToken?: string }) {
-  const router = useRouter()
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+type ApiError = { error?: string; message?: string }
 
-  const hasAccess = useMemo(() => Boolean(initialToken), [initialToken])
+export default function DownloadClient({ initialProduct = '' }: { initialProduct?: string }) {
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  if (!hasAccess) {
-    return (
-      <div dir="rtl" className="max-w-md mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-2">الدخول مرفوض</h1>
-        <p className="mb-4">تحتاج/ين إلى توكن صالح لحجز مكالمة مجانية.</p>
-        <a href="/redeem" className="text-purple-700 font-bold underline">
-          عندي كود — أريد استبداله
-        </a>
-      </div>
-    )
-  }
+  // product comes from the server via props (no useSearchParams needed)
+  const product = initialProduct
 
-  function extractDateFromValue(value: unknown): Date | null {
-    if (value instanceof Date) return value
-    if (Array.isArray(value)) {
-      for (const v of value) if (v instanceof Date) return v
+  // Honeypot to catch bots
+  const hpRef = useRef<HTMLInputElement | null>(null)
+
+  // Simple email validator
+  const isValidEmail = (s: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
+
+  const productMissing = useMemo(() => !product, [product])
+
+  useEffect(() => {
+    // Clear messages whenever product changes
+    setMessage(null)
+    setError(null)
+  }, [product])
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (loading) return
+
+    setLoading(true)
+    setMessage(null)
+    setError(null)
+
+    try {
+      const fd = new FormData(e.currentTarget)
+      // honeypot check
+      if ((hpRef.current?.value || '').trim() !== '') {
+        throw new Error('Spam detected')
+      }
+
+      const name = String(fd.get('name') || '').trim()
+      const email = String(fd.get('email') || '').trim()
+      const country = String(fd.get('country') || '').trim()
+
+      if (!name) throw new Error('الاسم مطلوب')
+      if (!isValidEmail(email)) throw new Error('البريد الإلكتروني غير صالح')
+      if (!product) throw new Error('المنتج غير محدد')
+
+      const res = await fetch('/api/request-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, country, product }),
+      })
+
+      const data: ApiError = await res.json().catch(() => ({} as ApiError))
+
+      if (!res.ok) {
+        const msg =
+          data.error ||
+          data.message ||
+          'تعذّر الإرسال، حاول/ي مجددًا.'
+
+        if (msg.includes('Resend error') && msg.includes('only send testing emails')) {
+          setError('وضع الاختبار في Resend يسمح بإرسال الرسائل فقط إلى بريدك المسجّل في Resend. جرّب نفس بريدك أو فعّل نطاق الإرسال.')
+        } else {
+          setError(msg)
+        }
+        return
+      }
+
+      setMessage('تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. تفقد البريد الوارد/الغير هام.')
+      ;(e.currentTarget as HTMLFormElement).reset()
+    } catch (err: unknown) {
+      const errorObj = err as Error
+      setError(errorObj.message || 'تعذّر الإرسال، حاول/ي مجددًا.')
+    } finally {
+      setLoading(false)
     }
-    return null
   }
-
-  const handleDateChange: NonNullable<CalendarProps['onChange']> = (value) => {
-    const d = extractDateFromValue(value)
-    if (!d) return
-    setSelectedDate(d)
-    const iso = d.toISOString().split('T')[0]
-    router.push(`/booking?date=${iso}`)
-  }
-
-  const notes: Record<string, string> = {
-    '2025-08-28': 'Reserved',
-    '2025-08-29': 'Premium session 💫',
-    '2025-08-30': 'Group healing 🌿',
-  }
-  const unavailableDates = ['2025-08-27']
 
   return (
-    <motion.div
-      className="main-container"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: 'easeOut' }}
-    >
-      {/* Profile Image */}
-      <motion.div
-        className="mx-auto w-40 h-40 rounded-full overflow-hidden shadow-lg border-4 border-purple-300"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Image
-          src="/Meriem.webp"
-          alt="Meriem"
-          width={160}
-          height={160}
-          className="w-full h-full object-cover"
-          priority
-        />
-      </motion.div>
+    <div dir="rtl" className="max-w-xl mx-auto p-6 space-y-4">
+      <h1 className="text-2xl font-bold">تحميل المنتج</h1>
 
-      {/* Intro */}
-      <motion.section
-        className="bg-white bg-opacity-80 rounded-xl shadow-md p-6 text-center mt-4"
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-      >
-        <h1 className="text-3xl font-bold text-purple-800 mb-3">Book Your Free Call</h1>
-        <p className="text-lg leading-relaxed text-gray-700">
-          Choose a date for your free emotional balance call.
+      {productMissing ? (
+        <p className="text-sm text-red-600">
+          الصفحة تتطلب تحديد منتج. الرجاء العودة للاستاند/المتجر واختيار المنتج ثم الضغط على «تحميل».
         </p>
-      </motion.section>
+      ) : (
+        <p className="text-sm opacity-80">
+          الرجاء إدخال معلوماتك. سنرسل لك إيميل فيه رابط التحميل + كود مكالمة مجانية صالح 30 يوم.
+        </p>
+      )}
 
-      {/* Calendar */}
-      <motion.section
-        className="bg-white bg-opacity-90 rounded-xl shadow-md p-6 text-center mt-6"
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-      >
-        <h2 className="text-2xl font-semibold text-purple-700 mb-4">Pick a date</h2>
-        <div className="flex justify-center">
-          <div className="bg-white rounded-xl p-4 shadow-lg">
-            <Calendar
-              onChange={handleDateChange}
-              value={selectedDate}
-              minDate={new Date()}
-              locale="en"
-              calendarType="gregory"
-              selectRange={false}
-              allowPartialRange={false}
-              tileDisabled={({ date }) =>
-                unavailableDates.includes(date.toISOString().split('T')[0])
-              }
-              tileContent={({ date }) => {
-                const iso = date.toISOString().split('T')[0]
-                return notes[iso] ? (
-                  <div className="note-tooltip" title={notes[iso]}>
-                    🟣<div className="note-text">{notes[iso]}</div>
-                  </div>
-                ) : null
-              }}
-              tileClassName={({ date, view }) => {
-                const iso = date.toISOString().split('T')[0]
-                if (view === 'month' && notes[iso]) return 'highlight-note'
-                return ''
-              }}
+      <form onSubmit={onSubmit} className="space-y-4">
+        <input type="hidden" name="product" value={product} />
+
+        {/* Honeypot (hidden from users) – kept outside disabled fieldset */}
+        <input
+          ref={hpRef}
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          className="hidden"
+          aria-hidden="true"
+        />
+
+        <fieldset disabled={loading || productMissing} className="space-y-4">
+          <div className="space-y-1">
+            <label className="block text-sm">الإسم الكامل</label>
+            <input
+              name="name"
+              required
+              className="w-full border rounded-lg p-2"
+              placeholder="مثال: مريم بن..."
             />
           </div>
-        </div>
-      </motion.section>
-    </motion.div>
+
+          <div className="space-y-1">
+            <label className="block text.sm">البريد الإلكتروني</label>
+            <input
+              name="email"
+              type="email"
+              inputMode="email"
+              required
+              className="w-full border rounded-lg p-2"
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm">الدولة (اختياري)</label>
+            <input
+              name="country"
+              className="w-full border rounded-lg p-2"
+              placeholder="Tunisia"
+            />
+          </div>
+
+          {/* Placeholder للكابتشا */}
+          <div className="space-y-1">
+            <label className="block text-sm">التحقق (Captcha)</label>
+            <input
+              name="captcha_token"
+              className="w-full border rounded-lg p-2"
+              placeholder="(اختياري الآن)"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full rounded-xl p-3 bg-purple-600 text-white font-semibold hover:opacity-90 disabled:opacity-60"
+          >
+            {loading ? 'يرجى الإنتظار…' : 'إرسال وإستلام رابط التحميل'}
+          </button>
+        </fieldset>
+
+        {message && <p className="text-green-600">{message}</p>}
+        {error && <p className="text-red-600">{error}</p>}
+      </form>
+    </div>
   )
 }
