@@ -8,9 +8,16 @@ function generateToken(len = 10) {
   return out
 }
 
+type RequestDownloadBody = {
+  name: string
+  email: string
+  country?: string
+  product: string
+}
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
+    const body = (await req.json()) as Partial<RequestDownloadBody>
     const { name, email, country, product } = body || {}
 
     if (!email || !product || !name) {
@@ -30,7 +37,8 @@ export async function POST(req: Request) {
     const filePath = isVideo ? videoPath : bookPath
 
     // Bucket is assumed public
-    const downloadUrl = `${SUPABASE_URL.replace('.co', '.co/storage/v1/object/public')}/assets/${filePath}`
+    const downloadUrl =
+      `${SUPABASE_URL.replace('.co', '.co/storage/v1/object/public')}/assets/${filePath}`
 
     // 2) Generate call token (30-day expiry)
     const token = generateToken(10)
@@ -47,7 +55,7 @@ export async function POST(req: Request) {
       code: token,
       product_slug: product,
       expires_at,
-      is_used: false,     // 🔹 consistent column name
+      is_used: false,
     })
     if (e2) throw e2
 
@@ -72,8 +80,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
-    const error = err as Error;
-    console.error(error);
-    return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
+    const error = err as Error
+    console.error(error)
+    return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 })
   }
 }

@@ -5,13 +5,18 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import { motion } from 'motion/react' // Motion One
+import Image from 'next/image'
 
 export default function FreeCallPage() {
   const params = useSearchParams()
   const token = params.get('token')
 
+  // ✅ Always call hooks at the top-level (even if not used later)
+  const router = useRouter()
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+
   // Minimal demo gate: require a token in the URL (?token=...)
-  // For production: verify token server‑side (DB + expiry) before allowing access.
+  // For production: verify token server-side (DB + expiry) before allowing access.
   const hasAccess = useMemo(() => Boolean(token), [token])
 
   if (!hasAccess) {
@@ -25,10 +30,6 @@ export default function FreeCallPage() {
       </div>
     )
   }
-
-  // ---- Calendar UI (only if hasAccess) ----
-  const router = useRouter()
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   const handleDateChange = (value: Date | Date[] | null) => {
     if (!value || Array.isArray(value)) return
@@ -58,7 +59,14 @@ export default function FreeCallPage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <img src="/Meriem.webp" alt="Meriem" className="w-full h-full object-cover" />
+        <Image
+          src="/Meriem.webp"
+          alt="Meriem"
+          width={160}
+          height={160}
+          className="w-full h-full object-cover"
+          priority
+        />
       </motion.div>
 
       {/* Intro */}

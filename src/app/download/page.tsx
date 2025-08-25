@@ -60,7 +60,7 @@ export default function DownloadPage() {
 
       if (!res.ok) {
         // Try to surface a friendly error if it came from Resend test mode
-        const msg: string =
+        const msg =
           data.error ||
           data.message ||
           'تعذّر الإرسال، حاول/ي مجددًا.'
