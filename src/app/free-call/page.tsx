@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Calendar from 'react-calendar'
+import type { CalendarProps } from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import { motion } from 'motion/react' // Motion One
 import Image from 'next/image'
@@ -11,12 +12,11 @@ export default function FreeCallPage() {
   const params = useSearchParams()
   const token = params.get('token')
 
-  // ✅ Always call hooks at the top-level (even if not used later)
+  // ✅ Hooks at top-level
   const router = useRouter()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   // Minimal demo gate: require a token in the URL (?token=...)
-  // For production: verify token server-side (DB + expiry) before allowing access.
   const hasAccess = useMemo(() => Boolean(token), [token])
 
   if (!hasAccess) {
@@ -31,10 +31,24 @@ export default function FreeCallPage() {
     )
   }
 
-  const handleDateChange = (value: Date | Date[] | null) => {
-    if (!value || Array.isArray(value)) return
-    setSelectedDate(value)
-    const iso = value.toISOString().split('T')[0]
+  // Helper to normalize react-calendar's Value to a single Date
+  function extractDateFromValue(value: unknown): Date | null {
+    if (value instanceof Date) return value
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        if (v instanceof Date) return v
+        // v may be null in ranges; skip nulls safely
+      }
+    }
+    return null
+  }
+
+  // ✅ Type-safe onChange (matches react-calendar signature)
+  const handleDateChange: NonNullable<CalendarProps['onChange']> = (value) => {
+    const d = extractDateFromValue(value)
+    if (!d) return
+    setSelectedDate(d)
+    const iso = d.toISOString().split('T')[0]
     router.push(`/booking?date=${iso}`)
   }
 
@@ -100,6 +114,8 @@ export default function FreeCallPage() {
               minDate={new Date()}
               locale="en"
               calendarType="gregory"
+              selectRange={false}      // clarify intent: single date
+              allowPartialRange={false}
               tileDisabled={({ date }) =>
                 unavailableDates.includes(date.toISOString().split('T')[0])
               }
