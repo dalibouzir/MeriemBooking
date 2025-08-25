@@ -54,9 +54,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, token, email: row.email })
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err as Error;
     return NextResponse.json(
-      { error: err.message ?? 'Server error' },
+      { error: error.message ?? 'Server error' },
       { status: 500 }
     )
   }

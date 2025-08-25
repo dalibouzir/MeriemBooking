@@ -71,8 +71,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true })
-  } catch (err: any) {
-    console.error(err)
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 })
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error(error);
+    return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }
 }

@@ -3,6 +3,8 @@
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+type ApiError = { error?: string; message?: string }
+
 export default function DownloadPage() {
   const sp = useSearchParams()
   const product = sp.get('product') || ''
@@ -15,7 +17,7 @@ export default function DownloadPage() {
   const hpRef = useRef<HTMLInputElement | null>(null)
 
   // Simple email validator
-  const isValidEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
+  const isValidEmail = (s: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
 
   const productMissing = useMemo(() => !product, [product])
 
@@ -54,17 +56,17 @@ export default function DownloadPage() {
         body: JSON.stringify({ name, email, country, product }),
       })
 
-      const data = await res.json().catch(() => ({}))
+      const data: ApiError = await res.json().catch(() => ({} as ApiError))
 
       if (!res.ok) {
         // Try to surface a friendly error if it came from Resend test mode
         const msg: string =
-          data?.error ||
-          data?.message ||
+          data.error ||
+          data.message ||
           'تعذّر الإرسال، حاول/ي مجددًا.'
 
         // Extra hint for Resend testing restriction
-        if (typeof msg === 'string' && msg.includes('Resend error') && msg.includes('only send testing emails')) {
+        if (msg.includes('Resend error') && msg.includes('only send testing emails')) {
           setError('وضع الاختبار في Resend يسمح بإرسال الرسائل فقط إلى بريدك المسجّل في Resend. جرّب نفس بريدك أو فعّل نطاق الإرسال.')
         } else {
           setError(msg)
@@ -74,8 +76,9 @@ export default function DownloadPage() {
 
       setMessage('تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. تفقد البريد الوارد/الغير هام.')
       ;(e.currentTarget as HTMLFormElement).reset()
-    } catch (err: any) {
-      setError(err?.message || 'تعذّر الإرسال، حاول/ي مجددًا.')
+    } catch (err: unknown) {
+      const errorObj = err as Error
+      setError(errorObj.message || 'تعذّر الإرسال، حاول/ي مجددًا.')
     } finally {
       setLoading(false)
     }
@@ -95,10 +98,11 @@ export default function DownloadPage() {
         </p>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-4" aria-disabled={loading}>
+      {/* Removed aria-disabled warning by using fieldset */}
+      <form onSubmit={onSubmit} className="space-y-4">
         <input type="hidden" name="product" value={product} />
 
-        {/* Honeypot (hidden from users) */}
+        {/* Honeypot (hidden from users) – kept outside disabled fieldset */}
         <input
           ref={hpRef}
           name="website"
@@ -108,58 +112,55 @@ export default function DownloadPage() {
           aria-hidden="true"
         />
 
-        <div className="space-y-1">
-          <label className="block text-sm">الإسم الكامل</label>
-          <input
-            name="name"
-            required
-            className="w-full border rounded-lg p-2"
-            placeholder="مثال: مريم بن..."
-            disabled={loading || productMissing}
-          />
-        </div>
+        <fieldset disabled={loading || productMissing} className="space-y-4">
+          <div className="space-y-1">
+            <label className="block text-sm">الإسم الكامل</label>
+            <input
+              name="name"
+              required
+              className="w-full border rounded-lg p-2"
+              placeholder="مثال: مريم بن..."
+            />
+          </div>
 
-        <div className="space-y-1">
-          <label className="block text-sm">البريد الإلكتروني</label>
-          <input
-            name="email"
-            type="email"
-            inputMode="email"
-            required
-            className="w-full border rounded-lg p-2"
-            placeholder="you@example.com"
-            disabled={loading || productMissing}
-          />
-        </div>
+          <div className="space-y-1">
+            <label className="block text-sm">البريد الإلكتروني</label>
+            <input
+              name="email"
+              type="email"
+              inputMode="email"
+              required
+              className="w-full border rounded-lg p-2"
+              placeholder="you@example.com"
+            />
+          </div>
 
-        <div className="space-y-1">
-          <label className="block text-sm">الدولة (اختياري)</label>
-          <input
-            name="country"
-            className="w-full border rounded-lg p-2"
-            placeholder="Tunisia"
-            disabled={loading || productMissing}
-          />
-        </div>
+          <div className="space-y-1">
+            <label className="block text-sm">الدولة (اختياري)</label>
+            <input
+              name="country"
+              className="w-full border rounded-lg p-2"
+              placeholder="Tunisia"
+            />
+          </div>
 
-        {/* Placeholder للكابتشا */}
-        <div className="space-y-1">
-          <label className="block text-sm">التحقق (Captcha)</label>
-          <input
-            name="captcha_token"
-            className="w-full border rounded-lg p-2"
-            placeholder="(اختياري الآن)"
-            disabled={loading || productMissing}
-          />
-        </div>
+          {/* Placeholder للكابتشا */}
+          <div className="space-y-1">
+            <label className="block text-sm">التحقق (Captcha)</label>
+            <input
+              name="captcha_token"
+              className="w-full border rounded-lg p-2"
+              placeholder="(اختياري الآن)"
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading || productMissing}
-          className="w-full rounded-xl p-3 bg-purple-600 text-white font-semibold hover:opacity-90 disabled:opacity-60"
-        >
-          {loading ? 'يرجى الإنتظار…' : 'إرسال وإستلام رابط التحميل'}
-        </button>
+          <button
+            type="submit"
+            className="w-full rounded-xl p-3 bg-purple-600 text-white font-semibold hover:opacity-90 disabled:opacity-60"
+          >
+            {loading ? 'يرجى الإنتظار…' : 'إرسال وإستلام رابط التحميل'}
+          </button>
+        </fieldset>
 
         {message && <p className="text-green-600">{message}</p>}
         {error && <p className="text-red-600">{error}</p>}
