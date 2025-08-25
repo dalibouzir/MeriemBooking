@@ -11,6 +11,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
 
   const product = initialProduct
   const hpRef = useRef<HTMLInputElement | null>(null)
+
   const isValidEmail = (s: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
   const productMissing = useMemo(() => !product, [product])
 
@@ -43,13 +44,16 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, country, product }),
       })
+
       const data: ApiError = await res.json().catch(() => ({} as ApiError))
 
       if (!res.ok) {
         const msg = data.error || data.message || 'تعذّر الإرسال، حاول/ي مجددًا.'
         if (msg.includes('Resend error') && msg.includes('only send testing emails')) {
           setError('وضع الاختبار في Resend يسمح بإرسال الرسائل فقط إلى بريدك المسجّل في Resend. جرّب نفس بريدك أو فعّل نطاق الإرسال.')
-        } else setError(msg)
+        } else {
+          setError(msg)
+        }
         return
       }
 

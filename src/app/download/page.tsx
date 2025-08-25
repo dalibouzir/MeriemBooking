@@ -1,24 +1,17 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-import FreeCallClient from './FreeCallClient';
+import DownloadClient from './DownloadClient';
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
 export default async function Page({
   searchParams,
 }: {
-  // Next 15 sometimes types this as a Promise
+  // Next 15 sometimes provides this as a Promise; accept and await it.
   searchParams?: Promise<SearchParams>;
 }) {
   const sp = (await searchParams) ?? {};
-  // accept ?token=... or ?code=...
-  const token =
-    typeof sp.token === 'string'
-      ? sp.token
-      : typeof sp.code === 'string'
-      ? sp.code
-      : '';
-
-  return <FreeCallClient initialToken={token} />;
+  const product = typeof sp.product === 'string' ? sp.product : '';
+  return <DownloadClient initialProduct={product} />;
 }
