@@ -56,7 +56,6 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: 'easeOut' }}
     >
-      {/* Profile Image */}
       <motion.div
         className="mx-auto w-40 h-40 rounded-full overflow-hidden shadow-lg border-4 border-purple-300"
         initial={{ opacity: 0, scale: 0.9 }}
@@ -73,7 +72,6 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
         />
       </motion.div>
 
-      {/* Intro */}
       <motion.section
         className="bg-white bg-opacity-80 rounded-xl shadow-md p-6 text-center mt-4"
         initial={{ opacity: 0, y: 40 }}
@@ -87,7 +85,6 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
         </p>
       </motion.section>
 
-      {/* Calendar */}
       <motion.section
         className="bg-white bg-opacity-90 rounded-xl shadow-md p-6 text-center mt-6"
         initial={{ opacity: 0, y: 40 }}
