@@ -1,17 +1,16 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 type ApiError = { error?: string; message?: string }
 
-export default function DownloadClient() {
-  const sp = useSearchParams()
-  const product = sp.get('product') || ''
-
+export default function DownloadClient({ initialProduct = '' }: { initialProduct?: string }) {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // product comes from the server via props (no useSearchParams needed)
+  const product = initialProduct
 
   // Honeypot to catch bots
   const hpRef = useRef<HTMLInputElement | null>(null)
@@ -96,7 +95,6 @@ export default function DownloadClient() {
         </p>
       )}
 
-      {/* Suspense fix is applied at the page wrapper; no aria-disabled warning here */}
       <form onSubmit={onSubmit} className="space-y-4">
         <input type="hidden" name="product" value={product} />
 
