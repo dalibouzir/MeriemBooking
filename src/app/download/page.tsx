@@ -3,12 +3,15 @@ export const revalidate = 0;
 
 import DownloadClient from './DownloadClient';
 
-type PageProps = {
-  searchParams?: Record<string, string | string[] | undefined>;
-};
+type SearchParams = Record<string, string | string[] | undefined>;
 
-export default function Page({ searchParams }: PageProps) {
-  const product =
-    typeof searchParams?.product === 'string' ? searchParams.product : '';
+export default async function Page({
+  searchParams,
+}: {
+  // Next 15 can type this as a Promise; accept that and await it.
+  searchParams?: Promise<SearchParams>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const product = typeof sp.product === 'string' ? sp.product : '';
   return <DownloadClient initialProduct={product} />;
 }
