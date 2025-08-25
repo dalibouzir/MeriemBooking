@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
-// Vercel/Next-friendly: no direct Deno type refs, no `jsr:` imports.
-// Supabase Edge (Deno) will still find `globalThis.Deno` at runtime.
+// Vercel-friendly: no Deno triple-slash refs, no `jsr:` imports.
+// Supabase Edge (Deno) will still find globalThis.Deno at runtime.
 
 // ====== CONFIG ======
 type DenoEnv = { env: { get(name: string): string | undefined } }
@@ -128,13 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
       Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      from: FROM,
-      to: [email],
-      subject,
-      html,
-      text,
-    }),
+    body: JSON.stringify({ from: FROM, to: [email], subject, html, text }),
   })
 
   if (!r.ok) {
@@ -145,16 +139,14 @@ const handler = async (req: Request): Promise<Response> => {
   return json({ ok: true }, 200)
 }
 
-// Use Deno.serve if available (Supabase Edge)
+// Use Deno.serve if available (Supabase Edge); otherwise, keep inert in Vercel.
 const maybeServe = DENO?.serve
 if (typeof maybeServe === "function") {
   maybeServe(handler)
 } else if (typeof addEventListener !== "undefined") {
-  // Fallback for environments exposing a fetch event (keeps file inert on Vercel/Next)
   addEventListener("fetch", (event: any) => {
     event.respondWith(handler(event.request))
   })
 }
 
-// Optional: export for test environments (never used by Vercel/Next)
 export default handler
