@@ -35,7 +35,7 @@ export default function RedeemPage() {
       } else {
         setError('تم التأكيد لكن لم نستلم رمز الموعد.')
       }
-    } catch (e) {
+    } catch {
       setError('حدث خطأ غير متوقع. حاول/ي مجددًا.')
     } finally {
       setLoading(false)

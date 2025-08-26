@@ -7,6 +7,7 @@ import type { CalendarProps } from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import { motion } from 'motion/react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function FreeCallClient({ initialToken = '' }: { initialToken?: string }) {
   const router = useRouter()
@@ -27,11 +28,11 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
                 هذه الصفحة محمية برمز (توكن) صالح لحجز مكالمة مجانية مع مريم.
               </p>
             </header>
-  
+
             <div className="alert alert-danger" role="alert" aria-live="polite" style={{ marginBottom: 14 }}>
               🚫 لا يوجد توكن مرفق. يلزم إدخال/استبدال كود صالح للمتابعة.
             </div>
-  
+
             {/* لماذا ظهرت لك هذه الرسالة؟ */}
             <section style={{ marginBottom: 12 }}>
               <h2 style={{ fontSize: '1.05rem', margin: '0 0 6px', fontWeight: 800 }}>لماذا تظهر هذه الرسالة؟</h2>
@@ -40,7 +41,7 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
                 <li>دخلتِ للصفحة مباشرة بدون المرور بعملية التحميل التي تُرسل الكود.</li>
               </ul>
             </section>
-  
+
             {/* كيف أحصل على الكود؟ */}
             <section style={{ marginBottom: 14 }}>
               <h2 style={{ fontSize: '1.05rem', margin: '0 0 6px', fontWeight: 800 }}>كيف أحصل على الكود؟</h2>
@@ -50,17 +51,17 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
                 <li>إن كان البريد غير ظاهر، تفقدي مجلد <em>الرسائل غير الهامة/Spam</em>.</li>
               </ul>
             </section>
-  
+
             {/* إجراءات سريعة */}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <a href="/redeem" className="btn btn-primary" aria-label="الانتقال إلى صفحة استبدال الكود">
+              <Link href="/redeem" className="btn btn-primary" aria-label="الانتقال إلى صفحة استبدال الكود">
                 عندي كود — أريد استبداله
-              </a>
-              <a href="/" className="btn btn-outline" aria-label="الرجوع إلى المتجر لاختيار منتج">
+              </Link>
+              <Link href="/" className="btn btn-outline" aria-label="الرجوع إلى المتجر لاختيار منتج">
                 الرجوع للمتجر
-              </a>
+              </Link>
             </div>
-  
+
             {/* تلميحات صغيرة تبعث على الطمأنينة */}
             <p style={{ marginTop: 12, textAlign: 'center', color: '#6b7280', fontSize: '.95rem' }}>
               🔒 نستخدم بريدك فقط لإرسال رابط التنزيل والرمز — لا رسائل مزعجة.
@@ -70,7 +71,6 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
       </section>
     )
   }
-  
 
   // ========== Helpers ==========
   function extractDateFromValue(value: unknown): Date | null {

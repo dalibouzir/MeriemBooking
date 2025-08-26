@@ -80,6 +80,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
 
       <form id="dl-form" onSubmit={onSubmit} className="dl-form" noValidate>
         <input type="hidden" name="product" value={product} />
+        {/* Honeypot */}
         <input ref={hpRef} name="website" tabIndex={-1} autoComplete="off" className="dl-hp" />
 
         <input name="name" required className="dl-input" placeholder="الإسم الكامل" />
@@ -93,16 +94,13 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
 
         {!productMissing && (
           <p style={{ fontSize: '0.9rem', color: '#555', marginTop: '0.75rem' }}>
-            ⚠️ تذكير: قد يظهر البريد أحيانًا في مجلد "Spam" أو "Promotions"، يرجى التحقق هناك إذا لم يصلك في غضون دقائق.
+            ⚠️ تذكير: قد يظهر البريد أحيانًا في مجلد &quot;Spam&quot; أو &quot;Promotions&quot;، يرجى التحقق هناك إذا لم يصلك في غضون دقائق.
           </p>
         )}
       </form>
 
-      {message && <p className="dl-alert dl-alert-success">{message}</p>}
-      {error && <p className="dl-alert dl-alert-danger">{error}</p>}
-
       <style jsx global>{`
-        /* CSS يمكن إضافته لاحقاً هنا */
+        /* place your .dl-* CSS here (or import an external stylesheet) */
       `}</style>
     </section>
   )
