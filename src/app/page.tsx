@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'motion/react'
 
-type Product = {
+type منتج = {
   id: string
   type: 'كتاب' | 'فيديو'
   title: string
@@ -13,75 +13,89 @@ type Product = {
   reviews: number
   slug: string
   snippet?: string
+  price?: number
+  format?: string
+  level?: string
 }
 
-const products: Product[] = [
+/** كتاب واحد فقط */
+const المنتجات: منتج[] = [
   {
     id: 'p1',
     type: 'كتاب',
     title: 'دفتر الاتزان العاطفي',
     description:
-      'تمارين عملية لتهدئة الجهاز العصبي وبناء حدود صحية بلغة بسيطة للأمهات.',
-    cover: '/covers/book-balance.webp',
+      'تمارين عملية لتهدئة الجهاز العصبي وبناء حدود صحية بلغة لطيفة للأمهات.',
+    cover: '/book_cover.webp', // ← file in /public
     rating: 4.9,
     reviews: 128,
     slug: 'emotional-balance-workbook',
-    snippet:
-      'هذا الدفتر يعلمك كيف تقولين «لا» بحب، وتسترجعين هدوءك في 10 دقائق يوميًا.',
-  },
-  {
-    id: 'p2',
-    type: 'فيديو',
-    title: 'تهدئة الناقد الداخلي (ماستر كلاس)',
-    description:
-      'فيديو تطبيقي خطوة بخطوة لتليين النقد الذاتي وبناء ثقة بالنفس قابلة للتطبيق.',
-    cover: '/covers/video-inner-critic.webp',
-    rating: 4.8,
-    reviews: 96,
-    slug: 'heal-inner-critic-masterclass',
-  },
-  {
-    id: 'p3',
-    type: 'كتاب',
-    title: 'الحدود للأمهات',
-    description:
-      'جُمل جاهزة وتمارين قصيرة لتحديد الحدود بدون شعور بالذنب وحماية طاقتك.',
-    cover: '/covers/book-boundaries.webp',
-    rating: 4.7,
-    reviews: 83,
-    slug: 'boundaries-for-moms',
-    snippet:
-      'مقتطف: «أنا أحبك، وبنفس الوقت أحتاج 15 دقيقة راحة، نكمل بعدهم».',
+    snippet: 'يُعينك كيف تقولين «لا» بحب، وتسترجعين هدوءك في 10 دقائق يوميًا.',
+    price: 29,
+    format: 'PDF',
+    level: 'مبتدئ',
   },
 ]
 
-export default function StorefrontPage() {
+export default function الصفحة_الرئيسية() {
   return (
     <div id="storefront" dir="rtl" lang="ar" className="sf-wrapper">
-      {/* Hero */}
+      {/* ░ بطاقة ترحيبية (عنوان + دعوة للفعل) ░ */}
       <section className="sf-hero">
-        <h1 className="sf-title">كتب وفيديوهات من مريم</h1>
-        <p className="sf-subtitle">
-          عند تنزيل أي منتج، تتحصل/ين على <span className="sf-bold">توكن مجاني</span> لحجز مكالمة 1:1.
-        </p>
-        <div className="sf-hero-actions">
-          <Link href="/free-call" className="sf-cta">
-            عندي توكن — نحب نحجز المكالمة
-          </Link>
+        <div className="hero-card">
+          <h1 className="sf-title">كتب وفيديوهات من مريم</h1>
+          <p className="sf-subtitle">
+            عند تنزيل أي منتج، تتحصل/ين على <span className="sf-bold">رمز مجاني</span> لحجز مكالمة 1:1 شخصية.
+          </p>
+          <div className="sf-hero-actions">
+            <Link href="/free-call" className="sf-cta" aria-label="الانتقال إلى حجز مكالمة فردية">
+              عندي رمز — أريد الحجز الآن
+            </Link>
+          </div>
+        </div>
+
+        {/* ░ كتل معلومات موجزة ░ */}
+        <div className="info-grid">
+          <div className="info-block">
+            <div className="info-icon" aria-hidden>📕</div>
+            <div className="info-title">تحميل مباشر</div>
+            <p className="info-text">احصلي على كُتيّب عملي يهدّئ التوتر ويُرسّخ الحدود الصحية.</p>
+          </div>
+          <div className="info-block">
+            <div className="info-icon" aria-hidden>🎟️</div>
+            <div className="info-title">هدية رمز</div>
+            <p className="info-text">بعد إدخال بياناتك يصل رمز مكالمة مجانية إلى بريدك الإلكتروني.</p>
+          </div>
+          <div className="info-block">
+            <div className="info-icon" aria-hidden>📞</div>
+            <div className="info-title">مكالمة 1:1</div>
+            <p className="info-text">استخدمي الرمز لحجز جلسة مركّزة تُناسب وضعك وحاجتك.</p>
+          </div>
         </div>
       </section>
 
-      {/* Grid */}
+      {/* ░ شبكة المنتجات (بطاقة واحدة محسّنة) ░ */}
       <section className="sf-grid">
-        {products.map((p) => (
+        {المنتجات.map((p) => (
           <motion.article
             key={p.id}
             className="sf-card"
-            whileHover={{ y: -6 }}
-            transition={{ type: 'spring', stiffness: 250, damping: 20 }}
+            whileHover={{ y: -8, scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 250, damping: 22 }}
           >
+            {/* ريبون أعلى البطاقة */}
+            <div className="sf-ribbon" aria-hidden>الأكثر طلبًا</div>
+
             <div className="sf-media">
-              <img src={p.cover} alt={p.title} className="sf-img" />
+              {/* عناصر تجميلية للغلاف */}
+              <div className="sf-book-spine" aria-hidden />
+              <img
+                src={p.cover}
+                alt={p.title}
+                className="sf-img"
+                loading="lazy"
+              />
+              <div className="sf-overlay" aria-hidden />
               <span className={`sf-badge ${p.type === 'فيديو' ? 'sf-badge-video' : 'sf-badge-book'}`}>
                 {p.type}
               </span>
@@ -89,13 +103,16 @@ export default function StorefrontPage() {
 
             <div className="sf-body">
               <div className="sf-meta">
-                <span className="sf-reviews">
-                  ⭐ {p.rating.toFixed(1)} · {p.reviews} مراجعة
-                </span>
+                <span className="sf-reviews">⭐ {p.rating.toFixed(1)} · {p.reviews} مراجعة</span>
+
+                {/* شرائط سريعة */}
+                <div className="sf-pills">
+                  {p.format && <span className="sf-pill">{p.format}</span>}
+                  {p.level && <span className="sf-pill">{p.level}</span>}
+                </div>
               </div>
 
               <h2 className="sf-card-title">{p.title}</h2>
-
               <p className="sf-desc clamp-2">{p.description}</p>
 
               {p.type === 'كتاب' && p.snippet && (
@@ -105,17 +122,47 @@ export default function StorefrontPage() {
                 </div>
               )}
 
-              {p.type === 'فيديو' && (
-                <p className="sf-video-note">🎬 فيديو تطبيقي + ملف مرفق للنوتس.</p>
+              {/* نقاط مختصرة للفائدة */}
+              <ul className="sf-bullets" aria-label="فوائد مختصرة">
+                <li>خطوات عملية واضحة</li>
+                <li>تمارين قصيرة تشتغل</li>
+                <li>قوالب جاهزة للحدود</li>
+              </ul>
+
+              {/* السعر */}
+              {typeof p.price === 'number' && (
+                <div className="sf-price-block">
+                  <div className="sf-price">
+                    <span className="sf-price-number">{p.price}</span>
+                    <span className="sf-price-currency">د.ت</span>
+                  </div>
+                  <div className="sf-price-note">يشمل رمز مكالمة مجانية</div>
+                </div>
               )}
 
+              {/* أزرار الإجراء */}
               <div className="sf-actions">
-                <Link href={`/download?product=${p.slug}`} className="sf-btn sf-btn-primary">
+                <Link
+                  href={`/download?product=${p.slug}`}
+                  className="sf-btn sf-btn-primary"
+                  aria-label={`تحميل ${p.title}`}
+                >
                   تحميل
+                </Link>
+                <Link
+                  href={`/preview/${p.slug}`}
+                  className="sf-btn sf-btn-outline"
+                  aria-label={`معاينة ${p.title}`}
+                >
+                  معاينة
                 </Link>
               </div>
 
-              <p className="sf-bonus">🎁 بعد إدخال معلوماتك يصلك الإيميل: رابط التنزيل + كود مكالمة مجانية.</p>
+              {/* صفّ طمأنة */}
+              <div className="sf-trust-row" aria-hidden>
+                <span>⚡ تحميل فوري</span>
+                <span>🔒 بياناتك آمنة</span>
+              </div>
             </div>
           </motion.article>
         ))}

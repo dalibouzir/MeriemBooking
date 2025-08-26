@@ -49,15 +49,11 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
 
       if (!res.ok) {
         const msg = data.error || data.message || 'تعذّر الإرسال، حاول/ي مجددًا.'
-        if (msg.includes('Resend error') && msg.includes('only send testing emails')) {
-          setError('وضع الاختبار في Resend يسمح بإرسال الرسائل فقط إلى بريدك المسجّل في Resend. جرّب نفس بريدك أو فعّل نطاق الإرسال.')
-        } else {
-          setError(msg)
-        }
+        setError(msg)
         return
       }
 
-      setMessage('تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. تفقد البريد الوارد/الغير هام.')
+      setMessage('📩 تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. تفقد البريد الوارد/الغير هام.')
       ;(e.currentTarget as HTMLFormElement).reset()
     } catch (err: unknown) {
       const errorObj = err as Error
@@ -68,61 +64,46 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   }
 
   return (
-    <div dir="rtl" className="max-w-xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-bold">تحميل المنتج</h1>
+    <section dir="rtl" className="dl-section">
+      <h1 className="dl-title">تحميل المنتج</h1>
 
       {productMissing ? (
-        <p className="text-sm text-red-600">
-          الصفحة تتطلب تحديد منتج. الرجاء العودة للاستاند/المتجر واختيار المنتج ثم الضغط على «تحميل».
+        <p className="dl-warn">
+          الصفحة تتطلب تحديد منتج. الرجاء العودة للمتجر واختيار المنتج ثم الضغط على «تحميل».
         </p>
       ) : (
-        <p className="text-sm opacity-80">
-          الرجاء إدخال معلوماتك. سنرسل لك إيميل فيه رابط التحميل + كود مكالمة مجانية صالح 30 يوم.
+        <p className="dl-sub">
+          الرجاء إدخال معلوماتك أدناه. فور الإرسال ستصلك رسالة تأكيد تحتوي على:
+          <br />- 🔗 رابط مباشر لتحميل المنتج<br />- 🎁 كود مكالمة مجانية صالح لمدة 30 يوم
         </p>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form id="dl-form" onSubmit={onSubmit} className="dl-form" noValidate>
         <input type="hidden" name="product" value={product} />
+        <input ref={hpRef} name="website" tabIndex={-1} autoComplete="off" className="dl-hp" />
 
-        {/* Honeypot */}
-        <input
-          ref={hpRef}
-          name="website"
-          tabIndex={-1}
-          autoComplete="off"
-          className="hidden"
-          aria-hidden="true"
-        />
+        <input name="name" required className="dl-input" placeholder="الإسم الكامل" />
+        <input name="email" type="email" inputMode="email" required className="dl-input" placeholder="البريد الإلكتروني" />
+        <input name="country" className="dl-input" placeholder="الدولة (اختياري)" />
+        <input name="captcha_token" className="dl-input" placeholder="التحقق (اختياري)" />
 
-        <fieldset disabled={loading || productMissing} className="space-y-4">
-          <div className="space-y-1">
-            <label className="block text-sm">الإسم الكامل</label>
-            <input name="name" required className="w-full border rounded-lg p-2" placeholder="مثال: مريم بن..." />
-          </div>
+        <button type="submit" className="dl-btn" disabled={loading || productMissing}>
+          {loading ? '⏳ يرجى الإنتظار…' : 'إرسال واستلام رابط التحميل'}
+        </button>
 
-          <div className="space-y-1">
-            <label className="block text-sm">البريد الإلكتروني</label>
-            <input name="email" type="email" inputMode="email" required className="w-full border rounded-lg p-2" placeholder="you@example.com" />
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-sm">الدولة (اختياري)</label>
-            <input name="country" className="w-full border rounded-lg p-2" placeholder="Tunisia" />
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-sm">التحقق (Captcha)</label>
-            <input name="captcha_token" className="w-full border rounded-lg p-2" placeholder="(اختياري الآن)" />
-          </div>
-
-          <button type="submit" className="w-full rounded-xl p-3 bg-purple-600 text-white font-semibold hover:opacity-90 disabled:opacity-60">
-            {loading ? 'يرجى الإنتظار…' : 'إرسال وإستلام رابط التحميل'}
-          </button>
-        </fieldset>
-
-        {message && <p className="text-green-600">{message}</p>}
-        {error && <p className="text-red-600">{error}</p>}
+        {!productMissing && (
+          <p style={{ fontSize: '0.9rem', color: '#555', marginTop: '0.75rem' }}>
+            ⚠️ تذكير: قد يظهر البريد أحيانًا في مجلد "Spam" أو "Promotions"، يرجى التحقق هناك إذا لم يصلك في غضون دقائق.
+          </p>
+        )}
       </form>
-    </div>
+
+      {message && <p className="dl-alert dl-alert-success">{message}</p>}
+      {error && <p className="dl-alert dl-alert-danger">{error}</p>}
+
+      <style jsx global>{`
+        /* CSS يمكن إضافته لاحقاً هنا */
+      `}</style>
+    </section>
   )
 }

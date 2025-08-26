@@ -9,50 +9,107 @@ export default function RedeemPage() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  const redeem = async () => {
+  async function redeem() {
+    if (!code.trim()) return
     setLoading(true)
     setError(null)
 
-    const res = await fetch('/api/call/redeem', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    })
+    try {
+      // Normalize: trim + UPPERCASE (keeps dashes if user typed them)
+      const payload = { code: code.trim().toUpperCase() }
 
-    const data = await res.json()
-    setLoading(false)
+      const res = await fetch('/api/call/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
 
-    if (!res.ok) {
-      setError(data.error || 'Redeem failed')
-      return
-    }
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(data?.error || 'تعذّر تأكيد الكود. يرجى المحاولة من جديد.')
+        return
+      }
 
-    // Redirect to free call page with token
-    if (data.token) {
-      router.push(`/free-call?token=${data.token}`)
+      if (data?.token) {
+        router.push(`/free-call?token=${encodeURIComponent(data.token)}`)
+      } else {
+        setError('تم التأكيد لكن لم نستلم رمز الموعد.')
+      }
+    } catch (e) {
+      setError('حدث خطأ غير متوقع. حاول/ي مجددًا.')
+    } finally {
+      setLoading(false)
     }
   }
 
+  async function handlePaste() {
+    try {
+      const t = await navigator.clipboard.readText()
+      if (t) setCode(t.trim().toUpperCase())
+    } catch {
+      // clipboard might be blocked — ignore quietly
+    }
+  }
+
+  function clearCode() {
+    setCode('')
+    setError(null)
+  }
+
   return (
-    <div dir="rtl" className="max-w-md mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">استبدال الكود</h1>
+    <section id="redeem" dir="rtl" className="rd-section">
+      <div className="rd-card">
+        <h1 className="rd-title">استبدال الكود</h1>
+        <p className="rd-sub">أدخل/ي الكود الذي وصلك عبر البريد الإلكتروني للحصول على موعد المكالمة المجانية.</p>
 
-      <input
-        className="w-full border rounded p-2 mb-4"
-        placeholder="أدخل الكود هنا"
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-      />
+        <form
+          className="rd-form"
+          onSubmit={(e) => { e.preventDefault(); redeem() }}
+          noValidate
+        >
+          <div className="rd-field">
+            <label htmlFor="code" className="rd-label">الكود</label>
+            <span className="rd-input-icon" aria-hidden>🎟️</span>
+            <input
+              id="code"
+              name="code"
+              autoFocus
+              inputMode="text"
+              autoComplete="one-time-code"
+              className="rd-input"
+              placeholder="مثال: XXXX-XXXX"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              aria-invalid={!!error}
+            />
 
-      <button
-        onClick={redeem}
-        disabled={loading || !code}
-        className="w-full bg-purple-700 text-white rounded p-2 font-bold disabled:opacity-50"
-      >
-        {loading ? '...يرجى الانتظار' : 'تأكيد الكود'}
-      </button>
+            <div className="rd-field-tools">
+              <button type="button" className="rd-tool" onClick={handlePaste} title="لصق">لصق</button>
+              {code && (
+                <button type="button" className="rd-tool" onClick={clearCode} title="مسح">مسح</button>
+              )}
+            </div>
+          </div>
 
-      {error && <p className="text-red-600 mt-3">{error}</p>}
-    </div>
+          {error && (
+            <p className="rd-alert rd-alert-danger" role="alert">
+              {error}
+            </p>
+          )}
+
+          <div className="rd-actions">
+            <button
+              type="submit"
+              className={`rd-btn ${loading ? 'is-loading' : ''}`}
+              disabled={loading || !code.trim()}
+            >
+              {loading ? '...يرجى الانتظار' : 'تأكيد الكود'}
+            </button>
+          </div>
+
+          <p className="rd-tip">نحوّل أحرف الكود تلقائيًا إلى أحرف كبيرة لتجنّب الالتباس.</p>
+        </form>
+      </div>
+    </section>
   )
 }
