@@ -142,7 +142,12 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
                 if (!d) return
                 setSelectedDate(d)
                 const iso = d.toISOString().split('T')[0]
-                try { await fetchFree(iso) } catch (e:any) { alert(e.message || 'خطأ') }
+                try {
+                  await fetchFree(iso)
+                } catch (e: unknown) {             // ✅ safe type
+                  const msg = e instanceof Error ? e.message : 'خطأ'
+                  alert(msg)
+                }                            
               }}
               value={selectedDate}
               minDate={new Date()}
