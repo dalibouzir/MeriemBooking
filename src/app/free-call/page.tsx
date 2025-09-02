@@ -1,24 +1,22 @@
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import FreeCallClient from './FreeCallClient'
 
-import FreeCallClient from './FreeCallClient';
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-type SearchParams = Record<string, string | string[] | undefined>;
+type SearchParams = Record<string, string | string[] | undefined>
 
 export default async function Page({
   searchParams,
 }: {
-  // Next 15 may pass this as a Promise; accept & await it.
-  searchParams?: Promise<SearchParams>;
+  searchParams?: Promise<SearchParams>
 }) {
-  const sp = (await searchParams) ?? {};
-  // accept ?token=... or ?code=...
+  const sp = (await searchParams) ?? {}
   const token =
     typeof sp.token === 'string'
       ? sp.token
       : typeof sp.code === 'string'
       ? sp.code
-      : '';
+      : ''
 
-  return <FreeCallClient initialToken={token} />;
+  return <FreeCallClient initialToken={token} />
 }

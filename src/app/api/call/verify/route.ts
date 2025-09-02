@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   if (!token) return NextResponse.json({ valid: false, error: 'Missing token' }, { status: 400 })
 
   const { data: row, error } = await supabaseAdmin
-    .from('gift_tokens')
+    .from('call_tokens')
     .select('email, access_expires_at, redeemed_at')
     .eq('access_token', token)
     .single()

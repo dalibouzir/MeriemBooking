@@ -20,6 +20,8 @@ export const supabaseAdmin = createClient(url, serviceKey, {
     persistSession: false,
   },
 })
+console.log('Supabase URL loaded:', url)
+console.log('Service Role key loaded:', serviceKey ? '✔️ yes' : '❌ missing')
 
 // 🔍 Debug logging (remove later)
 console.log('Supabase URL loaded:', url)

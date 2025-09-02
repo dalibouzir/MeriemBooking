@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
   // 1) Find the code (unused) for this email
   const { data: rows, error } = await supabaseAdmin
-    .from('gift_tokens')
+    .from('call_tokens')
     .select('*')
     .eq('code', code)
     .eq('email', email)
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
   // 2) Mark the code as used
   const id = rows[0].id
-  await supabaseAdmin.from('gift_tokens')
+  await supabaseAdmin.from('call_tokens')
     .update({ is_used: true, used_at: new Date().toISOString() })
     .eq('id', id)
 

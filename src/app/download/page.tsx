@@ -8,7 +8,7 @@ type SearchParams = Record<string, string | string[] | undefined>;
 export default async function Page({
   searchParams,
 }: {
-  // Next 15 sometimes provides this as a Promise; accept and await it.
+  // Next 15 sometimes types this as a Promise; accept and await.
   searchParams?: Promise<SearchParams>;
 }) {
   const sp = (await searchParams) ?? {};
