@@ -1,7 +1,11 @@
+
 'use client'
 
 import Link from 'next/link'
 import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { supabaseClient } from '@/lib/supabase'
+import AdminLibraryManager from '@/components/AdminLibraryManager'
 
 type منتج = {
   id: string
@@ -16,28 +20,66 @@ type منتج = {
   price?: number
   format?: string
   level?: string
+  downloadUrl?: string
 }
 
-/** كتاب واحد فقط */
-const المنتجات: منتج[] = [
-  {
-    id: 'p1',
-    type: 'كتاب',
-    title: 'دفتر الاتزان العاطفي',
-    description:
-      'تمارين عملية لتهدئة الجهاز العصبي وبناء حدود صحية بلغة لطيفة للأمهات.',
-    cover: '/book_cover.webp', // ← file in /public
-    rating: 4.9,
-    reviews: 128,
-    slug: 'emotional-balance-workbook',
-    snippet: 'يُعينك كيف تقولين «لا» بحب، وتسترجعين هدوءك في 10 دقائق يوميًا.',
-    price: 29,
-    format: 'PDF',
-    level: 'مبتدئ',
-  },
-]
+/** العناصر من قاعدة البيانات */
+type DbItem = {
+  id: string
+  type: 'book' | 'video'
+  title: string
+  description: string | null
+  public_url: string | null
+  thumbnail_path: string | null
+  price: number | null
+}
 
 export default function الصفحة_الرئيسية() {
+  const [المنتجات, setمنتجات] = useState<منتج[]>([])
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      const { data, error } = await supabaseClient
+        .from('library_items')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (error) {
+        console.error('Fetch library_items error:', error.message)
+        return
+      }
+      const mapped: منتج[] = (data as DbItem[]).map((it) => {
+        const isVideo = it.type === 'video'
+        // Build public URL for thumbnail if present
+        let cover = '/Meriem.webp'
+        if (it.thumbnail_path) {
+          const { data: pub } = supabaseClient.storage
+            .from('library')
+            .getPublicUrl(it.thumbnail_path)
+          if (pub?.publicUrl) cover = pub.publicUrl
+        }
+        return {
+          id: it.id,
+          type: isVideo ? 'فيديو' : 'كتاب',
+          title: it.title,
+          description: it.description || '',
+          cover,
+          rating: 4.9,
+          reviews: 128,
+          slug: it.id, // نستخدم المعرف كـ slug
+          snippet: undefined,
+          price: it.price ?? undefined,
+          format: isVideo ? 'MP4' : 'PDF',
+          level: undefined,
+          downloadUrl: it.public_url || undefined,
+        }
+      })
+      if (mounted) setمنتجات(mapped)
+    })()
+    return () => {
+      mounted = false
+    }
+  }, [])
   return (
     <div id="storefront" dir="rtl" lang="ar" className="sf-wrapper">
       {/* ░ بطاقة ترحيبية (عنوان + دعوة للفعل) ░ */}
@@ -51,6 +93,9 @@ export default function الصفحة_الرئيسية() {
             <Link href="/free-call" className="sf-cta" aria-label="الانتقال إلى حجز مكالمة فردية">
               عندي رمز — أريد الحجز الآن
             </Link>
+            <div style={{ marginInlineStart: 8 }}>
+              <AdminLibraryManager />
+            </div>
           </div>
         </div>
 
@@ -150,7 +195,7 @@ export default function الصفحة_الرئيسية() {
                   تحميل
                 </Link>
                 <Link
-                  href={`/preview/${p.slug}`}
+                  href={`/download?product=${p.slug}`}
                   className="sf-btn sf-btn-outline"
                   aria-label={`معاينة ${p.title}`}
                 >

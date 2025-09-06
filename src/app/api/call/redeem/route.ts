@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import crypto from 'crypto'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 type CallTokenRow = {
   code: string
@@ -20,7 +23,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 1) Fetch code row
-    const { data: rowRaw, error } = await supabaseAdmin
+    const supabase = getSupabaseAdmin()
+    const { data: rowRaw, error } = await supabase
       .from('call_tokens')
       .select('*')
       .eq('code', code)
@@ -52,7 +56,7 @@ export async function POST(req: NextRequest) {
     const accessExpiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString()
     const redeemedAt = new Date().toISOString()
 
-    const { error: upErr } = await supabaseAdmin
+    const { error: upErr } = await supabase
       .from('call_tokens')
       .update({
         redeemed_at: redeemedAt,

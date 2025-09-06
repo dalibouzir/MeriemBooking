@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
     const rawBusy = fb.calendars?.[calId]?.busy;
     const busy: BusyRange[] = isBusyRangeArray(rawBusy) ? rawBusy : [];
 
-    const all = generateSlots(date, { start: "10:00", end: "18:00", stepMin: 30 });
+    // Fewer, longer slots (1 hour each) between 11:00 and 16:00
+    const all = generateSlots(date, { start: "11:00", end: "16:00", stepMin: 60 });
 
     // keep only slots that do NOT overlap any busy range
     const intersects = (s: { start: string; end: string }, b: BusyRange) =>

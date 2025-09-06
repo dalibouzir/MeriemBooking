@@ -1,6 +1,6 @@
 // src/app/api/call/verify/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -9,7 +9,8 @@ export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token')
   if (!token) return NextResponse.json({ valid: false, error: 'Missing token' }, { status: 400 })
 
-  const { data: row, error } = await supabaseAdmin
+  const supabase = getSupabaseAdmin()
+  const { data: row, error } = await supabase
     .from('call_tokens')
     .select('email, access_expires_at, redeemed_at')
     .eq('access_token', token)

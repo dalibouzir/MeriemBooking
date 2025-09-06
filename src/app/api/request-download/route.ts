@@ -30,15 +30,32 @@ export async function POST(req: Request) {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE)
 
-    // 1) File path (adjust if needed)
-    const bookPath = `public/books/${product}.pdf`
-    const videoPath = `public/videos/${product}.mp4`
-    const isVideo = product.includes('masterclass') || product.includes('video')
-    const filePath = isVideo ? videoPath : bookPath
+    // 1) Resolve download target
+    // Prefer new library_items table (product=id). Fallback to legacy assets path if not found.
+    let downloadUrl: string | null = null
+    let isVideo = false
 
-    // Bucket is assumed public
-    const downloadUrl =
-      `${SUPABASE_URL.replace('.co', '.co/storage/v1/object/public')}/assets/${filePath}`
+    try {
+      const { data: item } = await supabase
+        .from('library_items')
+        .select('public_url, type')
+        .eq('id', product)
+        .single()
+
+      if (item?.public_url) {
+        downloadUrl = item.public_url as string
+        isVideo = item.type === 'video'
+      }
+    } catch {}
+
+    if (!downloadUrl) {
+      // Legacy: build from assets bucket and slug
+      const bookPath = `public/books/${product}.pdf`
+      const videoPath = `public/videos/${product}.mp4`
+      isVideo = product.includes('masterclass') || product.includes('video')
+      const filePath = isVideo ? videoPath : bookPath
+      downloadUrl = `${SUPABASE_URL.replace('.co', '.co/storage/v1/object/public')}/assets/${filePath}`
+    }
 
     // 2) Generate call token (30-day expiry)
     const token = generateToken(10)

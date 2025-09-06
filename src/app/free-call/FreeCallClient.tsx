@@ -16,38 +16,39 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
   const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false)
 
   const hasAccess = useMemo(() => Boolean(initialToken), [initialToken])
 
   if (!hasAccess) {
     return (
       <section dir="rtl" aria-labelledby="no-access-title">
-        <div className="container" style={{ maxWidth: 640, padding: '24px 16px' }}>
-          <div className="card" style={{ padding: 18 }}>
-            <header style={{ textAlign: 'center', marginBottom: 10 }}>
-              <h1 id="no-access-title" style={{ marginBottom: 6 }}>لا يمكنك الدخول</h1>
-              <p style={{ color: '#5b5671', margin: 0 }}>
+        <div className="container fc-noaccess-wrap">
+          <div className="card fc-card">
+            <header className="fc-header">
+              <h1 id="no-access-title" className="fc-title" style={{ marginBottom: 6 }}>لا يمكنك الدخول</h1>
+              <p className="fc-subtle">
                 هذه الصفحة محمية برمز (توكن) صالح لحجز مكالمة مجانية مع مريم.
               </p>
             </header>
-            <div className="alert alert-danger" role="alert" aria-live="polite" style={{ marginBottom: 14 }}>
+            <div className="alert alert-danger fc-alert-space" role="alert" aria-live="polite">
               🚫 لا يوجد توكن مرفق. يلزم إدخال/استبدال كود صالح للمتابعة.
             </div>
-            <section style={{ marginBottom: 12 }}>
-              <h2 style={{ fontSize: '1.05rem', margin: '0 0 6px', fontWeight: 800 }}>لماذا تظهر هذه الرسالة؟</h2>
-              <ul style={{ margin: 0, paddingRight: '1.2rem', lineHeight: 1.9, color: '#404252' }}>
+            <section className="fc-section">
+              <h2 className="fc-title" style={{ fontSize: '1.05rem' }}>لماذا تظهر هذه الرسالة؟</h2>
+              <ul className="fc-list" style={{ paddingRight: '1.2rem' }}>
                 <li>لم تُدخلي كودًا بعد، أو انتهت صلاحية الكود السابق.</li>
                 <li>دخلتِ للصفحة مباشرة بدون المرور بعملية التحميل التي تُرسل الكود.</li>
               </ul>
             </section>
-            <section style={{ marginBottom: 14 }}>
-              <h2 style={{ fontSize: '1.05rem', margin: '0 0 6px', fontWeight: 800 }}>كيف أحصل على الكود؟</h2>
-              <ul style={{ margin: 0, paddingRight: '1.2rem', lineHeight: 1.9, color: '#404252' }}>
+            <section className="fc-section">
+              <h2 className="fc-title" style={{ fontSize: '1.05rem' }}>كيف أحصل على الكود؟</h2>
+              <ul className="fc-list" style={{ paddingRight: '1.2rem' }}>
                 <li>حمّلي أي منتج من المتجر.</li>
                 <li>سيصلك بريد فيه رابط التنزيل + رمز مكالمة مجانية صالح ٣٠ يومًا.</li>
               </ul>
             </section>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <div className="fc-calendar" style={{ gap: 8, flexWrap: 'wrap' }}>
               <Link href="/redeem" className="btn btn-primary">عندي كود — أريد استبداله</Link>
               <Link href="/" className="btn btn-outline">رجوع للمتجر</Link>
             </div>
@@ -105,14 +106,14 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
 
   return (
     <motion.div
-      className="main-container"
+      className="main-container fc-wrapper"
       dir="rtl"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: 'easeOut' }}
     >
       <motion.div
-        className="mx-auto w-40 h-40 rounded-full overflow-hidden shadow-lg border-4 border-purple-300"
+        className="fc-avatar"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
@@ -120,22 +121,22 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
         <Image src="/Meriem.webp" alt="مريم" width={160} height={160} className="w-full h-full object-cover" priority />
       </motion.div>
 
-      <motion.section className="bg-white bg-opacity-80 rounded-xl shadow-md p-6 text-center mt-4"
+      <motion.section className="fc-hero"
         initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-        <h1 className="text-3xl font-bold text-purple-800 mb-3">احجزي مكالمتك المجانية</h1>
-        <ul className="text-gray-700 text-base mt-3 space-y-1">
+        <h1 className="fc-title">احجزي مكالمتك المجانية</h1>
+        <ul className="fc-list">
           <li>⏱️ ٢٥–٣٠ دقيقة</li>
           <li>📍 أونلاين (رابط يُنشأ تلقائيًا)</li>
           <li>🕐 توقيت تونس (Africa/Tunis)</li>
         </ul>
       </motion.section>
 
-      <motion.section className="bg-white bg-opacity-90 rounded-xl shadow-md p-6 text-center mt-6"
+      <motion.section className="fc-hero"
         initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
         <h2 className="text-2xl font-semibold text-purple-700 mb-4">اختاري اليوم والساعة</h2>
 
-        <div className="flex justify-center">
-          <div className="bg-white rounded-xl p-4 shadow-lg">
+        <div className="fc-calendar">
+          <div className="card" style={{ padding: '12px' }}>
             <Calendar
               onChange={async (value) => {
                 const d = extractDateFromValue(value)
@@ -170,32 +171,49 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
         </div>
 
         {selectedDate && (
-          <p className="mt-4 text-purple-800 font-bold">
-            اليوم المختار: {formatArabicDate(selectedDate)}
-          </p>
+          <p className="fc-picked">اليوم المختار: {formatArabicDate(selectedDate)}</p>
         )}
 
         {freeSlots.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2 justify-center">
+          <div className="fc-time-buttons">
             {freeSlots.map((s, i) => (
               <button key={i} className={`btn ${chosen?.start === s.start ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setChosen(s)}>
+                onClick={() => { setChosen(s); setShowModal(true) }}>
                 {new Date(s.start).toLocaleTimeString('ar-TN', { hour: '2-digit', minute: '2-digit' })}
               </button>
             ))}
           </div>
         )}
 
-        {freeSlots.length > 0 && (
-          <div className="mt-6 max-w-md mx-auto text-right space-y-2">
-            <input className="input w-full" placeholder="الاسم" value={name} onChange={(e)=>setName(e.target.value)} />
-            <input className="input w-full" placeholder="البريد الإلكتروني" value={email} onChange={(e)=>setEmail(e.target.value)} />
-            <textarea className="input w-full" placeholder="ملاحظات (اختياري)" value={notes} onChange={(e)=>setNotes(e.target.value)} />
-            <button className="btn btn-primary w-full" disabled={!chosen || !email || !name || loading} onClick={bookChosen}>
-              {loading ? 'جارٍ الحجز…' : 'تأكيد الحجز'}
-            </button>
+        {/* Booking modal */}
+        {showModal && (
+          <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <h2>تأكيد الموعد</h2>
+              <button className="btn" onClick={() => setShowModal(false)}>إغلاق</button>
+            </div>
+            <p className="fc-muted" style={{ marginBottom: 10 }}>
+              الوقت المختار:
+              <strong> {chosen ? new Date(chosen.start).toLocaleTimeString('ar-TN', { hour: '2-digit', minute: '2-digit' }) : ''}</strong>
+            </p>
+            <div className="grid2">
+              <input className="input" placeholder="الاسم" value={name} onChange={(e)=>setName(e.target.value)} />
+              <input className="input" placeholder="البريد الإلكتروني" value={email} onChange={(e)=>setEmail(e.target.value)} />
+            </div>
+            <label className="field" style={{ marginTop: 10 }}>
+              <span className="field-label">ملاحظات (اختياري)</span>
+              <textarea className="input textarea" rows={3} placeholder="أي تفاصيل تحبين إضافتها" value={notes} onChange={(e)=>setNotes(e.target.value)} />
+            </label>
+            <div className="fc-calendar" style={{ gap: 8, marginTop: 12 }}>
+              <button className="btn btn-primary" disabled={!chosen || !email || !name || loading} onClick={async ()=>{ await bookChosen(); setShowModal(false) }}>
+                {loading ? 'جارٍ الحجز…' : 'تأكيد الحجز'}
+              </button>
+              <button className="btn" onClick={() => setShowModal(false)}>رجوع</button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
       </motion.section>
     </motion.div>
   )

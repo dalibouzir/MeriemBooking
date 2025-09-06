@@ -28,7 +28,8 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
     setError(null)
 
     try {
-      const fd = new FormData(e.currentTarget)
+      const formEl = e.currentTarget
+      const fd = new FormData(formEl)
       if ((hpRef.current?.value || '').trim() !== '') throw new Error('Spam detected')
 
       const name = String(fd.get('name') || '').trim()
@@ -54,7 +55,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       }
 
       setMessage('📩 تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. تفقد البريد الوارد/الغير هام.')
-      ;(e.currentTarget as HTMLFormElement).reset()
+      formEl.reset()
     } catch (err: unknown) {
       const errorObj = err as Error
       setError(errorObj.message || 'تعذّر الإرسال، حاول/ي مجددًا.')

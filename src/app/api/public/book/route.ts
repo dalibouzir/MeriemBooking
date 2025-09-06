@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createCalendarEvent } from "@/lib/google-server";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 type CreateEventInput = {
   startISO: string;
@@ -32,6 +33,32 @@ export async function POST(req: NextRequest) {
     }
 
     const { startISO, endISO, clientEmail, clientName, subject, notes } = body;
+
+    // Prevent duplicate bookings for the exact same start time by reserving in DB first
+    // Requires a table with unique constraint on start_iso (see SQL below).
+    const supabase = getSupabaseAdmin();
+    const reservation = {
+      start_iso: startISO,
+      end_iso: endISO,
+      email: clientEmail,
+      name: clientName ?? null,
+      notes: notes ?? null,
+      created_at: new Date().toISOString(),
+    } as const;
+
+    // Try insert reservation; if another user already reserved the same start, this will fail
+    const { error: reserveErr } = await supabase
+      .from('call_bookings')
+      .insert(reservation);
+
+    if (reserveErr) {
+      // PSQL error 23505 indicates unique violation
+      const isDuplicate = (reserveErr as any)?.code === '23505' || /duplicate/i.test(reserveErr.message);
+      return NextResponse.json(
+        { error: isDuplicate ? 'تم حجز هذا الوقت للتو — اختاري وقتًا آخر.' : reserveErr.message },
+        { status: isDuplicate ? 409 : 500 }
+      );
+    }
 
     const ev = await createCalendarEvent({
       startISO,
