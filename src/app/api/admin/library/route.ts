@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../../../../auth'
+import { authOptions } from '@/auth'
 import { getSupabaseAdmin } from '../../../../lib/supabaseAdmin'
 import { randomUUID } from 'crypto'
 
