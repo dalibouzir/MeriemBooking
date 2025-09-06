@@ -85,7 +85,8 @@ export default function AdminLibraryManager() {
     if (!editingId) return
     setLoading(true)
     try {
-      const payload: any = { id: editingId, title: editTitle, description: editDesc }
+      type UpdatePayload = { id: string; title?: string; description?: string; price?: number | null }
+      const payload: UpdatePayload = { id: editingId, title: editTitle, description: editDesc }
       if (editPrice === '') payload.price = null
       else payload.price = Number(editPrice)
       const res = await fetch('/api/admin/library', {
