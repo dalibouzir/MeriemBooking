@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react'
 import Calendar from 'react-calendar'
-import type { CalendarProps } from 'react-calendar'
+// CalendarProps not used; keep import minimal
 import 'react-calendar/dist/Calendar.css'
 import { motion } from 'motion/react'
 import Image from 'next/image'

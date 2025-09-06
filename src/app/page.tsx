@@ -34,7 +34,7 @@ type DbItem = {
   price: number | null
 }
 
-export default function الصفحة_الرئيسية() {
+export default function HomePage() {
   const [المنتجات, setمنتجات] = useState<منتج[]>([])
 
   useEffect(() => {

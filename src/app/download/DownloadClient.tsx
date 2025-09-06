@@ -93,6 +93,17 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           {loading ? '⏳ يرجى الإنتظار…' : 'إرسال واستلام رابط التحميل'}
         </button>
 
+        {error && (
+          <p className="alert alert-danger" role="alert" style={{ marginTop: '10px' }}>
+            {error}
+          </p>
+        )}
+        {message && (
+          <p className="alert alert-success" role="status" style={{ marginTop: '10px' }}>
+            {message}
+          </p>
+        )}
+
         {!productMissing && (
           <p style={{ fontSize: '0.9rem', color: '#555', marginTop: '0.75rem' }}>
             ⚠️ تذكير: قد يظهر البريد أحيانًا في مجلد &quot;Spam&quot; أو &quot;Promotions&quot;، يرجى التحقق هناك إذا لم يصلك في غضون دقائق.

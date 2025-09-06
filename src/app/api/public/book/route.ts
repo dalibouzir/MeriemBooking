@@ -53,7 +53,8 @@ export async function POST(req: NextRequest) {
 
     if (reserveErr) {
       // PSQL error 23505 indicates unique violation
-      const isDuplicate = (reserveErr as any)?.code === '23505' || /duplicate/i.test(reserveErr.message);
+      const isDuplicate = (reserveErr as { code?: string; message: string }).code === '23505'
+        || /duplicate/i.test((reserveErr as { message?: string }).message || '')
       return NextResponse.json(
         { error: isDuplicate ? 'تم حجز هذا الوقت للتو — اختاري وقتًا آخر.' : reserveErr.message },
         { status: isDuplicate ? 409 : 500 }

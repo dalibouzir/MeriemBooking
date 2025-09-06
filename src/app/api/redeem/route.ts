@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { randomUUID } from 'crypto'
 
 export const runtime = 'nodejs'
@@ -9,7 +9,8 @@ export async function POST(req: Request) {
   if (!code || !email) return NextResponse.json({ error: 'missing fields' }, { status: 400 })
 
   // 1) Find the code (unused) for this email
-  const { data: rows, error } = await supabaseAdmin
+  const supabase = getSupabaseAdmin()
+  const { data: rows, error } = await supabase
     .from('call_tokens')
     .select('*')
     .eq('code', code)
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
 
   // 2) Mark the code as used
   const id = rows[0].id
-  await supabaseAdmin.from('call_tokens')
+  await supabase.from('call_tokens')
     .update({ is_used: true, used_at: new Date().toISOString() })
     .eq('id', id)
 

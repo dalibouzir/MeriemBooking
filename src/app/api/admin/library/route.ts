@@ -24,8 +24,9 @@ export async function GET() {
     .order('created_at', { ascending: false })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ items: data })
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Server error' }, { status: 500 })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Server error'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
 
@@ -63,7 +64,8 @@ export async function POST(req: Request) {
     if (createRes.error) {
       // If it's not an "already exists" scenario, verify and bail if absent
       const { data: buckets } = await supabase.storage.listBuckets()
-      const exists = !!buckets?.find((b: any) => b.name === bucket)
+      type BucketInfo = { id: string; name: string }
+      const exists = Array.isArray(buckets) && (buckets as BucketInfo[]).some((b) => b.name === bucket)
       if (!exists) {
         return NextResponse.json({ error: `Storage bucket "${bucket}" not found and could not be created: ${createRes.error.message}` }, { status: 500 })
       }
@@ -113,8 +115,9 @@ export async function POST(req: Request) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ item: data })
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Server error' }, { status: 500 })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Server error'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
 
@@ -126,8 +129,8 @@ export async function PATCH(req: Request) {
   const body = await req.json().catch(() => null)
   if (!body || !body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-  const { id, title, description, price } = body
-  const update: Record<string, any> = { updated_at: new Date().toISOString() }
+  const { id, title, description, price } = body as { id: string; title?: string; description?: string; price?: number | null }
+  const update: Partial<{ title: string; description: string; price: number | null; updated_at: string }> = { updated_at: new Date().toISOString() }
   if (typeof title === 'string') update.title = title
   if (typeof description === 'string') update.description = description
   if (typeof price === 'number' || price === null) update.price = price
@@ -142,8 +145,9 @@ export async function PATCH(req: Request) {
     .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ item: data })
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Server error' }, { status: 500 })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Server error'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
 
@@ -176,7 +180,8 @@ export async function DELETE(req: Request) {
     const { error } = await supabase.from('library_items').delete().eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true })
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Server error' }, { status: 500 })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Server error'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
