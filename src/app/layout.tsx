@@ -2,10 +2,10 @@
 // تخطيط عام للتطبيق: شريط علوي (سَكَن) + روابط عربية (قائمة قابلة للطي على الجوال)
 
 import './globals.css'
+import '../styles/globals.css'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import Providers from './providers'
-import AuthNav from '@/components/AuthNav'
 
 // Ensures proper mobile scaling (prevents weird "disappearing" when toggling device mode)
 export const viewport = {
@@ -23,14 +23,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <div className="container topbar-row">
               <Link href="/" className="brand" aria-label="الرجوع للصفحة الرئيسية — فطرة الأمهات">
                 <img src="/logo/logo.png" alt="فطرة الأمهات" className="brand-logo" />
-                <span className="brand-mark">فطرة الأمهات</span>
+                <span className="brand-mark">Fittrah Moms </span>
               </Link>
 
-              <nav id="primary-nav" className="nav" aria-label="التنقل الرئيسي">
-                <Link href="/free-call" className="nav-link">مكالمة 1:1</Link>
-                <Link href="/download" className="nav-link">التنزيلات</Link>
-                <AuthNav />
-              </nav>
+              {/* تمت إزالة روابط التنقل حسب الطلب لواجهة أبسط */}
             </div>
           </header>
 

@@ -129,9 +129,8 @@ p { font-size: 1.05rem; line-height: 1.8; color: #4a4a4a; }
   display:flex; align-items:center; justify-content:space-between; height:64px;
 }
 .brand{ display:inline-flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.5px; }
-.brand-logo{ height:28px; width:auto; display:block; }
-.brand-mark{
-  display:inline-block; font-size:1.4rem;
+.brand-logo{ height:36px; width:auto; display:block; border-radius:6px; object-fit:contain; }
+.brand-mark{ display:inline-block; font-size:1.35rem; font-weight:900; letter-spacing:.4px;
   background: linear-gradient(90deg, var(--purple-700), var(--purple-500));
   -webkit-background-clip:text; background-clip:text; color: transparent;
 }

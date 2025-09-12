@@ -3,28 +3,15 @@ const API = "https://www.googleapis.com/calendar/v3";
 const TZ = process.env.DEFAULT_TZ || "Africa/Tunis";
 const CAL = process.env.GOOGLE_CALENDAR_ID || "primary";
 
+import { ensureAccessToken } from './google-oauth'
+function defaultOwnerUserId(): string {
+  const id = process.env.GOOGLE_OWNER_USER_ID
+  if (!id) throw new Error('Missing GOOGLE_OWNER_USER_ID in .env.local')
+  return id
+}
+
 async function getAccessToken() {
-  const body = new URLSearchParams({
-    client_id: process.env.GOOGLE_CLIENT_ID!,
-    client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-    grant_type: "refresh_token",
-    refresh_token: process.env.GOOGLE_REFRESH_TOKEN!,
-  }).toString();
-
-  const res = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-    cache: "no-store",
-  });
-
-  const text = await res.text();
-  if (!res.ok) {
-    console.error("Google token error:", text);
-    throw new Error("google_token_error: " + text);
-  }
-  const j = JSON.parse(text);
-  return j.access_token as string;
+  return ensureAccessToken(defaultOwnerUserId())
 }
 
 async function g(path: string, init?: RequestInit) {

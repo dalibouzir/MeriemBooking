@@ -77,6 +77,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "server_error";
+    if (typeof message === 'string' && message.includes('google_reconnect_required')) {
+      return NextResponse.json({ error: 'google_reconnect_required' }, { status: 401 })
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

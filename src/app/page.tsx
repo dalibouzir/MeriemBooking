@@ -85,9 +85,10 @@ export default function HomePage() {
       {/* ░ بطاقة ترحيبية (عنوان + دعوة للفعل) ░ */}
       <section className="sf-hero">
         <div className="hero-card">
-          <h1 className="sf-title">كتب وفيديوهات من مريم</h1>
+          <h1 className="sf-title">مكتبة فطرة الأمهات</h1>
           <p className="sf-subtitle">
-            عند تنزيل أي منتج، تتحصل/ين على <span className="sf-bold">رمز مجاني</span> لحجز مكالمة 1:1 شخصية.
+            موارد عملية للأمهات: كتيّبات وفيديوهات قصيرة تُساعِدك على تهدئة التوتر، ترسيخ الحدود، وبناء روتينٍ أسهل.
+            عند تنزيل أي منتج، يصلك <span className="sf-bold">رمز هدية</span> لمكالمة 1:1 مجانية.
           </p>
           <div className="sf-hero-actions">
             <Link href="/free-call" className="sf-cta" aria-label="الانتقال إلى حجز مكالمة فردية">
@@ -104,17 +105,17 @@ export default function HomePage() {
           <div className="info-block">
             <div className="info-icon" aria-hidden>📕</div>
             <div className="info-title">تحميل مباشر</div>
-            <p className="info-text">احصلي على كُتيّب عملي يهدّئ التوتر ويُرسّخ الحدود الصحية.</p>
+            <p className="info-text">تنزيل فوري بصيغة PDF/MP4 مع تجربة بسيطة وواضحة.</p>
           </div>
           <div className="info-block">
             <div className="info-icon" aria-hidden>🎟️</div>
             <div className="info-title">هدية رمز</div>
-            <p className="info-text">بعد إدخال بياناتك يصل رمز مكالمة مجانية إلى بريدك الإلكتروني.</p>
+            <p className="info-text">يصلك رمز مكالمة مجانية على بريدك بعد التحميل مباشرة.</p>
           </div>
           <div className="info-block">
             <div className="info-icon" aria-hidden>📞</div>
             <div className="info-title">مكالمة 1:1</div>
-            <p className="info-text">استخدمي الرمز لحجز جلسة مركّزة تُناسب وضعك وحاجتك.</p>
+            <p className="info-text">جلسة مركّزة تساعدك على تطبيق الخطوات بما يناسب ظروفك.</p>
           </div>
         </div>
       </section>
