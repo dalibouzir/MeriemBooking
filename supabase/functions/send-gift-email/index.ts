@@ -1,36 +1,34 @@
 // deno-lint-ignore-file no-explicit-any
 // Vercel-friendly: no Deno triple-slash refs, no `jsr:` imports.
-// Supabase Edge (Deno) will still find globalThis.Deno at runtime.
 
-// ====== CONFIG ======
 type DenoEnv = { env: { get(name: string): string | undefined } }
 const DENO: { env?: DenoEnv["env"]; serve?: (h: (req: Request) => Response | Promise<Response>) => void } =
   (globalThis as unknown as { Deno?: DenoEnv & { serve?: (h: (req: Request) => Response | Promise<Response>) => void } }).Deno ?? {}
 
 const getEnv = (k: string): string | undefined => DENO.env?.get?.(k)
 
-const RESEND_API_KEY = getEnv("RESEND_API_KEY")
-const FROM = "Acme <onboarding@resend.dev>" // MUST be a verified domain in Resend
+const RESEND_API_KEY = getEnv("RESEND_API_KEY")?.trim()
+const ENV_FROM = getEnv("EMAIL_FROM")?.trim()
+// Fallback is your verified domain
+const FROM = ENV_FROM && ENV_FROM.length > 0 ? ENV_FROM : "Fittrah Moms <noreply@fittrahmoms.com>"
 const RESEND_ENDPOINT = "https://api.resend.com/emails"
 
-// ====== HELPERS ======
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
+// ------------ utils ------------
+const json = (data: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
+  new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
+      ...extraHeaders,
     },
   })
-}
 
-function isValidEmail(s: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
-}
+const isValidEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
 
-function isValidUrl(s: string) {
+const isValidUrl = (s: string) => {
   try {
     const u = new URL(s)
     return u.protocol === "http:" || u.protocol === "https:"
@@ -39,7 +37,7 @@ function isValidUrl(s: string) {
   }
 }
 
-function toPlainText({
+const arabicPlainText = ({
   name,
   isVideo,
   downloadUrl,
@@ -51,7 +49,7 @@ function toPlainText({
   downloadUrl: string
   token: string
   redeemUrl: string
-}) {
+}) => {
   const type = isVideo ? "الفيديو" : "الكتاب"
   return [
     `مرحبًا ${name}`,
@@ -72,13 +70,31 @@ function toPlainText({
   ].join("\n")
 }
 
-// ====== MAIN HANDLER ======
+// ------------ handler ------------
 const handler = async (req: Request): Promise<Response> => {
   // CORS preflight
   if (req.method === "OPTIONS") return json(null, 204)
 
   if (req.method !== "POST") return json({ error: "Method Not Allowed" }, 405)
-  if (!RESEND_API_KEY) return json({ error: "Missing RESEND_API_KEY" }, 500)
+
+  if (!RESEND_API_KEY) {
+    return json({ error: "Missing RESEND_API_KEY (check Supabase secrets / redeploy)" }, 500)
+  }
+
+  // Safety: enforce From domain is your verified domain
+  // Accepts "Name <user@fittrahmoms.com>" or "user@fittrahmoms.com"
+  const fromMatch = FROM.match(/<\s*([^>]+)\s*>/i)
+  const fromEmail = (fromMatch ? fromMatch[1] : FROM).toLowerCase()
+  if (!fromEmail.endsWith("@fittrahmoms.com")) {
+    return json(
+      {
+        error: "Invalid FROM domain",
+        details:
+          "EMAIL_FROM must use your verified domain (e.g., Fittrah Moms <noreply@fittrahmoms.com>). Update EMAIL_FROM secret.",
+      },
+      500,
+    )
+  }
 
   let payload: any
   try {
@@ -87,7 +103,7 @@ const handler = async (req: Request): Promise<Response> => {
     return json({ error: "Invalid JSON body" }, 400)
   }
 
-  const { name, email, product, downloadUrl, redeemUrl, token, isVideo } = payload ?? {}
+  const { name, email, product, downloadUrl, redeemUrl, token, isVideo, replyTo } = payload ?? {}
 
   // Basic validation
   const errors: string[] = []
@@ -106,12 +122,12 @@ const handler = async (req: Request): Promise<Response> => {
     <div style="font-family:Tahoma,Arial,sans-serif;direction:rtl;text-align:right">
       <h2>مرحبًا ${name} 👋</h2>
       <p>شكراً لتعبئة الفورم. هذا رابط ${isVideo ? "الفيديو" : "الكتاب"} للتنزيل:</p>
-      <p><a href="${downloadUrl}" target="_blank">تحميل ${isVideo ? "الفيديو" : "الكتاب"}</a></p>
+      <p><a href="${downloadUrl}" target="_blank" rel="noopener noreferrer">تحميل ${isVideo ? "الفيديو" : "الكتاب"}</a></p>
       <hr/>
       <p>🎁 هذا كود التوكن الخاص بك لحجز مكالمة مجانية (صالح حتى <b>30 يوم</b>):</p>
-      <p style="font-size:18px; font-weight:bold; letter-spacing:2px">${token}</p>
+      <p style="font-size:18px;font-weight:bold;letter-spacing:2px">${token}</p>
       <p>يمكنك الحجز مباشرة من هنا:
-        <a href="${redeemUrl}" target="_blank">استبدال التوكن الآن</a>
+        <a href="${redeemUrl}" target="_blank" rel="noopener noreferrer">استبدال التوكن الآن</a>
       </p>
       <p style="color:#777;font-size:12px">لو ما يشتغل الرابط، انسخه والصقه في المتصفح.</p>
       <br/>
@@ -119,27 +135,53 @@ const handler = async (req: Request): Promise<Response> => {
     </div>
   `.trim()
 
-  const text = toPlainText({ name, isVideo: !!isVideo, downloadUrl, token, redeemUrl })
+  const text = arabicPlainText({ name, isVideo: !!isVideo, downloadUrl, token, redeemUrl })
 
-  // Send via Resend
-  const r = await fetch(RESEND_ENDPOINT, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ from: FROM, to: [email], subject, html, text }),
-  })
-
-  if (!r.ok) {
-    const body = await r.text()
-    return json({ error: "Resend error", status: r.status, body }, 500)
+  // Build body for Resend
+  const body: Record<string, unknown> = {
+    from: FROM,
+    to: [email],
+    subject,
+    html,
+    text,
   }
+  if (replyTo && isValidEmail(replyTo)) body.reply_to = replyTo
 
-  return json({ ok: true }, 200)
+  try {
+    const r = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!r.ok) {
+      // Surface Resend’s error for quick debugging
+      const bodyText = await r.text().catch(() => "")
+      return json(
+        {
+          error: "Resend error",
+          status: r.status,
+          // Most common cause of 403 is wrong workspace key vs. verified domain
+          hint:
+            r.status === 403
+              ? "Ensure this API key belongs to the Resend workspace where fittrahmoms.com is Verified, and FROM uses @fittrahmoms.com."
+              : undefined,
+          body: bodyText,
+        },
+        502,
+      )
+    }
+
+    return json({ ok: true }, 200)
+  } catch (e) {
+    return json({ error: "Network error calling Resend", details: String(e) }, 502)
+  }
 }
 
-// Use Deno.serve if available (Supabase Edge); otherwise, keep inert in Vercel.
+// Deno.serve for Supabase Edge; fallback for Vercel
 const maybeServe = DENO?.serve
 if (typeof maybeServe === "function") {
   maybeServe(handler)

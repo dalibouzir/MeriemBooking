@@ -21,8 +21,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <header className="topbar">
             <div className="container topbar-row">
-              <Link href="/" className="brand" aria-label="الرجوع للصفحة الرئيسية — سَكَن">
-                <span className="brand-mark">سَكَن</span>
+              <Link href="/" className="brand" aria-label="الرجوع للصفحة الرئيسية — فطرة الأمهات">
+                <img src="/logo/logo.png" alt="فطرة الأمهات" className="brand-logo" />
+                <span className="brand-mark">فطرة الأمهات</span>
               </Link>
 
               <nav id="primary-nav" className="nav" aria-label="التنقل الرئيسي">
