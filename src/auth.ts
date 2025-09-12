@@ -1,4 +1,4 @@
-import type { NextAuthOptions } from 'next-auth'
+import type { NextAuthOptions, Account } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
 import { saveGoogleTokens } from '@/lib/google-oauth'
@@ -73,21 +73,17 @@ export const authOptions: NextAuthOptions = {
         if (process.env.GOOGLE_REDIRECT_URI) {
           console.log('[NextAuth][Google] GOOGLE_REDIRECT_URI env:', process.env.GOOGLE_REDIRECT_URI)
         }
-        const access_token = (account as any).access_token as string | undefined
-        const refresh_token = (account as any).refresh_token as string | undefined
-        const expires_at_sec = (account as any).expires_at as number | undefined
-        const id_token = (account as any).id_token as string | undefined
-        const scope = (account as any).scope as string | undefined
+        const { access_token, refresh_token, expires_at, id_token, scope } = account as Account
 
         if (!refresh_token) {
           console.warn('[NextAuth][Google] Missing refresh_token on callback. Consent may not have included access_type=offline or prompt=consent.')
           return
         }
-        if (!access_token || !expires_at_sec) {
+        if (!access_token || !expires_at) {
           console.warn('[NextAuth][Google] Missing access_token or expires_at; cannot persist tokens.')
           return
         }
-        const expires_in = Math.max(0, Math.floor(expires_at_sec - Date.now() / 1000))
+        const expires_in = Math.max(0, Math.floor(expires_at - Date.now() / 1000))
         const scopes = (scope || '').split(' ').filter(Boolean)
 
         try {

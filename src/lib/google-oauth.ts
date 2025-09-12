@@ -61,25 +61,28 @@ export async function saveGoogleTokens(params: {
   await deleteGoogleTokens({ expiredOnly: false, userId: uid })
 
   // Try insert with optional id_token if the column exists; if it fails, retry without it
-  let { error } = await supabase.from('oauth_tokens').insert({
+  const payloadWithIdToken: Record<string, unknown> = {
     user_id: uid,
     provider: PROVIDER,
     access_token: params.access_token,
     refresh_token: params.refresh_token,
     expires_at,
     scopes: params.scopes,
-    ...(params.id_token ? { id_token: params.id_token } : {}),
-  } as any)
+  }
+  if (params.id_token) (payloadWithIdToken as Record<string, unknown>).id_token = params.id_token
+
+  const { error } = await supabase.from('oauth_tokens').insert(payloadWithIdToken)
   if (error) {
     // Retry without id_token in case column doesn't exist
-    const retry = await supabase.from('oauth_tokens').insert({
+    const retryPayload: Record<string, unknown> = {
       user_id: uid,
       provider: PROVIDER,
       access_token: params.access_token,
       refresh_token: params.refresh_token,
       expires_at,
       scopes: params.scopes,
-    })
+    }
+    const retry = await supabase.from('oauth_tokens').insert(retryPayload)
     if (retry.error) throw new Error(`Failed to save tokens: ${retry.error.message}`)
   }
 }
