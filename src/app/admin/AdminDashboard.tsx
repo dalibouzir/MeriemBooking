@@ -321,12 +321,15 @@ function ProductsTab() {
   const [delBusy, setDelBusy] = useState<string | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
 
+  type ProductRow = { id: string; type: 'كتاب'|'فيديو'; title: string; slug: string; cover: string; description?: string|null; snippet?: string|null }
+
   async function load() {
     setLoading(true)
     const r = await fetch('/api/admin/products')
     const j = await r.json(); setLoading(false)
     if (!r.ok) return alert(j.error || 'فشل التحميل')
-    setItems((j.products || []).map((p: any) => ({ id: p.id, type: p.type, title: p.title, slug: p.slug, cover: p.cover, description: p.description, snippet: p.snippet })))
+    const rows = (j.products || []) as ProductRow[]
+    setItems(rows.map((p) => ({ id: p.id, type: p.type, title: p.title, slug: p.slug, cover: p.cover, description: p.description || undefined, snippet: p.snippet || undefined })))
   }
   useEffect(()=>{ load() },[])
 
