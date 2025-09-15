@@ -476,7 +476,6 @@ function StatsTab() {
   const [data, setData] = useState<{ reservations: { day: string; count: number }[]; downloads: { day: string; count: number }[] }>({ reservations: [], downloads: [] })
   const [tokenSummary, setTokenSummary] = useState<{ total: number; redeemed: number; unredeemed: number }>({ total: 0, redeemed: 0, unredeemed: 0 })
   const [loading, setLoading] = useState(false)
-  const [plotReady, setPlotReady] = useState(false)
   const [reqs, setReqs] = useState<Array<{ id: number; created_at: string; name: string; email: string; country: string | null; product_slug: string }>>([])
 
   useEffect(() => {
@@ -527,18 +526,20 @@ function StatsTab() {
   }
 
   function renderPlots(d: { reservations: { day: string; count: number }[]; downloads: { day: string; count: number }[] }, tokens: { total: number; redeemed: number; unredeemed: number }) {
+    const P = window.Plotly
+    if (!P) return
     const daysR = d.reservations.map(x => x.day)
     const valsR = d.reservations.map(x => x.count)
-    window.Plotly.react('chart-resv', [{ type: 'bar', x: daysR, y: valsR, marker: { color: '#7c3aed' } }], { title: 'الحجوزات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
+    P.react('chart-resv', [{ type: 'bar', x: daysR, y: valsR, marker: { color: '#7c3aed' } }], { title: 'الحجوزات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
 
     const daysD = d.downloads.map(x => x.day)
     const valsD = d.downloads.map(x => x.count)
-    window.Plotly.react('chart-dl', [{ type: 'bar', x: daysD, y: valsD, marker: { color: '#22c55e' } }], { title: 'التنزيلات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
+    P.react('chart-dl', [{ type: 'bar', x: daysD, y: valsD, marker: { color: '#22c55e' } }], { title: 'التنزيلات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
 
     const total = Math.max(1, tokens.total)
     const redeemed = Math.min(total, Math.max(0, tokens.redeemed))
     const unredeemed = Math.max(0, total - redeemed)
-    window.Plotly.react('chart-tokens', [{
+    P.react('chart-tokens', [{
       type: 'pie', values: [redeemed, unredeemed], labels: ['Redeemed', 'Unredeemed'], hole: 0.5,
       marker: { colors: ['#7c3aed', '#c084fc'] }
     }], { title: 'Tokens', margin: { t: 40, r: 10, l: 10, b: 10 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
