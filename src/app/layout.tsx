@@ -7,6 +7,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import type { Metadata, Viewport } from 'next'
 import Providers from './providers'
+import SiteBackgroundClient from './SiteBackgroundClient'
 export const metadata: Metadata = {
   title: 'Fittrah Moms',
   icons: {
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html dir="rtl" lang="ar">
       <body>
-        <div className="site-bg">
+        <SiteBackgroundClient>
           <Providers>
             <header className="topbar">
               <div className="container topbar-row">
@@ -44,7 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {children}
             </main>
           </Providers>
-        </div>
+        </SiteBackgroundClient>
       </body>
     </html>
   )

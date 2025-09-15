@@ -9,6 +9,23 @@ body {
   overflow-x: hidden;
 }
 
+/* Site‑wide backgrounds controlled by layout wrapper */
+.site-bg--purple {
+  min-height: 100dvh;
+  background:
+    linear-gradient(180deg, #efe6ff 0%, #e6d9ff 45%, #f4ecff 100%),
+    radial-gradient(360px 360px at 12% 14%, rgba(109,40,217,.33) 0%, rgba(109,40,217,0) 62%),
+    radial-gradient(420px 420px at 86% 12%, rgba(147,51,234,.30) 0%, rgba(147,51,234,0) 62%),
+    radial-gradient(360px 360px at 18% 84%, rgba(124,58,237,.28) 0%, rgba(124,58,237,0) 62%),
+    radial-gradient(400px 400px at 78% 78%, rgba(168,85,247,.28) 0%, rgba(168,85,247,0) 62%);
+  background-attachment: fixed, fixed, fixed, fixed, fixed;
+}
+
+.site-bg--image {
+  min-height: 100dvh;
+  background: url('/background.jpg') center center / cover no-repeat fixed;
+}
+
 /* ============ Page container (Free Call) ============ */
 .main-container {
   display: flex;

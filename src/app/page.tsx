@@ -131,6 +131,9 @@ export default function HomePage() {
           <p className="hp-intro-more">يمكنك استبدال رمز الهدية عبر صفحة الحجز، أو الحجز مباشرة عبر Calendly إن أردت جلسة مدفوعة الآن.</p>
           <div className="sf-hero-actions">
             <Link href="https://calendly.com/meriembouzir/30min" className="sf-cta" target="_blank" rel="noopener noreferrer">احجزي مكالمة — 150 د.ت</Link>
+            <Link href="/redeem" className="sf-btn sf-btn-outline" aria-label="استبدال رمز الهدية" style={{ marginInlineStart: 8 }}>
+              استبدال رمز الهدية
+            </Link>
             <div style={{ marginInlineStart: 8 }}><AdminLibraryManager /></div>
           </div>
           <div className="hp-hero-media glass-water" aria-hidden>
