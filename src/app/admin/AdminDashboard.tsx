@@ -47,19 +47,38 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
   const [tab, setTab] = useState<'schedule'|'reservations'|'email'|'tokens'|'products'|'stats'>('schedule')
 
   return (
-    <div dir="rtl" className="main-container" style={{ padding: 16 }}>
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Meriem Booking — Admin</h1>
-        <div className="text-sm text-gray-600">{adminEmail}</div>
+    <div dir="rtl" className="main-container admin" style={{ padding: 16, maxWidth: 1440, marginInline: 'auto' }}>
+      <header className="admin-header">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Fittrah Moms — Admin</h1>
+            <div className="text-sm text-gray-500" style={{ marginTop: 4 }}>{adminEmail}</div>
+          </div>
+          <div className="flex items-center gap-2" role="toolbar" aria-label="Header actions">
+            <button className="btn btn-outline">تحديث</button>
+          </div>
+        </div>
       </header>
       <div className="flex flex-col gap-4">
-        <nav aria-label="Admin tabs" className="card p-2">
+        <nav aria-label="Admin tabs" className="admin-tabs" role="tablist">
           <div className="flex items-center gap-2 flex-wrap">
-            <button className={`btn ${tab==='schedule'?'btn-primary':'btn-outline'}`} onClick={()=>setTab('schedule')}>📅 جدول المواعيد</button>
-            <button className={`btn ${tab==='reservations'?'btn-primary':'btn-outline'}`} onClick={()=>setTab('reservations')}>👥 الحجوزات</button>
-            <button className={`btn ${tab==='email'?'btn-primary':'btn-outline'}`} onClick={()=>setTab('email')}>✉️ الإرسال الجماعي</button>
-            <button className={`btn ${tab==='products'?'btn-primary':'btn-outline'}`} onClick={()=>setTab('products')}>📚 المنتجات</button>
-            <button className={`btn ${tab==='stats'?'btn-primary':'btn-outline'}`} onClick={()=>setTab('stats')}>📈 الإحصائيات</button>
+            {[
+              { key: 'schedule', label: '📅 جدول المواعيد' },
+              { key: 'reservations', label: '👥 الحجوزات' },
+              { key: 'email', label: '✉️ الإرسال الجماعي' },
+              { key: 'products', label: '📚 المنتجات' },
+              { key: 'stats', label: '📈 الإحصائيات' },
+            ].map((t) => (
+              <button
+                key={t.key}
+                role="tab"
+                aria-selected={tab===t.key}
+                className={`btn admin-tab ${tab===t.key?'btn-primary':'btn-outline'}`}
+                onClick={()=>setTab(t.key as any)}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
         </nav>
         <main className="flex-1">
@@ -130,15 +149,15 @@ function ScheduleTab() {
   return (
     <div>
       <SectionHeader title="جدول المواعيد"/>
-      <div className="card p-3 mb-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          <button className="btn btn-primary" onClick={()=>{ setEditId(null); setForm({ day: '', start_time: '', end_time: '', capacity: 1, note: '' }); setOpenModal(true) }}>+ إضافة موعد</button>
-          <span className="text-sm text-gray-600">اختيارات سريعة:</span>
-          {['11:00','12:00','13:00','14:00','15:00','16:00'].map(t => (
-            <button key={t} className="btn btn-outline" onClick={()=>{ setEditId(null); setForm({ day: new Date().toISOString().slice(0,10), start_time: t, end_time: addDuration(t, durationMin), capacity: 1, note: '' }); setOpenModal(true) }}>{t}</button>
-          ))}
+        <div className="section-toolbar">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button className="btn btn-primary" onClick={()=>{ setEditId(null); setForm({ day: '', start_time: '', end_time: '', capacity: 1, note: '' }); setOpenModal(true) }}>+ إضافة موعد</button>
+            <span className="text-sm text-gray-600">اختيارات سريعة:</span>
+            {['11:00','12:00','13:00','14:00','15:00','16:00'].map(t => (
+              <button key={t} className="btn btn-outline" onClick={()=>{ setEditId(null); setForm({ day: new Date().toISOString().slice(0,10), start_time: t, end_time: addDuration(t, durationMin), capacity: 1, note: '' }); setOpenModal(true) }}>{t}</button>
+            ))}
+          </div>
         </div>
-      </div>
       <div className="overflow-x-auto">
         <table className="table responsive text-sm">
           <thead>
@@ -233,7 +252,7 @@ function ReservationsTab() {
   return (
     <div>
       <SectionHeader title="الحجوزات"/>
-      <div className="card p-3 mb-3">
+      <div className="section-toolbar">
         <div className="flex items-center gap-2 flex-wrap">
           <input className="input" placeholder="اليوم (اختياري)" value={day} onChange={(e)=>setDay(e.target.value)} />
           <input className="input" placeholder="معرّف الموعد (اختياري)" value={slotId} onChange={(e)=>setSlotId(e.target.value)} />
@@ -386,7 +405,7 @@ function ProductsTab() {
   return (
     <div>
       <SectionHeader title="المنتجات"/>
-      <div className="card p-3 mb-3">
+      <div className="section-toolbar">
         <div className="flex items-center gap-2 flex-wrap">
           <button className="btn btn-primary" onClick={()=>{ setEditId(null); setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null }); setOpen(true) }}>+ إضافة منتج</button>
         </div>

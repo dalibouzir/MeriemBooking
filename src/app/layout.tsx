@@ -6,6 +6,14 @@ import '../styles/globals.css'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import Providers from './providers'
+export const metadata = {
+  title: 'Fittrah Moms',
+  icons: {
+    icon: '/logo/logo.png',
+    shortcut: '/logo/logo.png',
+    apple: '/logo/logo.png',
+  },
+}
 import TopbarAuth from '@/components/TopbarAuth'
 
 // Ensures proper mobile scaling (prevents weird "disappearing" when toggling device mode)

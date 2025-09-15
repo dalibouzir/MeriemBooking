@@ -9,14 +9,16 @@ export default function TopbarAuth() {
   const isAdmin = email === 'meriembouzir05@gmail.com'
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="auth-actions">
       {isAdmin && (
-        <Link href="/admin" className="btn btn-outline">لوحة التحكم</Link>
+        <Link href="/admin" className="btn btn-outline btn-nav" aria-label="لوحة التحكم">
+          لوحة التحكم
+        </Link>
       )}
       {status === 'authenticated' ? (
-        <button className="btn" onClick={() => signOut({ callbackUrl: '/' })}>تسجيل الخروج</button>
+        <button className="btn btn-nav" onClick={() => signOut({ callbackUrl: '/' })}>تسجيل الخروج</button>
       ) : (
-        <Link href="/login" className="btn">تسجيل الدخول</Link>
+        <Link href="/login" className="btn btn-primary btn-nav" aria-label="تسجيل الدخول">تسجيل الدخول</Link>
       )}
     </div>
   )
