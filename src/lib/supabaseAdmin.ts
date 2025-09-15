@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // Lazily create server-side client with service role to avoid throwing at import time
 export function getSupabaseAdmin(): SupabaseClient {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE
 
   if (!url) {
     throw new Error(
@@ -11,7 +11,7 @@ export function getSupabaseAdmin(): SupabaseClient {
     )
   }
   if (!serviceKey) {
-    throw new Error('Missing SUPABASE_SERVICE_ROLE in .env.local (server-only)')
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY in .env.local (server-only)')
   }
 
   return createClient(url, serviceKey, {

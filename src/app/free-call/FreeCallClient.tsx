@@ -7,11 +7,12 @@ import 'react-calendar/dist/Calendar.css'
 import { motion } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
+// No auth needed — reservations are created server-side using a guest/user-for-email
 
 export default function FreeCallClient({ initialToken = '' }: { initialToken?: string }) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [freeSlots, setFreeSlots] = useState<{ start: string; end: string }[]>([])
-  const [chosen, setChosen] = useState<{ start: string; end: string } | null>(null)
+  const [freeSlots, setFreeSlots] = useState<{ id: string; start: string; end: string; remaining?: number }[]>([])
+  const [chosen, setChosen] = useState<{ id: string; start: string; end: string } | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
@@ -80,24 +81,17 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
   }
 
   async function bookChosen() {
-    if (!chosen || !email || !name) return alert('أدخلي الاسم والبريد واختاري وقتًا')
+    if (!chosen || !email) return alert('Enter email and choose a time')
     setLoading(true)
-    const r = await fetch('/api/public/book', {
+    const r = await fetch('/api/reservations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        startISO: chosen.start,
-        endISO: chosen.end,
-        clientEmail: email,
-        clientName: name,
-        subject: 'Free Call',
-        notes,
-      }),
+      body: JSON.stringify({ slot_id: chosen.id, email, name, notes }),
     })
     const j = await r.json()
     setLoading(false)
-    if (!r.ok) return alert(j.error || 'فشل الحجز')
-    alert(`تم الحجز ✅ ${j.meet ? 'رابط اللقاء: ' + j.meet : 'تم إرسال الدعوة على بريدك'}`)
+    if (!r.ok) return alert(j.error || 'Booking failed')
+    alert('Booking confirmed ✅')
     setFreeSlots([]); setChosen(null); setName(''); setEmail(''); setNotes(''); setSelectedDate(null)
   }
 
@@ -178,8 +172,9 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
           <div className="fc-time-buttons">
             {freeSlots.map((s, i) => (
               <button key={i} className={`btn ${chosen?.start === s.start ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => { setChosen(s); setShowModal(true) }}>
+                onClick={() => { setChosen({ id: s.id, start: s.start, end: s.end }); setShowModal(true) }}>
                 {new Date(s.start).toLocaleTimeString('ar-TN', { hour: '2-digit', minute: '2-digit' })}
+                {typeof s.remaining === 'number' ? ` — ${s.remaining}` : ''}
               </button>
             ))}
           </div>
@@ -190,26 +185,26 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
           <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
-              <h2>تأكيد الموعد</h2>
-              <button className="btn" onClick={() => setShowModal(false)}>إغلاق</button>
+              <h2>Confirm Appointment</h2>
+              <button className="btn" onClick={() => setShowModal(false)}>Close</button>
             </div>
             <p className="fc-muted" style={{ marginBottom: 10 }}>
-              الوقت المختار:
-              <strong> {chosen ? new Date(chosen.start).toLocaleTimeString('ar-TN', { hour: '2-digit', minute: '2-digit' }) : ''}</strong>
+              Selected time:
+              <strong> {chosen ? new Date(chosen.start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''}</strong>
             </p>
             <div className="grid2">
-              <input className="input" placeholder="الاسم" value={name} onChange={(e)=>setName(e.target.value)} />
-              <input className="input" placeholder="البريد الإلكتروني" value={email} onChange={(e)=>setEmail(e.target.value)} />
+              <input className="input" placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
+              <input className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
             </div>
             <label className="field" style={{ marginTop: 10 }}>
-              <span className="field-label">ملاحظات (اختياري)</span>
-              <textarea className="input textarea" rows={3} placeholder="أي تفاصيل تحبين إضافتها" value={notes} onChange={(e)=>setNotes(e.target.value)} />
+              <span className="field-label">Notes (optional)</span>
+              <textarea className="input textarea" rows={3} placeholder="Any details you want to add" value={notes} onChange={(e)=>setNotes(e.target.value)} />
             </label>
             <div className="fc-calendar" style={{ gap: 8, marginTop: 12 }}>
               <button className="btn btn-primary" disabled={!chosen || !email || !name || loading} onClick={async ()=>{ await bookChosen(); setShowModal(false) }}>
-                {loading ? 'جارٍ الحجز…' : 'تأكيد الحجز'}
+                {loading ? 'Booking…' : 'Confirm Booking'}
               </button>
-              <button className="btn" onClick={() => setShowModal(false)}>رجوع</button>
+              <button className="btn" onClick={() => setShowModal(false)}>Back</button>
             </div>
           </div>
         </div>

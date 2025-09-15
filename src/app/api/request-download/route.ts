@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     }
 
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE!
+    const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE!
     const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE)
@@ -35,24 +35,22 @@ export async function POST(req: Request) {
     let downloadUrl: string | null = null
     let isVideo = false
 
-    try {
-      const { data: item } = await supabase
-        .from('library_items')
-        .select('public_url, type')
-        .eq('id', product)
-        .single()
-
-      if (item?.public_url) {
-        downloadUrl = item.public_url as string
-        isVideo = item.type === 'video'
+    // Try new products table to infer type by slug
+    {
+      const { data: prod } = await supabase
+        .from('products')
+        .select('type, slug')
+        .eq('slug', product)
+        .maybeSingle()
+      if (prod?.type) {
+        isVideo = prod.type === 'فيديو'
       }
-    } catch {}
+    }
 
     if (!downloadUrl) {
       // Legacy: build from assets bucket and slug
       const bookPath = `public/books/${product}.pdf`
       const videoPath = `public/videos/${product}.mp4`
-      isVideo = product.includes('masterclass') || product.includes('video')
       const filePath = isVideo ? videoPath : bookPath
       downloadUrl = `${SUPABASE_URL.replace('.co', '.co/storage/v1/object/public')}/assets/${filePath}`
     }

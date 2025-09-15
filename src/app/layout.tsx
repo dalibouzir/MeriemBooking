@@ -6,6 +6,7 @@ import '../styles/globals.css'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import Providers from './providers'
+import TopbarAuth from '@/components/TopbarAuth'
 
 // Ensures proper mobile scaling (prevents weird "disappearing" when toggling device mode)
 export const viewport = {
@@ -25,8 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <img src="/logo/logo.png" alt="فطرة الأمهات" className="brand-logo" />
                 <span className="brand-mark">Fittrah Moms </span>
               </Link>
-
-              {/* تمت إزالة روابط التنقل حسب الطلب لواجهة أبسط */}
+              <TopbarAuth />
             </div>
           </header>
 

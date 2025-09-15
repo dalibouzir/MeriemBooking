@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { freeBusyForDate, generateSlots } from "@/lib/google-server";
+import { createClient } from '@supabase/supabase-js'
 
 type FreeBody = { date: string }; // 'YYYY-MM-DD'
 
@@ -7,16 +7,11 @@ function isFreeBody(x: unknown): x is FreeBody {
   return typeof x === "object" && x !== null && typeof (x as Record<string, unknown>).date === "string";
 }
 
-type BusyRange = { start: string; end: string };
-type FreeBusyCalendars = Record<string, { busy?: BusyRange[] }>;
-type FreeBusyResult = { calendars?: FreeBusyCalendars };
-
-function isBusyRangeArray(x: unknown): x is BusyRange[] {
-  return Array.isArray(x) && x.every(
-    (b) => typeof b === "object" && b !== null &&
-      typeof (b as Record<string, unknown>).start === "string" &&
-      typeof (b as Record<string, unknown>).end === "string"
-  );
+// Build ISO strings from date + time (assume UTC to keep deterministic)
+function toIso(date: string, time: string) {
+  // Expect time like HH:MM:SS or HH:MM
+  const t = time.length === 5 ? `${time}:00` : time
+  return `${date}T${t}Z`
 }
 
 export async function POST(req: NextRequest) {
@@ -29,22 +24,30 @@ export async function POST(req: NextRequest) {
 
     const { date } = body;
 
-    const fb: FreeBusyResult = await freeBusyForDate(date);
-    const calId = process.env.GOOGLE_CALENDAR_ID || "primary";
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    const supabase = createClient(url, anon, { auth: { persistSession: false } })
 
-    const rawBusy = fb.calendars?.[calId]?.busy;
-    const busy: BusyRange[] = isBusyRangeArray(rawBusy) ? rawBusy : [];
+    const { data, error } = await supabase
+      .from('free_call_slots_with_remaining')
+      .select('id, day, start_time, end_time, remaining, is_open, note')
+      .eq('is_open', true)
+      .gte('day', date)
+      .lte('day', date)
+      .order('day', { ascending: true })
+      .order('start_time', { ascending: true })
 
-    // Fewer, longer slots (1 hour each) between 11:00 and 16:00
-    const all = generateSlots(date, { start: "11:00", end: "16:00", stepMin: 60 });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    // keep only slots that do NOT overlap any busy range
-    const intersects = (s: { start: string; end: string }, b: BusyRange) =>
-      !(s.end <= b.start || s.start >= b.end);
+    const free = (data || []).map((r: any) => ({
+      id: r.id,
+      start: toIso(r.day, r.start_time),
+      end: toIso(r.day, r.end_time),
+      remaining: Math.max(0, Number(r.remaining ?? 0)),
+      note: r.note ?? null,
+    }))
 
-    const free = all.filter((s) => !busy.some((b) => intersects(s, b)));
-
-    return NextResponse.json({ free });
+    return NextResponse.json({ free })
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "server_error";
     if (typeof message === 'string' && message.includes('google_reconnect_required')) {

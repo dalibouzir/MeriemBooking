@@ -47,6 +47,8 @@ img, svg, video { display: block; max-width: 100%; }
 
   /* Focus */
   --focus:#d8b4fe;
+  /* Layout */
+  --topbar-h: 64px;
 }
 
 /* --- Base body --- */
@@ -126,7 +128,7 @@ p { font-size: 1.05rem; line-height: 1.8; color: #4a4a4a; }
   box-shadow: var(--shadow-1);
 }
 .topbar .container{
-  display:flex; align-items:center; justify-content:space-between; height:64px;
+  display:flex; align-items:center; justify-content:space-between; height: var(--topbar-h);
 }
 .brand{ display:inline-flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.5px; }
 .brand-logo{ height:36px; width:auto; display:block; border-radius:6px; object-fit:contain; }
@@ -148,7 +150,8 @@ p { font-size: 1.05rem; line-height: 1.8; color: #4a4a4a; }
 /* --- Modal / Admin styles --- */
 .modal-backdrop{
   position: fixed; inset: 0; background: rgba(0,0,0,.35);
-  display:flex; align-items:center; justify-content:center; padding:16px; z-index: 1000;
+  display:flex; align-items:flex-start; justify-content:center; padding:16px; z-index: 1000;
+  padding-top: calc(var(--topbar-h) + 24px);
 }
 .modal-card{
   width: 100%; max-width: 760px; background: var(--surface); border:1px solid var(--border);

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { supabaseClient } from '@/lib/supabase'
-import AdminLibraryManager from '@/components/AdminLibraryManager'
 
 type منتج = {
   id: string
@@ -26,12 +25,14 @@ type منتج = {
 /** العناصر من قاعدة البيانات */
 type DbItem = {
   id: string
-  type: 'book' | 'video'
+  type: 'كتاب' | 'فيديو'
   title: string
-  description: string | null
-  public_url: string | null
-  thumbnail_path: string | null
-  price: number | null
+  description: string
+  cover: string
+  rating: number | null
+  reviews: number | null
+  slug: string
+  snippet: string | null
 }
 
 export default function HomePage() {
@@ -40,45 +41,35 @@ export default function HomePage() {
   useEffect(() => {
     let mounted = true
     ;(async () => {
-      const { data, error } = await supabaseClient
-        .from('library_items')
-        .select('*')
-        .order('created_at', { ascending: false })
-      if (error) {
-        console.error('Fetch library_items error:', error.message)
-        return
-      }
-      const mapped: منتج[] = (data as DbItem[]).map((it) => {
-        const isVideo = it.type === 'video'
-        // Build public URL for thumbnail if present
-        let cover = '/Meriem.webp'
-        if (it.thumbnail_path) {
-          const { data: pub } = supabaseClient.storage
-            .from('library')
-            .getPublicUrl(it.thumbnail_path)
-          if (pub?.publicUrl) cover = pub.publicUrl
-        }
-        return {
+      try {
+        // Try to load items if the table exists; otherwise fall back to empty list.
+        const { data, error } = await supabaseClient
+          .from('products')
+          .select('id, type, title, description, cover, rating, reviews, slug, snippet')
+          .order('created_at', { ascending: false })
+        if (error) throw error
+        const mapped: منتج[] = (data as DbItem[]).map((it) => ({
           id: it.id,
-          type: isVideo ? 'فيديو' : 'كتاب',
+          type: it.type,
           title: it.title,
-          description: it.description || '',
-          cover,
-          rating: 4.9,
-          reviews: 128,
-          slug: it.id, // نستخدم المعرف كـ slug
-          snippet: undefined,
-          price: it.price ?? undefined,
-          format: isVideo ? 'MP4' : 'PDF',
+          description: it.description,
+          cover: it.cover || '/Meriem.webp',
+          rating: (it.rating ?? 5.0) as number,
+          reviews: (it.reviews ?? 0) as number,
+          slug: it.slug,
+          snippet: it.snippet ?? undefined,
+          price: undefined,
+          format: it.type === 'فيديو' ? 'MP4' : 'PDF',
           level: undefined,
-          downloadUrl: it.public_url || undefined,
-        }
-      })
-      if (mounted) setمنتجات(mapped)
+          downloadUrl: undefined,
+        }))
+        if (mounted) setمنتجات(mapped)
+      } catch (e) {
+        console.warn('products not available; storefront will show no items')
+        if (mounted) setمنتجات([])
+      }
     })()
-    return () => {
-      mounted = false
-    }
+    return () => { mounted = false }
   }, [])
   return (
     <div id="storefront" dir="rtl" lang="ar" className="sf-wrapper">
@@ -90,14 +81,11 @@ export default function HomePage() {
             موارد عملية للأمهات: كتيّبات وفيديوهات قصيرة تُساعِدك على تهدئة التوتر، ترسيخ الحدود، وبناء روتينٍ أسهل.
             عند تنزيل أي منتج، يصلك <span className="sf-bold">رمز هدية</span> لمكالمة 1:1 مجانية.
           </p>
-          <div className="sf-hero-actions">
-            <Link href="/free-call" className="sf-cta" aria-label="الانتقال إلى حجز مكالمة فردية">
-              عندي رمز — أريد الحجز الآن
-            </Link>
-            <div style={{ marginInlineStart: 8 }}>
-              <AdminLibraryManager />
+            <div className="sf-hero-actions">
+              <Link href="/free-call" className="sf-cta" aria-label="الانتقال إلى حجز مكالمة فردية">
+                عندي رمز — أريد الحجز الآن
+              </Link>
             </div>
-          </div>
         </div>
 
         {/* ░ كتل معلومات موجزة ░ */}

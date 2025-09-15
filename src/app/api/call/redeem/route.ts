@@ -36,19 +36,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid code' }, { status: 400 })
     }
 
-    // 2) Check expiry
-    if (row.code_expires_at && new Date(row.code_expires_at) < new Date()) {
+    // 2) Check expiry (support both code_expires_at or expires_at)
+    const expiresAt = (row as any).code_expires_at || (row as any).expires_at || null
+    if (expiresAt && new Date(expiresAt) < new Date()) {
       return NextResponse.json({ error: 'Code expired' }, { status: 400 })
     }
 
-    // 3) If already redeemed, return existing token if still valid
-    if (
-      row.redeemed_at &&
-      row.access_token &&
-      row.access_expires_at &&
-      new Date(row.access_expires_at) > new Date()
-    ) {
-      return NextResponse.json({ ok: true, token: row.access_token, email: row.email })
+    // 3) Disallow reuse: if already redeemed/used once, block
+    const alreadyUsed = Boolean((row as any).is_used) || Boolean((row as any).redeemed_at)
+    if (alreadyUsed) {
+      return NextResponse.json({ error: 'Code already redeemed' }, { status: 400 })
     }
 
     // 4) Generate a fresh access token
@@ -56,13 +53,16 @@ export async function POST(req: NextRequest) {
     const accessExpiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString()
     const redeemedAt = new Date().toISOString()
 
+    const update: Record<string, unknown> = {
+      redeemed_at: redeemedAt,
+      access_token: token,
+      access_expires_at: accessExpiresAt,
+      is_used: true,
+      used_at: redeemedAt,
+    }
     const { error: upErr } = await supabase
       .from('call_tokens')
-      .update({
-        redeemed_at: redeemedAt,
-        access_token: token,
-        access_expires_at: accessExpiresAt,
-      })
+      .update(update)
       .eq('code', code)
 
     if (upErr) {
