@@ -81,6 +81,8 @@ function ScheduleTab() {
   const [durationMin, setDurationMin] = useState<number>(60)
   const [openModal, setOpenModal] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
+  const [busySlotId, setBusySlotId] = useState<string | null>(null)
+  const [savingSlot, setSavingSlot] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -111,13 +113,19 @@ function ScheduleTab() {
   }
 
   async function toggleOpen(id: string, is_open: boolean) {
+    setBusySlotId(id)
     const r = await fetch('/api/admin/free-call/slots', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_open: !is_open }) })
-    const j = await r.json(); if (!r.ok) return alert(j.error || 'فشل التحديث'); await load()
+    const j = await r.json();
+    setBusySlotId(null)
+    if (!r.ok) return alert(j.error || 'Update failed'); await load()
   }
   async function del(id: string) {
-    if (!confirm('حذف الموعد؟')) return
+    if (!confirm('Delete this slot?')) return
+    setBusySlotId(id)
     const r = await fetch(`/api/admin/free-call/slots?id=${id}`, { method: 'DELETE' })
-    const j = await r.json(); if (!r.ok) return alert(j.error || 'فشل الحذف'); await load()
+    const j = await r.json();
+    setBusySlotId(null)
+    if (!r.ok) return alert(j.error || 'Delete failed'); await load()
   }
 
   async function saveSlot() {
@@ -125,8 +133,11 @@ function ScheduleTab() {
     const end_time = form.end_time || addDuration(form.start_time, durationMin)
     const method = editId ? 'PATCH' : 'POST'
     const body = editId ? { id: editId, ...form, end_time, is_open: true, note: form.note || null } : { ...form, end_time, is_open: true, note: form.note || null }
+    setSavingSlot(true)
     const r = await fetch('/api/admin/free-call/slots', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-    const j = await r.json(); if (!r.ok) return alert(j.error || 'فشل الحفظ')
+    const j = await r.json();
+    setSavingSlot(false)
+    if (!r.ok) return alert(j.error || 'Save failed')
     setOpenModal(false); setEditId(null); setForm({ day: '', start_time: '', end_time: '', capacity: 1, note: '' }); await load()
   }
 
@@ -143,7 +154,7 @@ function ScheduleTab() {
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
+        <table className="table responsive text-sm">
           <thead>
             <tr className="bg-purple-100 text-purple-800">
               <th className="p-2 text-right">اليوم</th>
@@ -163,17 +174,17 @@ function ScheduleTab() {
               <tr><td className="p-2" colSpan={8}>لا يوجد مواعيد</td></tr>
             ) : slots.map((s) => (
               <tr key={s.id} className="odd:bg-gray-50">
-                <td className="p-2">{s.day}</td>
-                <td className="p-2">{s.start_time}</td>
-                <td className="p-2">{s.end_time}</td>
-                <td className="p-2">{s.capacity}</td>
-                <td className="p-2">{s.remaining ?? 0}</td>
-                <td className="p-2">{s.is_open ? 'مفتوح' : 'مغلق'}</td>
-                <td className="p-2">{s.note || ''}</td>
-                <td className="p-2 space-x-2 space-x-reverse">
-                  <button className="btn btn-outline" onClick={()=>toggleOpen(s.id, s.is_open)}>{s.is_open ? 'إغلاق' : 'فتح'}</button>
-                  <button className="btn" onClick={()=>{ setEditId(s.id); setForm({ day: s.day, start_time: s.start_time, end_time: s.end_time, capacity: s.capacity, note: s.note || '' }); setOpenModal(true) }}>تعديل</button>
-                  <button className="btn" onClick={()=>del(s.id)}>حذف</button>
+                <td className="p-2" data-th="Day">{s.day}</td>
+                <td className="p-2" data-th="Start">{s.start_time}</td>
+                <td className="p-2" data-th="End">{s.end_time}</td>
+                <td className="p-2" data-th="Capacity">{s.capacity}</td>
+                <td className="p-2" data-th="Remaining">{s.remaining ?? 0}</td>
+                <td className="p-2" data-th="Status">{s.is_open ? 'Open' : 'Closed'}</td>
+                <td className="p-2" data-th="Note">{s.note || ''}</td>
+                <td className="p-2 actions" data-th="Actions">
+                  <button className="btn btn-outline" disabled={busySlotId===s.id} onClick={()=>toggleOpen(s.id, s.is_open)}>{busySlotId===s.id ? '...' : (s.is_open ? 'Close' : 'Open')}</button>
+                  <button className="btn" disabled={busySlotId===s.id} onClick={()=>{ setEditId(s.id); setForm({ day: s.day, start_time: s.start_time, end_time: s.end_time, capacity: s.capacity, note: s.note || '' }); setOpenModal(true) }}>Edit</button>
+                  <button className="btn" disabled={busySlotId===s.id} onClick={()=>del(s.id)}>Delete</button>
                 </td>
               </tr>
             ))}
@@ -181,14 +192,14 @@ function ScheduleTab() {
         </table>
       </div>
 
-      <Modal open={openModal} onClose={()=>setOpenModal(false)} title={editId ? 'تعديل موعد' : 'إضافة موعد'} footer={<div className="flex gap-2"><button className="btn btn-primary" onClick={saveSlot}>{editId ? 'حفظ' : 'إضافة'}</button><button className="btn" onClick={()=>setOpenModal(false)}>إلغاء</button></div>}>
+      <Modal open={openModal} onClose={()=>setOpenModal(false)} title={editId ? 'Edit Slot' : 'Add Slot'} footer={<div className="flex gap-2"><button className="btn btn-primary" disabled={savingSlot} onClick={saveSlot}>{savingSlot ? 'Saving…' : (editId ? 'Save' : 'Add')}</button><button className="btn" onClick={()=>setOpenModal(false)}>Cancel</button></div>}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <label className="field"><span className="field-label">اليوم</span><input className="input" type="date" value={form.day} onChange={(e)=>setForm(f=>({...f, day: e.target.value}))} /></label>
-          <label className="field"><span className="field-label">البداية</span><input className="input" type="time" value={form.start_time} onChange={(e)=>setForm(f=>({...f, start_time: e.target.value}))} /></label>
-          <label className="field"><span className="field-label">النهاية</span><input className="input" type="time" value={form.end_time} onChange={(e)=>setForm(f=>({...f, end_time: e.target.value}))} placeholder="اختياري" /></label>
-          <label className="field"><span className="field-label">المدة</span><select className="input" value={durationMin} onChange={(e)=>setDurationMin(Number(e.target.value))}><option value={30}>30 دقيقة</option><option value={45}>45 دقيقة</option><option value={60}>60 دقيقة</option><option value={90}>90 دقيقة</option></select></label>
-          <label className="field"><span className="field-label">السعة</span><input className="input" type="number" min={1} value={form.capacity} onChange={(e)=>setForm(f=>({...f, capacity: Number(e.target.value||1)}))} /></label>
-          <label className="field md:col-span-2"><span className="field-label">ملاحظة</span><input className="input" value={form.note} onChange={(e)=>setForm(f=>({...f, note: e.target.value}))} /></label>
+          <label className="field"><span className="field-label">Day</span><input className="input" type="date" value={form.day} onChange={(e)=>setForm(f=>({...f, day: e.target.value}))} /></label>
+          <label className="field"><span className="field-label">Start</span><input className="input" type="time" value={form.start_time} onChange={(e)=>setForm(f=>({...f, start_time: e.target.value}))} /></label>
+          <label className="field"><span className="field-label">End</span><input className="input" type="time" value={form.end_time} onChange={(e)=>setForm(f=>({...f, end_time: e.target.value}))} placeholder="Optional" /></label>
+          <label className="field"><span className="field-label">Duration</span><select className="input" value={durationMin} onChange={(e)=>setDurationMin(Number(e.target.value))}><option value={30}>30 min</option><option value={45}>45 min</option><option value={60}>60 min</option><option value={90}>90 min</option></select></label>
+          <label className="field"><span className="field-label">Capacity</span><input className="input" type="number" min={1} value={form.capacity} onChange={(e)=>setForm(f=>({...f, capacity: Number(e.target.value||1)}))} /></label>
+          <label className="field md:col-span-2"><span className="field-label">Note</span><input className="input" value={form.note} onChange={(e)=>setForm(f=>({...f, note: e.target.value}))} /></label>
         </div>
       </Modal>
     </div>
@@ -209,6 +220,7 @@ function ReservationsTab() {
   const [loading, setLoading] = useState(false)
   const [day, setDay] = useState('')
   const [slotId, setSlotId] = useState('')
+  const [cancelBusy, setCancelBusy] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -225,9 +237,10 @@ function ReservationsTab() {
   useEffect(()=>{ load() },[])
 
   async function cancel(id: string) {
-    if (!confirm('إلغاء الحجز؟')) return
+    if (!confirm('Cancel this reservation?')) return
+    setCancelBusy(id)
     const r = await fetch('/api/admin/free-call/reservations', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    const j = await r.json(); if (!r.ok) return alert(j.error || 'فشل الإلغاء')
+    const j = await r.json(); setCancelBusy(null); if (!r.ok) return alert(j.error || 'Cancel failed')
     await load()
   }
 
@@ -242,7 +255,7 @@ function ReservationsTab() {
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
+        <table className="table responsive text-sm">
           <thead>
             <tr className="bg-purple-100 text-purple-800">
               <th className="p-2 text-right">البريد</th>
@@ -260,12 +273,12 @@ function ReservationsTab() {
               <tr><td className="p-2" colSpan={6}>لا يوجد حجوزات</td></tr>
             ) : items.map((r) => (
               <tr key={r.id} className="odd:bg-gray-50">
-                <td className="p-2">{r.email}</td>
-                <td className="p-2">{r.free_call_slots?.day}</td>
-                <td className="p-2">{r.free_call_slots?.start_time} – {r.free_call_slots?.end_time}</td>
-                <td className="p-2">{r.status}</td>
-                <td className="p-2">{new Date(r.created_at).toLocaleString('ar-TN')}</td>
-                <td className="p-2"><button className="btn" onClick={()=>cancel(r.id)}>إلغاء</button></td>
+                <td className="p-2" data-th="Email">{r.email}</td>
+                <td className="p-2" data-th="Day">{r.free_call_slots?.day}</td>
+                <td className="p-2" data-th="Time">{r.free_call_slots?.start_time} – {r.free_call_slots?.end_time}</td>
+                <td className="p-2" data-th="Status">{r.status}</td>
+                <td className="p-2" data-th="Created">{new Date(r.created_at).toLocaleString('en-GB')}</td>
+                <td className="p-2 actions" data-th="Actions"><button className="btn" disabled={cancelBusy===r.id} onClick={()=>cancel(r.id)}>{cancelBusy===r.id ? '...' : 'Cancel'}</button></td>
               </tr>
             ))}
           </tbody>
@@ -314,43 +327,70 @@ function BulkEmailTab() {
 // Tokens tab removed per request; token summary appears in Stats
 
 function ProductsTab() {
-  const [items, setItems] = useState<{ id: string; type: 'كتاب'|'فيديو'; title: string; slug: string; cover: string }[]>([])
+  const [items, setItems] = useState<{ id: string; type: 'كتاب'|'فيديو'; title: string; slug: string; cover: string; description?: string; snippet?: string }[]>([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<{ type: 'كتاب'|'فيديو'; title: string; description: string; slug: string; snippet: string; file: File | null; cover: File | null }>({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null })
+  const [saving, setSaving] = useState(false)
+  const [delBusy, setDelBusy] = useState<string | null>(null)
+  const [editId, setEditId] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
     const r = await fetch('/api/admin/products')
     const j = await r.json(); setLoading(false)
     if (!r.ok) return alert(j.error || 'فشل التحميل')
-    setItems((j.products || []).map((p: any) => ({ id: p.id, type: p.type, title: p.title, slug: p.slug, cover: p.cover })))
+    setItems((j.products || []).map((p: any) => ({ id: p.id, type: p.type, title: p.title, slug: p.slug, cover: p.cover, description: p.description, snippet: p.snippet })))
   }
   useEffect(()=>{ load() },[])
 
   async function save() {
-    if (!form.title || !form.description || !form.slug || !form.file) return alert('أكملي الحقول المطلوبة')
-    const fd = new FormData()
-    fd.set('type', form.type)
-    fd.set('title', form.title)
-    fd.set('description', form.description)
-    fd.set('slug', form.slug)
-    if (form.snippet) fd.set('snippet', form.snippet)
-    fd.set('file', form.file)
-    if (form.cover) fd.set('cover', form.cover)
-    const r = await fetch('/api/admin/products-upload', { method: 'POST', body: fd })
-    const j = await r.json()
-    if (!r.ok) return alert(j.error || 'فشل الإضافة')
-    setOpen(false)
-    setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null })
-    await load()
+    // Create vs Update
+    if (editId) {
+      // Update metadata only
+      if (!form.title || !form.description || !form.slug) return alert('أكملي الحقول المطلوبة')
+      setSaving(true)
+      const payload: Record<string, unknown> = {
+        id: editId,
+        type: form.type,
+        title: form.title,
+        description: form.description,
+        slug: form.slug,
+        snippet: form.snippet || null,
+      }
+      const r = await fetch('/api/admin/products', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const j = await r.json(); setSaving(false)
+      if (!r.ok) return alert(j.error || 'Update failed')
+      setOpen(false); setEditId(null)
+      setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null })
+      await load()
+    } else {
+      // Create requires file
+      if (!form.title || !form.description || !form.slug || !form.file) return alert('أكملي الحقول المطلوبة')
+      setSaving(true)
+      const fd = new FormData()
+      fd.set('type', form.type)
+      fd.set('title', form.title)
+      fd.set('description', form.description)
+      fd.set('slug', form.slug)
+      if (form.snippet) fd.set('snippet', form.snippet)
+      fd.set('file', form.file)
+      if (form.cover) fd.set('cover', form.cover)
+      const r = await fetch('/api/admin/products-upload', { method: 'POST', body: fd })
+      const j = await r.json(); setSaving(false)
+      if (!r.ok) return alert(j.error || 'Create failed')
+      setOpen(false)
+      setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null })
+      await load()
+    }
   }
 
   async function del(id: string) {
-    if (!confirm('حذف المنتج؟')) return
+    if (!confirm('Delete this product?')) return
+    setDelBusy(id)
     const r = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' })
-    const j = await r.json()
-    if (!r.ok) return alert(j.error || 'فشل الحذف')
+    const j = await r.json(); setDelBusy(null)
+    if (!r.ok) return alert(j.error || 'Delete failed')
     await load()
   }
 
@@ -359,11 +399,11 @@ function ProductsTab() {
       <SectionHeader title="المنتجات"/>
       <div className="card p-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
-          <button className="btn btn-primary" onClick={()=>setOpen(true)}>+ إضافة منتج</button>
+          <button className="btn btn-primary" onClick={()=>{ setEditId(null); setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null }); setOpen(true) }}>+ إضافة منتج</button>
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
+        <table className="table responsive text-sm">
           <thead>
             <tr className="bg-purple-100 text-purple-800">
               <th className="p-2 text-right">الغلاف</th>
@@ -376,26 +416,33 @@ function ProductsTab() {
           <tbody>
             {loading ? (<tr><td className="p-2" colSpan={5}>جارٍ التحميل…</td></tr>) : items.length === 0 ? (<tr><td className="p-2" colSpan={5}>لا توجد منتجات</td></tr>) : items.map(p => (
               <tr key={p.id} className="odd:bg-gray-50">
-                <td className="p-2"><img src={p.cover} alt="cover" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }} /></td>
-                <td className="p-2">{p.title}</td>
-                <td className="p-2">{p.type}</td>
-                <td className="p-2">{p.slug}</td>
-                <td className="p-2"><button className="btn" onClick={()=>del(p.id)}>حذف</button></td>
+                <td className="p-2" data-th="Cover"><img src={p.cover} alt="cover" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }} /></td>
+                <td className="p-2" data-th="Title">{p.title}</td>
+                <td className="p-2" data-th="Type">{p.type}</td>
+                <td className="p-2" data-th="Slug">{p.slug}</td>
+                <td className="p-2 actions" data-th="Actions">
+                  <button className="btn" onClick={()=>{ setEditId(p.id); setForm({ type: p.type, title: p.title, description: p.description || '', slug: p.slug, snippet: p.snippet || '', file: null, cover: null }); setOpen(true) }}>Edit</button>
+                  <button className="btn" disabled={delBusy===p.id} onClick={()=>del(p.id)}>{delBusy===p.id ? '...' : 'حذف'}</button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <Modal open={open} onClose={()=>setOpen(false)} title="إضافة منتج" footer={<div className="flex gap-2"><button className="btn btn-primary" onClick={save}>إضافة</button><button className="btn" onClick={()=>setOpen(false)}>إلغاء</button></div>}>
+      <Modal open={open} onClose={()=>{ setOpen(false); setEditId(null) }} title={editId ? 'تعديل منتج' : 'إضافة منتج'} footer={<div className="flex gap-2"><button className="btn btn-primary" disabled={saving} onClick={save}>{saving ? (editId ? 'جارٍ حفظ…' : 'جارٍ…') : (editId ? 'حفظ' : 'إضافة')}</button><button className="btn" onClick={()=>{ setOpen(false); setEditId(null) }}>إلغاء</button></div>}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <label className="field"><span className="field-label">النوع</span><select className="input" value={form.type} onChange={(e)=>setForm(f=>({ ...f, type: e.target.value as 'كتاب'|'فيديو' }))}><option value="كتاب">كتاب</option><option value="فيديو">فيديو</option></select></label>
           <label className="field"><span className="field-label">العنوان</span><input className="input" value={form.title} onChange={(e)=>setForm(f=>({ ...f, title: e.target.value }))} /></label>
           <label className="field md:col-span-2"><span className="field-label">الوصف</span><textarea className="input textarea" rows={3} value={form.description} onChange={(e)=>setForm(f=>({ ...f, description: e.target.value }))} /></label>
           <label className="field"><span className="field-label">Slug</span><input className="input" value={form.slug} onChange={(e)=>setForm(f=>({ ...f, slug: e.target.value }))} /></label>
           <label className="field"><span className="field-label">مقتطف</span><input className="input" value={form.snippet} onChange={(e)=>setForm(f=>({ ...f, snippet: e.target.value }))} /></label>
-          <label className="field"><span className="field-label">ملف المنتج</span><input className="input" type="file" onChange={(e)=>setForm(f=>({ ...f, file: e.target.files?.[0] || null }))} /></label>
-          <label className="field"><span className="field-label">صورة الغلاف</span><input className="input" type="file" onChange={(e)=>setForm(f=>({ ...f, cover: e.target.files?.[0] || null }))} /></label>
+          {!editId && (
+            <>
+              <label className="field"><span className="field-label">ملف المنتج</span><input className="input" type="file" onChange={(e)=>setForm(f=>({ ...f, file: e.target.files?.[0] || null }))} /></label>
+              <label className="field"><span className="field-label">صورة الغلاف</span><input className="input" type="file" onChange={(e)=>setForm(f=>({ ...f, cover: e.target.files?.[0] || null }))} /></label>
+            </>
+          )}
         </div>
       </Modal>
     </div>
@@ -420,11 +467,15 @@ function StatsTab() {
     return (
       <div className="card p-3">
         <div className="font-semibold mb-2">{label}</div>
-        <div className="flex items-end gap-1" style={{ height: 120 }}>
-          {series.map((s) => (
-            <div key={s.day} title={`${s.day} — ${s.count}`} style={{ width: 8, height: Math.max(4, (s.count / max) * 110), background: '#7c3aed', borderRadius: 2 }} />
-          ))}
-        </div>
+        <svg width="100%" height="140" viewBox={`0 0 ${Math.max(1, series.length*10)} 140`} preserveAspectRatio="none">
+          {series.map((s, i) => {
+            const h = Math.max(2, (s.count / max) * 120)
+            const x = i * 10 + 2
+            const y = 130 - h
+            return <rect key={s.day} x={x} y={y} width={6} height={h} rx={2} fill="#7c3aed" />
+          })}
+        </svg>
+        <div className="text-xs text-gray-600 mt-1">آخر {series.length} يوم</div>
       </div>
     )
   }
@@ -432,16 +483,27 @@ function StatsTab() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {loading ? <div className="text-sm text-gray-600">جارٍ التحميل…</div> : null}
-      <Bar label="حجوزات آخر ٣٠ يوم" series={data.reservations} />
-      <Bar label="تنزيلات آخر ٣٠ يوم" series={data.downloads} />
+      <Bar label="Reservations — last 30 days" series={data.reservations} />
+      <Bar label="Downloads — last 30 days" series={data.downloads} />
       <div className="card p-3">
-        <div className="font-semibold mb-2">التوكينات — الإجمالي مقابل المُستبدل</div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 140 }}>
-          <div title={`إجمالي: ${tokenSummary.total}`} style={{ width: 28, height: Math.max(6, tokenSummary.total ? (tokenSummary.total / Math.max(1, tokenSummary.total)) * 120 : 6), background: '#d8b4fe', borderRadius: 4 }} />
-          <div title={`مستبدل: ${tokenSummary.redeemed}`} style={{ width: 28, height: Math.max(6, tokenSummary.total ? (tokenSummary.redeemed / Math.max(1, tokenSummary.total)) * 120 : 6), background: '#7c3aed', borderRadius: 4 }} />
-          <div title={`غير مستبدل: ${tokenSummary.unredeemed}`} style={{ width: 28, height: Math.max(6, tokenSummary.total ? (tokenSummary.unredeemed / Math.max(1, tokenSummary.total)) * 120 : 6), background: '#a78bfa', borderRadius: 4 }} />
+        <div className="font-semibold mb-2">Tokens — Total vs Redeemed</div>
+        <div className="flex items-center gap-4">
+          <svg width="110" height="110" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="16" fill="#f3e8ff" />
+            {(() => {
+              const total = Math.max(1, tokenSummary.total)
+              const used = Math.min(total, Math.max(0, tokenSummary.redeemed))
+              const p = used / total
+              const dash = p * 100
+              return <circle cx="18" cy="18" r="16" fill="transparent" stroke="#7c3aed" strokeWidth="4" strokeDasharray={`${dash} 100`} transform="rotate(-90 18 18)" />
+            })()}
+          </svg>
+          <div className="text-sm text-gray-700">
+            <div>Total: <b>{tokenSummary.total}</b></div>
+            <div>Redeemed: <b>{tokenSummary.redeemed}</b></div>
+            <div>Unredeemed: <b>{tokenSummary.unredeemed}</b></div>
+          </div>
         </div>
-        <div className="text-sm text-gray-700 mt-2">الإجمالي: {tokenSummary.total} · المستبدل: {tokenSummary.redeemed} · غير مستبدل: {tokenSummary.unredeemed}</div>
       </div>
     </div>
   )

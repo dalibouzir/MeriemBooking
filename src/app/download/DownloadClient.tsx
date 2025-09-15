@@ -1,13 +1,17 @@
-'use client'
+"use client"
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 type ApiError = { error?: string; message?: string }
 
 export default function DownloadClient({ initialProduct = '' }: { initialProduct?: string }) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [redirectIn, setRedirectIn] = useState<number | null>(null)
+  const countdownRef = useRef<number | null>(null)
 
   const product = initialProduct
   const hpRef = useRef<HTMLInputElement | null>(null)
@@ -18,6 +22,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   useEffect(() => {
     setMessage(null)
     setError(null)
+    setRedirectIn(null)
   }, [product])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -56,6 +61,20 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
 
       setMessage('📩 تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. تفقد البريد الوارد/الغير هام.')
       formEl.reset()
+      // Start a 10s countdown then redirect to /redeem so user can paste the code
+      const total = 10
+      setRedirectIn(total)
+      countdownRef.current = window.setInterval(() => {
+        setRedirectIn((prev) => {
+          const next = (prev ?? total) - 1
+          if (next <= 0) {
+            if (countdownRef.current) window.clearInterval(countdownRef.current)
+            router.push('/redeem')
+            return 0
+          }
+          return next
+        })
+      }, 1000)
     } catch (err: unknown) {
       const errorObj = err as Error
       setError(errorObj.message || 'تعذّر الإرسال، حاول/ي مجددًا.')
@@ -99,9 +118,14 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           </p>
         )}
         {message && (
-          <p className="alert alert-success" role="status" style={{ marginTop: '10px' }}>
-            {message}
-          </p>
+          <div className="alert alert-success" role="status" style={{ marginTop: '10px' }}>
+            <p>{message}</p>
+            <p style={{ marginTop: 6 }}>
+              سنحوّلك الآن لصفحة إدخال الكود لاستبداله
+              {typeof redirectIn === 'number' ? ` خلال ${redirectIn} ثانية` : ''}
+              — أو <a href="/redeem" className="link">اذهب الآن</a>.
+            </p>
+          </div>
         )}
 
         {!productMissing && (

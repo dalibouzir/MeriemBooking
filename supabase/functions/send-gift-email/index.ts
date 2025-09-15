@@ -116,22 +116,31 @@ const handler = async (req: Request): Promise<Response> => {
 
   if (errors.length) return json({ error: "Validation failed", details: errors }, 400)
 
-  const subject = isVideo ? "وصول الماستر كلاس + كود مكالمة مجانية" : "وصول الكتاب + كود مكالمة مجانية"
+  const subject = isVideo ? "وصول الفيديو + كود مكالمة مجانية" : "وصول الكتاب + كود مكالمة مجانية"
+
+  const btn = (href: string, label: string) => `
+    <a href="${href}" style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:800" target="_blank" rel="noopener noreferrer">${label}</a>
+  `
+
+  const box = (content: string) => `
+    <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:12px;padding:12px 14px;margin:10px 0">
+      ${content}
+    </div>
+  `
 
   const html = `
-    <div style="font-family:Tahoma,Arial,sans-serif;direction:rtl;text-align:right">
-      <h2>مرحبًا ${name} 👋</h2>
-      <p>شكراً لتعبئة الفورم. هذا رابط ${isVideo ? "الفيديو" : "الكتاب"} للتنزيل:</p>
-      <p><a href="${downloadUrl}" target="_blank" rel="noopener noreferrer">تحميل ${isVideo ? "الفيديو" : "الكتاب"}</a></p>
-      <hr/>
-      <p>🎁 هذا كود التوكن الخاص بك لحجز مكالمة مجانية (صالح حتى <b>30 يوم</b>):</p>
-      <p style="font-size:18px;font-weight:bold;letter-spacing:2px">${token}</p>
-      <p>يمكنك الحجز مباشرة من هنا:
-        <a href="${redeemUrl}" target="_blank" rel="noopener noreferrer">استبدال التوكن الآن</a>
-      </p>
-      <p style="color:#777;font-size:12px">لو ما يشتغل الرابط، انسخه والصقه في المتصفح.</p>
-      <br/>
-      <p>مع المحبة،<br/>فريق مريم</p>
+    <div style="font-family:Tahoma,Arial,sans-serif;direction:rtl;text-align:right;color:#1f2937">
+      <h2 style="color:#6d28d9">مرحبًا ${name} 👋</h2>
+      <p>شكرًا لتعبئة الفورم. يمكنك تنزيل ${isVideo ? "الفيديو" : "الكتاب"} من الرابط التالي:</p>
+      ${btn(downloadUrl, isVideo ? 'تحميل الفيديو' : 'تحميل الكتاب')}
+      ${box(`
+        <div>🎁 كود التوكن لحجز مكالمة مجانية (صالح لمدة <b>30 يوم</b>):</div>
+        <div style="font-size:18px;font-weight:bold;letter-spacing:2px;margin-top:6px">${token}</div>
+      `)}
+      <p>لحجز الموعد مباشرة:</p>
+      ${btn(redeemUrl, 'استبدال التوكن الآن')}
+      <p style="color:#6b7280;font-size:12px;margin-top:12px">لو لم يعمل الرابط، انسخه والصقه في المتصفح.</p>
+      <p style="margin-top:16px">مع المحبة،<br/>فريق مريم</p>
     </div>
   `.trim()
 

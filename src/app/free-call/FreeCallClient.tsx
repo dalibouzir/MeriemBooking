@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Calendar from 'react-calendar'
 // CalendarProps not used; keep import minimal
 import 'react-calendar/dist/Calendar.css'
@@ -13,6 +13,7 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [freeSlots, setFreeSlots] = useState<{ id: string; start: string; end: string; remaining?: number }[]>([])
   const [chosen, setChosen] = useState<{ id: string; start: string; end: string } | null>(null)
+  const [availableDays, setAvailableDays] = useState<string[]>([])
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
@@ -65,8 +66,34 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
     return null
   }
 
+  function toDateKeyLocal(d: Date): string {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
   const formatArabicDate = (d: Date) =>
     d.toLocaleDateString('ar-TN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+  async function fetchAvailableDays(active: Date) {
+    // Determine the first and last day of the visible month
+    const year = active.getFullYear()
+    const month = active.getMonth()
+    const first = new Date(year, month, 1)
+    const last = new Date(year, month + 1, 0)
+    const from = toDateKeyLocal(first)
+    const to = toDateKeyLocal(last)
+    const r = await fetch(`/api/public/free/days?from=${from}&to=${to}`, { cache: 'no-store' })
+    const j = await r.json()
+    if (!r.ok) return
+    setAvailableDays(Array.isArray(j.days) ? j.days : [])
+  }
+
+  // Fetch availability for the initial month on mount so days glow immediately
+  useEffect(() => {
+    fetchAvailableDays(new Date()).catch(() => {})
+  }, [])
 
   async function fetchFree(isoDate: string) {
     const r = await fetch('/api/public/free', {
@@ -132,11 +159,14 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
         <div className="fc-calendar">
           <div className="card" style={{ padding: '12px' }}>
             <Calendar
+              onActiveStartDateChange={async ({ activeStartDate }) => {
+                if (activeStartDate) await fetchAvailableDays(activeStartDate)
+              }}
               onChange={async (value) => {
                 const d = extractDateFromValue(value)
                 if (!d) return
                 setSelectedDate(d)
-                const iso = d.toISOString().split('T')[0]
+                const iso = toDateKeyLocal(d)
                 try {
                   await fetchFree(iso)
                 } catch (e: unknown) {             // ✅ safe type
@@ -150,14 +180,17 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
               calendarType="gregory"
               selectRange={false}
               allowPartialRange={false}
-              tileDisabled={({ date }) => unavailableDates.includes(date.toISOString().split('T')[0])}
+              tileDisabled={({ date }) => unavailableDates.includes(toDateKeyLocal(date))}
               tileContent={({ date }) => {
-                const iso = date.toISOString().split('T')[0]
+                const iso = toDateKeyLocal(date)
                 return notesMap[iso] ? <div className="note-tooltip" title={notesMap[iso]}>🟣<div className="note-text">{notesMap[iso]}</div></div> : null
               }}
               tileClassName={({ date, view }) => {
-                const iso = date.toISOString().split('T')[0]
-                if (view === 'month' && notesMap[iso]) return 'highlight-note'
+                const iso = toDateKeyLocal(date)
+                if (view === 'month') {
+                  if (notesMap[iso]) return 'highlight-note'
+                  if (availableDays.includes(iso)) return 'fc-available-day'
+                }
                 return ''
               }}
             />

@@ -26,34 +26,21 @@ export async function POST(req: Request) {
 
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE!
-    const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.fittrahmoms.com').replace(/^https?:\/\//, 'https://').replace(/\/$/, '')
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE)
 
-    // 1) Resolve download target
-    // Prefer new library_items table (product=id). Fallback to legacy assets path if not found.
-    let downloadUrl: string | null = null
+    // 1) Resolve product type and build official site download page URL (not raw storage)
     let isVideo = false
-
-    // Try new products table to infer type by slug
     {
       const { data: prod } = await supabase
         .from('products')
         .select('type, slug')
         .eq('slug', product)
         .maybeSingle()
-      if (prod?.type) {
-        isVideo = prod.type === 'فيديو'
-      }
+      if (prod?.type) isVideo = prod.type === 'فيديو'
     }
-
-    if (!downloadUrl) {
-      // Legacy: build from assets bucket and slug
-      const bookPath = `public/books/${product}.pdf`
-      const videoPath = `public/videos/${product}.mp4`
-      const filePath = isVideo ? videoPath : bookPath
-      downloadUrl = `${SUPABASE_URL.replace('.co', '.co/storage/v1/object/public')}/assets/${filePath}`
-    }
+    const downloadUrl = `${SITE_URL}/download?product=${encodeURIComponent(product)}`
 
     // 2) Generate call token (30-day expiry)
     const token = generateToken(10)
@@ -75,7 +62,7 @@ export async function POST(req: Request) {
     if (e2) throw e2
 
     // 4) Redeem URL
-    const redeemUrl = `${SITE_URL}/free-call?code=${token}`
+    const redeemUrl = `${SITE_URL}/free-call/redeem?token=${token}`
 
     // 5) Trigger Edge Function to send email
     const fnUrl = `${SUPABASE_URL}/functions/v1/send-gift-email`

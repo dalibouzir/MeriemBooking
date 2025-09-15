@@ -7,6 +7,19 @@ function isAdmin(email?: string | null) {
   return email === 'meriembouzir05@gmail.com'
 }
 
+function toTunisiaISO(day: string, time: string) {
+  const t = time.length === 5 ? `${time}:00` : time
+  // Tunisia (Africa/Tunis) uses UTC+1 (no DST currently)
+  return `${day}T${t}+01:00`
+}
+
+function isPastInTunisia(day: string, time: string) {
+  const iso = toTunisiaISO(day, time)
+  const dt = Date.parse(iso)
+  if (Number.isNaN(dt)) return false
+  return dt < Date.now()
+}
+
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
   if (!isAdmin(session?.user?.email)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -45,6 +58,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'capacity must be > 0' }, { status: 400 })
   }
 
+  // Auto-skip creating past slots (Africa/Tunis local time)
+  if (isPastInTunisia(day, start_time)) {
+    return NextResponse.json({ skipped: true, reason: 'start_time_already_passed_tunisia' }, { status: 200 })
+  }
+
   // Upsert on unique (day,start_time,end_time)
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
@@ -75,6 +93,16 @@ export async function PATCH(req: Request) {
   if (typeof rest.is_open === 'boolean') update.is_open = rest.is_open
   if (typeof rest.note === 'string' || rest.note === null) update.note = rest.note
 
+  // If the resulting start time is in the past (Tunisia), delete the slot instead
+  if (typeof update.day === 'string' && typeof update.start_time === 'string') {
+    if (isPastInTunisia(update.day as string, update.start_time as string)) {
+      const supabaseDel = getSupabaseAdmin()
+      const { error: delErr } = await supabaseDel.from('free_call_slots').delete().eq('id', id)
+      if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 })
+      return NextResponse.json({ deleted: true })
+    }
+  }
+
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('free_call_slots')
@@ -100,4 +128,3 @@ export async function DELETE(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
-

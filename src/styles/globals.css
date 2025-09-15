@@ -315,6 +315,7 @@ ul li::before {
 #storefront .sf-btn {
   text-align: center; padding: .55rem .7rem; border-radius: 12px; font-weight: 700;
   transition: transform .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
+  cursor: pointer;
 }
 #storefront .sf-btn-primary { background: var(--sf-purple); color: #fff; border: 1px solid transparent; }
 #storefront .sf-btn-primary:hover { background: var(--sf-purple-2); transform: translateY(-2px); }
