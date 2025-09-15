@@ -48,48 +48,49 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
   const [tab, setTab] = useState<TabKey>('schedule')
 
   return (
-    <div dir="rtl" className="main-container admin" style={{ padding: 16, maxWidth: 1440, marginInline: 'auto' }}>
-      <header className="admin-header">
-        <div className="flex items-center justify-between">
+    <div dir="rtl" className="admin-shell" style={{ maxWidth: 1600, marginInline: 'auto' }}>
+      {/* Page header (separate glass card) */}
+      <header className="admin-header-card glass-water">
+        <div className="admin-header-row">
           <div>
-            <h1 className="text-3xl font-bold">Fittrah Moms — Admin</h1>
-            <div className="text-sm text-gray-500" style={{ marginTop: 4 }}>{adminEmail}</div>
+            <h1 className="admin-title">Fittrah Moms — Admin</h1>
+            <div className="admin-sub">{adminEmail}</div>
           </div>
-          <div className="flex items-center gap-2" role="toolbar" aria-label="Header actions">
+          <div className="admin-head-tools" role="toolbar" aria-label="Header actions">
             <button className="btn btn-outline">تحديث</button>
           </div>
         </div>
       </header>
-      <div className="flex flex-col gap-4">
-        <nav aria-label="Admin tabs" className="admin-tabs" role="tablist">
-          <div className="flex items-center gap-2 flex-wrap">
-            {([
-              { key: 'schedule', label: '📅 جدول المواعيد' },
-              { key: 'reservations', label: '👥 الحجوزات' },
-              { key: 'email', label: '✉️ الإرسال الجماعي' },
-              { key: 'products', label: '📚 المنتجات' },
-              { key: 'stats', label: '📈 الإحصائيات' },
-            ] as { key: TabKey; label: string }[]).map((t) => (
-              <button
-                key={t.key}
-                role="tab"
-                aria-selected={tab===t.key}
-                className={`btn admin-tab ${tab===t.key?'btn-primary':'btn-outline'}`}
-                onClick={()=>setTab(t.key)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </nav>
-        <main className="flex-1">
-          {tab==='schedule' && <ScheduleTab/>}
-          {tab==='reservations' && <ReservationsTab/>}
-          {tab==='email' && <BulkEmailTab/>}
-          {tab==='products' && <ProductsTab/>}
-          {tab==='stats' && <StatsTab/>}
-        </main>
-      </div>
+
+      {/* Tabs/action bar (separate glass bar) */}
+      <nav aria-label="Admin tabs" className="admin-action glass-water" role="tablist">
+        {([
+          { key: 'schedule', label: '📅 جدول المواعيد' },
+          { key: 'reservations', label: '👥 الحجوزات' },
+          { key: 'email', label: '✉️ الإرسال الجماعي' },
+          { key: 'products', label: '📚 المنتجات' },
+          { key: 'stats', label: '📈 الإحصائيات' },
+        ] as { key: TabKey; label: string }[]).map((t) => (
+          <button
+            key={t.key}
+            role="tab"
+            aria-selected={tab===t.key}
+            className={`admin-pill ${tab===t.key?'is-active':''}`}
+            onClick={()=>setTab(t.key)}
+          >
+            <span className="pill-label">{t.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* Switchable content only */}
+      <main className="admin-content glass-water">
+        {tab==='schedule' && <ScheduleTab/>}
+        {tab==='reservations' && <ReservationsTab/>}
+        {tab==='email' && <BulkEmailTab/>}
+        {tab==='products' && <ProductsTab/>}
+        {tab==='stats' && <StatsTab/>}
+      </main>
     </div>
   )
 }
@@ -404,11 +405,18 @@ function ProductsTab() {
   }
 
   return (
-    <div>
+    <div aria-labelledby="products-title" role="region">
       <SectionHeader title="المنتجات"/>
       <div className="section-toolbar">
         <div className="flex items-center gap-2 flex-wrap">
           <button className="btn btn-primary" onClick={()=>{ setEditId(null); setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null }); setOpen(true) }}>+ إضافة منتج</button>
+        </div>
+      </div>
+      {/* تحميل المنتج — بطاقة إرشادية */}
+      <div className="card glass-water p-3" style={{ margin: '8px 0 10px' }}>
+        <div className="text-sm" style={{ color: '#404252' }}>
+          <strong>تحميل المنتج:</strong> ارفعي ملف المنتج (PDF/MP4) وغلافه، ثم أدخلي العنوان والوصف والـ slug.
+          بعد الحفظ سيظهر المنتج في الصفحة الرئيسية ويمكن تنزيله.
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -458,10 +466,15 @@ function ProductsTab() {
   )
 }
 
+declare global { interface Window { Plotly?: any } }
+
 function StatsTab() {
   const [data, setData] = useState<{ reservations: { day: string; count: number }[]; downloads: { day: string; count: number }[] }>({ reservations: [], downloads: [] })
   const [tokenSummary, setTokenSummary] = useState<{ total: number; redeemed: number; unredeemed: number }>({ total: 0, redeemed: 0, unredeemed: 0 })
   const [loading, setLoading] = useState(false)
+  const [plotReady, setPlotReady] = useState(false)
+  const [reqs, setReqs] = useState<Array<{ id: number; created_at: string; name: string; email: string; country: string | null; product_slug: string }>>([])
+
   useEffect(() => {
     ;(async () => {
       setLoading(true)
@@ -471,47 +484,104 @@ function StatsTab() {
     })()
   }, [])
 
-  const Bar = ({ label, series }: { label: string; series: { day: string; count: number }[] }) => {
-    const max = Math.max(1, ...series.map((s) => s.count))
-    return (
-      <div className="card p-3">
-        <div className="font-semibold mb-2">{label}</div>
-        <svg width="100%" height="140" viewBox={`0 0 ${Math.max(1, series.length*10)} 140`} preserveAspectRatio="none">
-          {series.map((s, i) => {
-            const h = Math.max(2, (s.count / max) * 120)
-            const x = i * 10 + 2
-            const y = 130 - h
-            return <rect key={s.day} x={x} y={y} width={6} height={h} rx={2} fill="#7c3aed" />
-          })}
-        </svg>
-        <div className="text-xs text-gray-600 mt-1">آخر {series.length} يوم</div>
-      </div>
-    )
+  useEffect(() => {
+    ;(async () => {
+      const r = await fetch('/api/admin/download-requests')
+      const j = await r.json()
+      if (r.ok) {
+        const rows = (j.rows || []) as Array<{ id: number; created_at: string; name: string; email: string; country: string | null; product_slug: string }>
+        // Keep only the latest row per email (API returns newest first)
+        const seen = new Set<string>()
+        const uniq: typeof rows = []
+        for (const row of rows) {
+          const key = (row.email || '').trim().toLowerCase()
+          if (!key) continue
+          if (seen.has(key)) continue
+          seen.add(key)
+          uniq.push(row)
+        }
+        setReqs(uniq)
+      }
+    })()
+  }, [])
+
+  useEffect(() => {
+    if (!data.reservations.length && !data.downloads.length) return
+    ensurePlotly().then(() => {
+      setPlotReady(true)
+      renderPlots(data, tokenSummary)
+    })
+  }, [data, tokenSummary])
+
+  function ensurePlotly(): Promise<any> {
+    if (window.Plotly) return Promise.resolve(window.Plotly)
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script')
+      s.src = 'https://cdn.plot.ly/plotly-2.26.0.min.js'
+      s.async = true
+      s.onload = () => resolve(window.Plotly)
+      s.onerror = reject
+      document.head.appendChild(s)
+    })
+  }
+
+  function renderPlots(d: { reservations: { day: string; count: number }[]; downloads: { day: string; count: number }[] }, tokens: { total: number; redeemed: number; unredeemed: number }) {
+    const daysR = d.reservations.map(x => x.day)
+    const valsR = d.reservations.map(x => x.count)
+    window.Plotly.react('chart-resv', [{ type: 'bar', x: daysR, y: valsR, marker: { color: '#7c3aed' } }], { title: 'الحجوزات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
+
+    const daysD = d.downloads.map(x => x.day)
+    const valsD = d.downloads.map(x => x.count)
+    window.Plotly.react('chart-dl', [{ type: 'bar', x: daysD, y: valsD, marker: { color: '#22c55e' } }], { title: 'التنزيلات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
+
+    const total = Math.max(1, tokens.total)
+    const redeemed = Math.min(total, Math.max(0, tokens.redeemed))
+    const unredeemed = Math.max(0, total - redeemed)
+    window.Plotly.react('chart-tokens', [{
+      type: 'pie', values: [redeemed, unredeemed], labels: ['Redeemed', 'Unredeemed'], hole: 0.5,
+      marker: { colors: ['#7c3aed', '#c084fc'] }
+    }], { title: 'Tokens', margin: { t: 40, r: 10, l: 10, b: 10 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <div className="admin-charts-row">
       {loading ? <div className="text-sm text-gray-600">جارٍ التحميل…</div> : null}
-      <Bar label="Reservations — last 30 days" series={data.reservations} />
-      <Bar label="Downloads — last 30 days" series={data.downloads} />
-      <div className="card p-3">
-        <div className="font-semibold mb-2">Tokens — Total vs Redeemed</div>
-        <div className="flex items-center gap-4">
-          <svg width="110" height="110" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="16" fill="#f3e8ff" />
-            {(() => {
-              const total = Math.max(1, tokenSummary.total)
-              const used = Math.min(total, Math.max(0, tokenSummary.redeemed))
-              const p = used / total
-              const dash = p * 100
-              return <circle cx="18" cy="18" r="16" fill="transparent" stroke="#7c3aed" strokeWidth="4" strokeDasharray={`${dash} 100`} transform="rotate(-90 18 18)" />
-            })()}
-          </svg>
-          <div className="text-sm text-gray-700">
-            <div>Total: <b>{tokenSummary.total}</b></div>
-            <div>Redeemed: <b>{tokenSummary.redeemed}</b></div>
-            <div>Unredeemed: <b>{tokenSummary.unredeemed}</b></div>
-          </div>
+      <div className="card p-3 admin-chart"><div id="chart-resv" style={{height: 220}} /></div>
+      <div className="card p-3 admin-chart"><div id="chart-dl" style={{height: 220}} /></div>
+      <div className="card p-3 admin-chart"><div id="chart-tokens" style={{height: 220}} /></div>
+      </div>
+
+      {/* Download requests table */}
+      <div className="card p-3" style={{ marginTop: 12 }}>
+        <div className="font-semibold mb-2">طلبات التنزيل (آخر {reqs.length} سجل)</div>
+        <div className="overflow-x-auto">
+          <table className="table text-sm">
+            <thead>
+              <tr>
+                <th className="p-2 text-right">التاريخ</th>
+                <th className="p-2 text-right">الاسم</th>
+                <th className="p-2 text-right">البريد</th>
+                <th className="p-2 text-right">البلد</th>
+                <th className="p-2 text-right">المنتج</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reqs.length === 0 ? (
+                <tr><td className="p-2" colSpan={5}>لا توجد بيانات</td></tr>
+              ) : (
+                reqs.map(r => (
+                  <tr key={r.id}>
+                    <td className="p-2" data-th="التاريخ">{new Date(r.created_at).toLocaleString('ar-TN')}</td>
+                    <td className="p-2" data-th="الاسم">{r.name}</td>
+                    <td className="p-2" data-th="البريد">{r.email}</td>
+                    <td className="p-2" data-th="البلد">{r.country || '-'}</td>
+                    <td className="p-2" data-th="المنتج">{r.product_slug}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

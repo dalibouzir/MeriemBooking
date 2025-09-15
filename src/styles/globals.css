@@ -1,9 +1,7 @@
 /* ============ Global layout ============ */
 body {
   font-family: 'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  /* Pure image background across the site */
-  background: url('/background.jpg') center center / cover no-repeat fixed;
-  background-attachment: fixed;
+  /* Background intentionally not set here so app-level background can control it */
   color: #333;
   direction: rtl;
   margin: 0;
@@ -191,7 +189,7 @@ ul li::before {
 
 /* ============ Storefront (scoped) ============ */
 #storefront.sf-wrapper {
-  --sf-bg: #f7f2ff;
+  --sf-bg: transparent;
   --sf-ink: #201a2d;
   --sf-ink-dim: #5b5671;
   --sf-purple: #6d28d9;
@@ -203,10 +201,8 @@ ul li::before {
   --sf-shadow: 0 10px 25px rgba(109, 40, 217, 0.12);
   --sf-radius: 18px;
 
-  background:
-    radial-gradient(1200px 400px at 80% -10%, rgba(124, 58, 237, 0.12), transparent 60%),
-    radial-gradient(1000px 500px at 10% 110%, rgba(109, 40, 217, 0.10), transparent 60%),
-    var(--sf-bg);
+  /* Let app-level background (app/globals.css) control the homepage */
+  background: transparent;
   min-height: 100dvh;
   color: var(--sf-ink);
   padding: 2rem 1rem 3rem;
