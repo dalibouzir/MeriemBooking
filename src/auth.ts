@@ -4,7 +4,7 @@ import Google from 'next-auth/providers/google'
 import { saveGoogleTokens } from '@/lib/google-oauth'
 
 // Build providers list dynamically to avoid Google redirect issues if not configured
-const providers = [
+const providers: NextAuthOptions['providers'] = [
   Credentials({
       name: 'Credentials',
       credentials: {
@@ -35,20 +35,19 @@ const providers = [
 ]
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  providers.unshift(
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      authorization: {
-        params: {
-          scope: 'openid email https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
-          access_type: 'offline',
-          prompt: 'consent',
-          include_granted_scopes: 'true',
-        },
+  const google = Google({
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    authorization: {
+      params: {
+        scope: 'openid email https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
+        access_type: 'offline',
+        prompt: 'consent',
+        include_granted_scopes: 'true',
       },
-    })
-  )
+    },
+  })
+  providers.unshift(google)
 }
 
 export const authOptions: NextAuthOptions = {
