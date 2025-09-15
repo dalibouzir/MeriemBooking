@@ -43,8 +43,9 @@ function SectionHeader({ title }: { title: string }) {
   return <h2 className="text-xl font-semibold text-purple-700 mb-4">{title}</h2>
 }
 
+type TabKey = 'schedule'|'reservations'|'email'|'products'|'stats'
 export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
-  const [tab, setTab] = useState<'schedule'|'reservations'|'email'|'tokens'|'products'|'stats'>('schedule')
+  const [tab, setTab] = useState<TabKey>('schedule')
 
   return (
     <div dir="rtl" className="main-container admin" style={{ padding: 16, maxWidth: 1440, marginInline: 'auto' }}>
@@ -62,19 +63,19 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
       <div className="flex flex-col gap-4">
         <nav aria-label="Admin tabs" className="admin-tabs" role="tablist">
           <div className="flex items-center gap-2 flex-wrap">
-            {[
+            {([
               { key: 'schedule', label: '📅 جدول المواعيد' },
               { key: 'reservations', label: '👥 الحجوزات' },
               { key: 'email', label: '✉️ الإرسال الجماعي' },
               { key: 'products', label: '📚 المنتجات' },
               { key: 'stats', label: '📈 الإحصائيات' },
-            ].map((t) => (
+            ] as { key: TabKey; label: string }[]).map((t) => (
               <button
                 key={t.key}
                 role="tab"
                 aria-selected={tab===t.key}
                 className={`btn admin-tab ${tab===t.key?'btn-primary':'btn-outline'}`}
-                onClick={()=>setTab(t.key as any)}
+                onClick={()=>setTab(t.key)}
               >
                 {t.label}
               </button>

@@ -1,7 +1,8 @@
 /* ============ Global layout ============ */
 body {
   font-family: 'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: radial-gradient(circle at top, #f3e8ff 0%, #c084fc 100%);
+  /* Pure image background across the site */
+  background: url('/background.jpg') center center / cover no-repeat fixed;
   background-attachment: fixed;
   color: #333;
   direction: rtl;
@@ -86,8 +87,10 @@ ul li::before {
   border: none !important;
   border-radius: 1rem;
   padding: 1.5rem;
-  background-color: white;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  background: linear-gradient(0deg, rgba(124,58,237,0.06), rgba(124,58,237,0.06)), rgba(255,255,255,0.14);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: 0 12px 30px rgba(124,58,237,0.12);
   font-family: 'Tajawal', sans-serif;
   direction: rtl;
   transition: all 0.3s ease-in-out;
