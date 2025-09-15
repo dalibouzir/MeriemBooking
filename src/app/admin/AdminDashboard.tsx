@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 function Modal({ open, onClose, title, children, footer }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; footer?: React.ReactNode }) {
   if (!open) return null
@@ -96,21 +96,7 @@ function ScheduleTab() {
 
   useEffect(()=>{ load() },[])
 
-  async function createSlot() {
-    if (!form.day || !form.start_time || form.capacity <= 0) {
-      alert('تحققي من المدخلات'); return
-    }
-    // Auto-compute end_time if missing using duration
-    const end_time = form.end_time || addDuration(form.start_time, durationMin)
-    const r = await fetch('/api/admin/free-call/slots', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, end_time, is_open: true, note: form.note || null })
-    })
-    const j = await r.json()
-    if (!r.ok) return alert(j.error || 'فشل الإنشاء')
-    setForm({ day: '', start_time: '', end_time: '', capacity: 1, note: '' })
-    await load()
-    alert('تمت الإضافة ✅')
-  }
+  // createSlot merged into saveSlot
 
   async function toggleOpen(id: string, is_open: boolean) {
     setBusySlotId(id)

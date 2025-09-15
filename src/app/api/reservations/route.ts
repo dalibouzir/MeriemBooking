@@ -1,16 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 import { createCalendarEvent } from '@/lib/google-server'
-
-function getSupabaseFromAuthHeader(req: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  const token = req.headers.get('authorization') || req.headers.get('Authorization') || ''
-  const headers: Record<string, string> = {}
-  if (token) headers['Authorization'] = token
-  return createClient(url, anon, { auth: { persistSession: false }, global: { headers } })
-}
 
 // With email-only reservations, we no longer require a real auth user.
 // user_id may be nullable in DB (see provided SQL). If not, set to a single guest id.
@@ -55,8 +45,9 @@ export async function POST(req: Request) {
     .single()
 
   if (error) {
-    const code = (error as any).code || ''
-    const msg = (error as any).message || ''
+    const err = error as { code?: string; message?: string }
+    const code = err.code || ''
+    const msg = err.message || ''
     const isDuplicate = code === '23505' || /duplicate/i.test(msg)
     const isFull = /capacity|full|no remaining|no remaining capacity/i.test(msg)
     return NextResponse.json({ error: isFull ? 'No remaining capacity' : (isDuplicate ? 'Already reserved' : msg) }, { status: isFull ? 409 : (isDuplicate ? 409 : 500) })
@@ -71,7 +62,7 @@ export async function POST(req: Request) {
     subject: 'Free Call',
     notes,
   })
-  const meet = (ev as any)?.hangoutLink || (ev as any)?.htmlLink || null
+  const meet = (ev as { hangoutLink?: string; htmlLink?: string } | null)?.hangoutLink || (ev as { hangoutLink?: string; htmlLink?: string } | null)?.htmlLink || null
 
   // 4) Send confirmation email via Resend if configured
   const RESEND_API_KEY = process.env.RESEND_API_KEY

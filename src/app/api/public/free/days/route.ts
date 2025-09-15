@@ -21,10 +21,12 @@ export async function GET(req: Request) {
       .lte('day', to)
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    const days = Array.from(new Set((data || []).map((r: any) => r.day))).sort()
+    type Row = { day: string }
+    const rows = (data || []) as Row[]
+    const days = Array.from(new Set(rows.map((r) => r.day))).sort()
     return NextResponse.json({ days })
-  } catch (e: any) {
-    return NextResponse.json({ error: String(e?.message || e) }, { status: 500 })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
-

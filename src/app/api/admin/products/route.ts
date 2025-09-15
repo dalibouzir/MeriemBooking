@@ -36,7 +36,8 @@ export async function POST(req: Request) {
     .select('*')
     .single()
   if (error) {
-    const isDup = (error as any).code === '23505' || /duplicate|unique/i.test((error as any).message || '')
+    const err = error as { code?: string; message: string }
+    const isDup = err.code === '23505' || /duplicate|unique/i.test(err.message || '')
     return NextResponse.json({ error: isDup ? 'Slug already exists' : error.message }, { status: isDup ? 409 : 500 })
   }
   return NextResponse.json({ product: data })
@@ -50,7 +51,7 @@ export async function PATCH(req: Request) {
   const { id, ...rest } = body as Record<string, unknown>
   const update: Record<string, unknown> = {}
   const fields = ['type','title','description','cover','slug','snippet','rating','reviews'] as const
-  for (const f of fields) if (f in rest) (update as any)[f] = (rest as any)[f]
+  for (const f of fields) if (f in rest) (update as Record<string, unknown>)[f] = (rest as Record<string, unknown>)[f]
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('products')
@@ -73,4 +74,3 @@ export async function DELETE(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
-

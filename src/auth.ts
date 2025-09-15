@@ -3,22 +3,9 @@ import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
 import { saveGoogleTokens } from '@/lib/google-oauth'
 
-export const authOptions: NextAuthOptions = {
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          // Keep scopes stable to ensure refresh compatibility
-          scope: 'openid email https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
-          access_type: 'offline',
-          prompt: 'consent',
-          include_granted_scopes: 'true',
-        },
-      },
-    }),
-    Credentials({
+// Build providers list dynamically to avoid Google redirect issues if not configured
+const providers = [
+  Credentials({
       name: 'Credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
@@ -44,8 +31,28 @@ export const authOptions: NextAuthOptions = {
 
         return null
       },
-    }),
-  ],
+  }),
+]
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  providers.unshift(
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: {
+          scope: 'openid email https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
+          access_type: 'offline',
+          prompt: 'consent',
+          include_granted_scopes: 'true',
+        },
+      },
+    })
+  )
+}
+
+export const authOptions: NextAuthOptions = {
+  providers,
   session: { strategy: 'jwt' },
   pages: { signIn: '/login' },
   secret: process.env.NEXTAUTH_SECRET,

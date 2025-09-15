@@ -33,9 +33,8 @@ export async function POST(req: Request) {
   })
 
   const text = await res.text().catch(() => '')
-  let data: any
-  try { data = JSON.parse(text) } catch { data = { raw: text } }
+  let data: unknown
+  try { data = JSON.parse(text) } catch { data = { raw: text } as unknown }
   if (!res.ok) return NextResponse.json({ error: 'Function failed', status: res.status, data }, { status: 500 })
   return NextResponse.json(data)
 }
-

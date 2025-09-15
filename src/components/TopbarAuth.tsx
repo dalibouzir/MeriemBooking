@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 
 export default function TopbarAuth() {
   const { data: session, status } = useSession()
@@ -16,7 +16,7 @@ export default function TopbarAuth() {
       {status === 'authenticated' ? (
         <button className="btn" onClick={() => signOut({ callbackUrl: '/' })}>تسجيل الخروج</button>
       ) : (
-        <button className="btn" onClick={() => signIn('google', { callbackUrl: '/admin' })}>تسجيل الدخول</button>
+        <Link href="/login" className="btn">تسجيل الدخول</Link>
       )}
     </div>
   )

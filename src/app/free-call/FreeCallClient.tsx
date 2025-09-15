@@ -22,6 +22,11 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
 
   const hasAccess = useMemo(() => Boolean(initialToken), [initialToken])
 
+  // Fetch availability for the initial month on mount so days glow immediately
+  useEffect(() => {
+    fetchAvailableDays(new Date()).catch(() => {})
+  }, [])
+
   if (!hasAccess) {
     return (
       <section dir="rtl" aria-labelledby="no-access-title">
@@ -90,10 +95,7 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
     setAvailableDays(Array.isArray(j.days) ? j.days : [])
   }
 
-  // Fetch availability for the initial month on mount so days glow immediately
-  useEffect(() => {
-    fetchAvailableDays(new Date()).catch(() => {})
-  }, [])
+  
 
   async function fetchFree(isoDate: string) {
     const r = await fetch('/api/public/free', {

@@ -12,6 +12,8 @@ type CallTokenRow = {
   redeemed_at: string | null
   access_token: string | null
   access_expires_at: string | null
+  expires_at?: string | null
+  is_used?: boolean | null
 }
 
 export async function POST(req: NextRequest) {
@@ -37,13 +39,13 @@ export async function POST(req: NextRequest) {
     }
 
     // 2) Check expiry (support both code_expires_at or expires_at)
-    const expiresAt = (row as any).code_expires_at || (row as any).expires_at || null
+    const expiresAt = row.code_expires_at || row.expires_at || null
     if (expiresAt && new Date(expiresAt) < new Date()) {
       return NextResponse.json({ error: 'Code expired' }, { status: 400 })
     }
 
     // 3) Disallow reuse: if already redeemed/used once, block
-    const alreadyUsed = Boolean((row as any).is_used) || Boolean((row as any).redeemed_at)
+    const alreadyUsed = Boolean(row.is_used) || Boolean(row.redeemed_at)
     if (alreadyUsed) {
       return NextResponse.json({ error: 'Code already redeemed' }, { status: 400 })
     }

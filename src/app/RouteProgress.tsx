@@ -17,7 +17,6 @@ export default function RouteProgress() {
     return () => {
       if (hideTimer.current) clearTimeout(hideTimer.current)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, search])
 
   return (
@@ -27,4 +26,3 @@ export default function RouteProgress() {
     />
   )
 }
-

@@ -15,7 +15,7 @@ export async function GET() {
   // Downloads per day (last 30)
   const { data: dls, error: dErr } = await supabase.rpc('stats_downloads_last30')
   // Tokens summary
-  const { data: tokenAgg, error: tErr } = await supabase
+  const { error: tErr } = await supabase
     .from('call_tokens')
     .select('is_used', { count: 'exact', head: false })
     .limit(1)

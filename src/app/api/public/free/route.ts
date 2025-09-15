@@ -39,7 +39,9 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    const free = (data || []).map((r: any) => ({
+    type Row = { id: string; day: string; start_time: string; end_time: string; remaining?: number | null; note?: string | null }
+    const rows = (data || []) as Row[]
+    const free = rows.map((r) => ({
       id: r.id,
       start: toIso(r.day, r.start_time),
       end: toIso(r.day, r.end_time),

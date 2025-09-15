@@ -22,7 +22,7 @@ export default function FreeCallRedeemPage() {
           return
         }
         router.replace(`/free-call?token=${encodeURIComponent(j.token)}`)
-      } catch (e) {
+      } catch {
         setError('حدث خطأ غير متوقع.')
       }
     }
@@ -40,4 +40,3 @@ export default function FreeCallRedeemPage() {
     </section>
   )
 }
-
