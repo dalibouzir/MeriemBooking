@@ -466,7 +466,11 @@ function ProductsTab() {
   )
 }
 
-declare global { interface Window { Plotly?: any } }
+type PlotData = unknown
+type PlotLayout = { title?: string; margin?: { t?: number; r?: number; l?: number; b?: number }; paper_bgcolor?: string; plot_bgcolor?: string }
+type PlotConfig = { displayModeBar?: boolean; responsive?: boolean }
+interface PlotlyStatic { react: (id: string, data: PlotData[], layout?: PlotLayout, config?: PlotConfig) => void }
+declare global { interface Window { Plotly?: PlotlyStatic } }
 
 function StatsTab() {
   const [data, setData] = useState<{ reservations: { day: string; count: number }[]; downloads: { day: string; count: number }[] }>({ reservations: [], downloads: [] })
@@ -507,19 +511,16 @@ function StatsTab() {
 
   useEffect(() => {
     if (!data.reservations.length && !data.downloads.length) return
-    ensurePlotly().then(() => {
-      setPlotReady(true)
-      renderPlots(data, tokenSummary)
-    })
+    ensurePlotly().then(() => { renderPlots(data, tokenSummary) })
   }, [data, tokenSummary])
 
-  function ensurePlotly(): Promise<any> {
+  function ensurePlotly(): Promise<PlotlyStatic> {
     if (window.Plotly) return Promise.resolve(window.Plotly)
     return new Promise((resolve, reject) => {
       const s = document.createElement('script')
       s.src = 'https://cdn.plot.ly/plotly-2.26.0.min.js'
       s.async = true
-      s.onload = () => resolve(window.Plotly)
+      s.onload = () => resolve(window.Plotly as PlotlyStatic)
       s.onerror = reject
       document.head.appendChild(s)
     })
