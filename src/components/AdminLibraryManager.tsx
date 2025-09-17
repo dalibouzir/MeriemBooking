@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import ModalPortal from '@/components/ModalPortal'
 
 type Item = {
   id: string
@@ -112,12 +113,13 @@ export default function AdminLibraryManager() {
       </button>
 
       {open && (
-        <div className="modal-backdrop" onClick={() => setOpen(false)}>
-          <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-head">
-              <h2>إضافة كتاب/فيديو</h2>
-              <button className="btn" onClick={() => setOpen(false)}>إغلاق</button>
-            </div>
+        <ModalPortal>
+          <div className="modal-backdrop" onClick={() => setOpen(false)}>
+            <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-head">
+                <h2>إضافة كتاب/فيديو</h2>
+                <button className="btn" onClick={() => setOpen(false)}>إغلاق</button>
+              </div>
 
             <form className="modal-form" onSubmit={onCreate}>
               <div className="grid2">
@@ -160,48 +162,49 @@ export default function AdminLibraryManager() {
               </button>
             </form>
 
-            <hr style={{ margin: '16px 0', borderColor: '#eee' }} />
-            <h3 style={{ marginBottom: 8 }}>العناصر</h3>
-            {loading && !items.length ? <p>جارٍ التحميل…</p> : null}
-            <ul className="admin-list">
-              {items.map((i) => (
-                <li key={i.id} className="admin-row">
-                  <div className="admin-row-main" style={{ flex: 1 }}>
-                    <span className={`tag ${i.type === 'video' ? 'tag-video' : 'tag-book'}`}>
-                      {i.type === 'video' ? 'فيديو' : 'كتاب'}
-                    </span>
-                    {editingId === i.id ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
-                        <input className="input" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
-                        <textarea className="input textarea" rows={2} value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
-                        <div className="grid2">
-                          <input className="input" placeholder="السعر" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                          <div style={{ display: 'flex', gap: 6 }}>
-                            <button type="button" className="btn btn-primary" onClick={onSaveEdit} disabled={loading}>حفظ</button>
-                            <button type="button" className="btn" onClick={() => setEditingId(null)} disabled={loading}>إلغاء</button>
+              <hr style={{ margin: '16px 0', borderColor: '#eee' }} />
+              <h3 style={{ marginBottom: 8 }}>العناصر</h3>
+              {loading && !items.length ? <p>جارٍ التحميل…</p> : null}
+              <ul className="admin-list">
+                {items.map((i) => (
+                  <li key={i.id} className="admin-row">
+                    <div className="admin-row-main" style={{ flex: 1 }}>
+                      <span className={`tag ${i.type === 'video' ? 'tag-video' : 'tag-book'}`}>
+                        {i.type === 'video' ? 'فيديو' : 'كتاب'}
+                      </span>
+                      {editingId === i.id ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
+                          <input className="input" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                          <textarea className="input textarea" rows={2} value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
+                          <div className="grid2">
+                            <input className="input" placeholder="السعر" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <button type="button" className="btn btn-primary" onClick={onSaveEdit} disabled={loading}>حفظ</button>
+                              <button type="button" className="btn" onClick={() => setEditingId(null)} disabled={loading}>إلغاء</button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ) : (
-                      <>
-                        <strong>{i.title}</strong>
-                        {i.public_url && (
-                          <a href={i.public_url} target="_blank" rel="noreferrer" className="link">فتح</a>
-                        )}
-                      </>
-                    )}
-                  </div>
-                  {editingId === i.id ? null : (
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn" onClick={() => onStartEdit(i)}>تعديل</button>
-                      <button className="btn" onClick={() => onDelete(i.id)}>حذف</button>
+                      ) : (
+                        <>
+                          <strong>{i.title}</strong>
+                          {i.public_url && (
+                            <a href={i.public_url} target="_blank" rel="noreferrer" className="link">فتح</a>
+                          )}
+                        </>
+                      )}
                     </div>
-                  )}
-                </li>
-              ))}
-            </ul>
+                    {editingId === i.id ? null : (
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button className="btn" onClick={() => onStartEdit(i)}>تعديل</button>
+                        <button className="btn" onClick={() => onDelete(i.id)}>حذف</button>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </>
   )

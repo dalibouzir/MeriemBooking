@@ -7,6 +7,7 @@ import 'react-calendar/dist/Calendar.css'
 import { motion } from 'motion/react'
 import Image from 'next/image'
 import Link from 'next/link'
+import ModalPortal from '@/components/ModalPortal'
 // No auth needed — reservations are created server-side using a guest/user-for-email
 
 export default function FreeCallClient({ initialToken = '' }: { initialToken?: string }) {
@@ -217,33 +218,35 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
 
         {/* Booking modal */}
         {showModal && (
-          <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-          <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-head">
-              <h2>Confirm Appointment</h2>
-              <button className="btn" onClick={() => setShowModal(false)}>Close</button>
+          <ModalPortal>
+            <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+              <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-head">
+                  <h2>Confirm Appointment</h2>
+                  <button className="btn" onClick={() => setShowModal(false)}>Close</button>
+                </div>
+                <p className="fc-muted" style={{ marginBottom: 10 }}>
+                  Selected time:
+                  <strong> {chosen ? new Date(chosen.start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''}</strong>
+                </p>
+                <div className="grid2">
+                  <input className="input" placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
+                  <input className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+                </div>
+                <label className="field" style={{ marginTop: 10 }}>
+                  <span className="field-label">Notes (optional)</span>
+                  <textarea className="input textarea" rows={3} placeholder="Any details you want to add" value={notes} onChange={(e)=>setNotes(e.target.value)} />
+                </label>
+                <div className="fc-calendar" style={{ gap: 8, marginTop: 12 }}>
+                  <button className="btn btn-primary" disabled={!chosen || !email || !name || loading} onClick={async ()=>{ await bookChosen(); setShowModal(false) }}>
+                    {loading ? 'Booking…' : 'Confirm Booking'}
+                  </button>
+                  <button className="btn" onClick={() => setShowModal(false)}>Back</button>
+                </div>
+              </div>
             </div>
-            <p className="fc-muted" style={{ marginBottom: 10 }}>
-              Selected time:
-              <strong> {chosen ? new Date(chosen.start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''}</strong>
-            </p>
-            <div className="grid2">
-              <input className="input" placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
-              <input className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
-            </div>
-            <label className="field" style={{ marginTop: 10 }}>
-              <span className="field-label">Notes (optional)</span>
-              <textarea className="input textarea" rows={3} placeholder="Any details you want to add" value={notes} onChange={(e)=>setNotes(e.target.value)} />
-            </label>
-            <div className="fc-calendar" style={{ gap: 8, marginTop: 12 }}>
-              <button className="btn btn-primary" disabled={!chosen || !email || !name || loading} onClick={async ()=>{ await bookChosen(); setShowModal(false) }}>
-                {loading ? 'Booking…' : 'Confirm Booking'}
-              </button>
-              <button className="btn" onClick={() => setShowModal(false)}>Back</button>
-            </div>
-          </div>
-        </div>
-      )}
+          </ModalPortal>
+        )}
       </motion.section>
     </motion.div>
   )

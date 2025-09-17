@@ -1,20 +1,23 @@
 "use client"
 
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import ModalPortal from '@/components/ModalPortal'
 
 function Modal({ open, onClose, title, children, footer, centered }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; footer?: React.ReactNode; centered?: boolean }) {
   if (!open) return null
   return (
-    <div className="modal-backdrop" onClick={onClose} style={centered ? { alignItems: 'center' } : undefined}>
-      <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-head">
-          <h2>{title}</h2>
-          <button className="btn" onClick={onClose}>إغلاق</button>
+    <ModalPortal>
+      <div className="modal-backdrop" onClick={onClose} style={centered ? { alignItems: 'center' } : undefined}>
+        <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-head">
+            <h2>{title}</h2>
+            <button className="btn" onClick={onClose}>إغلاق</button>
+          </div>
+          <div className="modal-body">{children}</div>
+          {footer ? <div className="modal-foot">{footer}</div> : null}
         </div>
-        <div className="modal-body">{children}</div>
-        {footer ? <div className="modal-foot">{footer}</div> : null}
       </div>
-    </div>
+    </ModalPortal>
   )
 }
 
