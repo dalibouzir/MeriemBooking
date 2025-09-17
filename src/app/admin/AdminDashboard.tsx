@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 
-function Modal({ open, onClose, title, children, footer }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; footer?: React.ReactNode }) {
+function Modal({ open, onClose, title, children, footer, centered }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; footer?: React.ReactNode; centered?: boolean }) {
   if (!open) return null
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 680 }}>
+    <div className="modal-backdrop" onClick={onClose} style={centered ? { alignItems: 'center' } : undefined}>
+      <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <h2>{title}</h2>
           <button className="btn" onClick={onClose}>إغلاق</button>
@@ -87,7 +87,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
       <main className="admin-content glass-water">
         {tab==='schedule' && <ScheduleTab/>}
         {tab==='reservations' && <ReservationsTab/>}
-        {tab==='email' && <BulkEmailTab/>}
+        {tab==='email' && <BulkEmailTab adminEmail={adminEmail}/>}
         {tab==='products' && <ProductsTab/>}
         {tab==='stats' && <StatsTab/>}
       </main>
@@ -295,41 +295,343 @@ function ReservationsTab() {
   )
 }
 
-function BulkEmailTab() {
-  const [subject, setSubject] = useState('')
-  const [html, setHtml] = useState('')
-  const [onlyConfirmed, setOnlyConfirmed] = useState(true)
-  const [test, setTest] = useState(true)
-  const [testEmail, setTestEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<string>('')
+type Recipient = {
+  email: string
+  emailKey: string
+  names: string[]
+  reservationCount: number
+  reservationConfirmedCount: number
+  downloadCount: number
+  productSlugs: string[]
+  countries: string[]
+  statuses: string[]
+  lastSeen: number
+  details: string[]
+  summary: string
+  detailsText: string
+  lastActivityLabel: string
+}
 
-  async function send() {
+function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
+  const [subject, setSubject] = useState('')
+  const [body, setBody] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>('')
+  const [recipients, setRecipients] = useState<Recipient[]>([])
+  const [selected, setSelected] = useState<Record<string, boolean>>({})
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false)
+
+  const loadRecipients = useCallback(async () => {
     setLoading(true)
-    setResult('')
-    const r = await fetch('/api/admin/bulk-email', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subject, html, onlyConfirmed, test, testEmail })
+    setError('')
+    try {
+      const [reservationsRes, downloadsRes] = await Promise.all([
+        fetch('/api/admin/free-call/reservations'),
+        fetch('/api/admin/download-requests'),
+      ])
+
+      const reservationsJson = await reservationsRes.json().catch(() => ({} as { reservations?: Reservation[]; error?: string }))
+      const downloadsJson = await downloadsRes.json().catch(() => ({} as { rows?: Array<{ id: number; created_at: string; name: string; email: string; country: string | null; product_slug: string | null }>; error?: string }))
+
+      if (!reservationsRes.ok) throw new Error(reservationsJson?.error || 'فشل تحميل الحجوزات')
+      if (!downloadsRes.ok) throw new Error(downloadsJson?.error || 'فشل تحميل التنزيلات')
+
+      type RecipientAccumulator = {
+        key: string
+        email: string
+        names: Set<string>
+        reservationCount: number
+        reservationConfirmedCount: number
+        downloadCount: number
+        productSlugs: Set<string>
+        countries: Set<string>
+        statuses: Set<string>
+        lastSeen: number
+        details: Set<string>
+      }
+
+      const map = new Map<string, RecipientAccumulator>()
+      const ensureEntry = (rawEmail?: string | null) => {
+        const trimmed = (rawEmail || '').trim()
+        if (!trimmed || !trimmed.includes('@')) return null
+        const key = trimmed.toLowerCase()
+        let entry = map.get(key)
+        if (!entry) {
+          entry = {
+            key,
+            email: trimmed,
+            names: new Set<string>(),
+            reservationCount: 0,
+            reservationConfirmedCount: 0,
+            downloadCount: 0,
+            productSlugs: new Set<string>(),
+            countries: new Set<string>(),
+            statuses: new Set<string>(),
+            lastSeen: 0,
+            details: new Set<string>(),
+          }
+          map.set(key, entry)
+        }
+        return entry
+      }
+
+      const reservations = (reservationsJson?.reservations || []) as Reservation[]
+      for (const res of reservations) {
+        const entry = ensureEntry(res?.email)
+        if (!entry) continue
+        entry.reservationCount += 1
+        const status = (res?.status || '').trim()
+        if (status) entry.statuses.add(status)
+        if (status.toLowerCase() === 'confirmed') entry.reservationConfirmedCount += 1
+        const createdAt = res?.created_at ? Date.parse(res.created_at) : 0
+        if (createdAt && createdAt > entry.lastSeen) entry.lastSeen = createdAt
+        const slot = res?.free_call_slots
+        const slotLabel = slot?.day ? `${slot.day} ${slot.start_time || ''}`.trim() : ''
+        if (slotLabel) entry.details.add(`حجز: ${slotLabel}${status ? ` (${status})` : ''}`)
+      }
+
+      type DownloadRow = { id: number; created_at: string; name: string; email: string; country: string | null; product_slug: string | null }
+      const downloads = (downloadsJson?.rows || []) as DownloadRow[]
+      for (const row of downloads) {
+        const entry = ensureEntry(row?.email)
+        if (!entry) continue
+        entry.downloadCount += 1
+        if (row?.name) entry.names.add(row.name)
+        if (row?.product_slug) entry.productSlugs.add(row.product_slug)
+        if (row?.country) entry.countries.add(row.country)
+        const createdAt = row?.created_at ? Date.parse(row.created_at) : 0
+        if (createdAt && createdAt > entry.lastSeen) entry.lastSeen = createdAt
+        entry.details.add(`تنزيل: ${row?.product_slug || 'بدون اسم'}`)
+      }
+
+      const aggregated: Recipient[] = Array.from(map.values()).map((entry) => {
+        const names = Array.from(entry.names)
+        const productSlugs = Array.from(entry.productSlugs)
+        const countries = Array.from(entry.countries)
+        const statuses = Array.from(entry.statuses)
+        const details = Array.from(entry.details)
+        const confirmed = entry.reservationConfirmedCount
+        const pending = entry.reservationCount - confirmed
+        const summaryParts: string[] = []
+        if (entry.reservationCount) {
+          let part = `حجوزات: ${entry.reservationCount}`
+          if (confirmed) part += ` (مؤكدة: ${confirmed})`
+          if (pending > 0) part += ` (أخرى: ${pending})`
+          summaryParts.push(part)
+        }
+        if (entry.downloadCount) summaryParts.push(`تنزيلات: ${entry.downloadCount}`)
+        if (productSlugs.length) summaryParts.push(`منتجات: ${productSlugs.join(', ')}`)
+        const summary = summaryParts.join(' • ') || '—'
+        const detailsText = details.length ? details.join(' • ') : ''
+        const lastActivityLabel = entry.lastSeen ? new Date(entry.lastSeen).toLocaleString('en-GB') : '—'
+
+        return {
+          email: entry.email,
+          emailKey: entry.key,
+          names,
+          reservationCount: entry.reservationCount,
+          reservationConfirmedCount: entry.reservationConfirmedCount,
+          downloadCount: entry.downloadCount,
+          productSlugs,
+          countries,
+          statuses,
+          lastSeen: entry.lastSeen,
+          details,
+          summary,
+          detailsText,
+          lastActivityLabel,
+        }
+      })
+
+      aggregated.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0) || a.email.localeCompare(b.email))
+
+      setRecipients(aggregated)
+      setSelected((prev) => {
+        const next: Record<string, boolean> = {}
+        for (const item of aggregated) {
+          next[item.emailKey] = prev[item.emailKey] ?? true
+        }
+        return next
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'تعذر تحميل البيانات'
+      setError(message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadRecipients()
+  }, [loadRecipients])
+
+  const deferredRecipients = useDeferredValue(recipients)
+  const selectedCount = useMemo(() => deferredRecipients.reduce((count, r) => count + (selected[r.emailKey] ? 1 : 0), 0), [selected, deferredRecipients])
+  const filteredRecipients = useMemo(() => {
+    let list = deferredRecipients
+    if (showSelectedOnly) list = list.filter((r) => selected[r.emailKey])
+    const q = searchTerm.trim().toLowerCase()
+    if (!q) return list
+    return list.filter((r) =>
+      r.email.toLowerCase().includes(q) ||
+      r.summary.toLowerCase().includes(q) ||
+      (r.names.length > 0 && r.names.some((name) => name.toLowerCase().includes(q)))
+    )
+  }, [deferredRecipients, searchTerm, selected, showSelectedOnly])
+
+  const totalLoaded = deferredRecipients.length
+  const filteredCount = filteredRecipients.length
+
+  const toggleRecipient = useCallback((emailKey: string) => {
+    setSelected((prev) => ({ ...prev, [emailKey]: !prev[emailKey] }))
+  }, [])
+
+  function selectAll() {
+    setSelected((prev) => {
+      const next = { ...prev }
+      for (const item of filteredRecipients) next[item.emailKey] = true
+      return next
     })
-    const j = await r.json(); setLoading(false)
-    if (!r.ok) return setResult(j.error || 'فشل الإرسال')
-    setResult(`تم الإرسال: ${j.sent} — فشل: ${j.failed}`)
+  }
+
+  function clearSelection() {
+    setSelected((prev) => {
+      const next = { ...prev }
+      for (const item of filteredRecipients) next[item.emailKey] = false
+      return next
+    })
+  }
+
+  function openGmail() {
+    const emails = deferredRecipients.filter((r) => selected[r.emailKey]).map((r) => r.email)
+    if (emails.length === 0) {
+      alert('اختاري بريداً واحداً على الأقل')
+      return
+    }
+    const url = new URL('https://mail.google.com/mail/u/0/')
+    url.searchParams.set('view', 'cm')
+    url.searchParams.set('fs', '1')
+    url.searchParams.set('tf', '1')
+    if (adminEmail) url.searchParams.set('to', adminEmail)
+    url.searchParams.set('bcc', emails.join(','))
+    if (subject.trim()) url.searchParams.set('su', subject.trim())
+    if (body.trim()) url.searchParams.set('body', body)
+    window.open(url.toString(), '_blank', 'noopener')
   }
 
   return (
     <div>
       <SectionHeader title="الإرسال الجماعي"/>
-      <div className="card p-4 space-y-3">
-        <input className="input" placeholder="الموضوع" value={subject} onChange={(e)=>setSubject(e.target.value)} />
-        <textarea className="input textarea" rows={8} placeholder="محتوى HTML" value={html} onChange={(e)=>setHtml(e.target.value)} />
-        <label className="flex items-center gap-2"><input type="checkbox" checked={onlyConfirmed} onChange={(e)=>setOnlyConfirmed(e.target.checked)} /> فقط المؤكدة</label>
-        <label className="flex items-center gap-2"><input type="checkbox" checked={test} onChange={(e)=>setTest(e.target.checked)} /> وضع الاختبار</label>
-        {test && <input className="input" placeholder="بريد الاختبار" value={testEmail} onChange={(e)=>setTestEmail(e.target.value)} />}
-        <button className="btn btn-primary" disabled={loading} onClick={send}>{loading ? 'جارٍ الإرسال…' : 'إرسال'}</button>
-        {result && <div className="text-sm text-gray-700">{result}</div>}
+      <div className="card p-4 space-y-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="text-sm text-gray-700">
+            <div>العناوين المحمّلة: {totalLoaded}</div>
+            <div>المحددة: {selectedCount}</div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn" onClick={loadRecipients} disabled={loading}>تحديث</button>
+            <button className="btn btn-outline" onClick={() => setPickerOpen(true)} disabled={totalLoaded === 0}>اختيار العناوين</button>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <input className="input" placeholder="الموضوع (اختياري)" value={subject} onChange={(e)=>setSubject(e.target.value)} />
+          <textarea className="input textarea md:col-span-2" rows={4} placeholder="نص البريد (اختياري)" value={body} onChange={(e)=>setBody(e.target.value)} />
+        </div>
+
+        {error && <div className="text-sm text-red-600">{error}</div>}
+        {loading && <div className="text-sm text-gray-600">جارٍ التحميل…</div>}
+
+        {selectedCount > 0 ? (
+          <div className="text-sm text-gray-700">
+            سيتم إرسال البريد إلى {selectedCount} عنوان عبر حقل BCC في Gmail.
+          </div>
+        ) : (
+          <div className="text-sm text-gray-600">حددي بريداً واحداً على الأقل قبل الإرسال.</div>
+        )}
+
+        <button className="btn btn-primary" onClick={openGmail} disabled={selectedCount === 0}>فتح Gmail</button>
       </div>
+
+      <Modal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        title="اختيار العناوين"
+        centered
+        footer={
+          <div className="flex flex-wrap gap-2">
+            <button className="btn btn-primary" onClick={() => { selectAll(); }}>تحديد الكل</button>
+            <button className="btn btn-outline" onClick={() => { clearSelection(); }}>إلغاء الكل</button>
+            <button className="btn" onClick={() => setPickerOpen(false)}>تم</button>
+          </div>
+        }
+      >
+        {totalLoaded === 0 ? (
+          <div className="text-sm text-gray-600">لا توجد عناوين لعرضها.</div>
+        ) : (
+          <div style={{ display: 'grid', gap: 12 }}>
+            <div className="grid" style={{ gap: 12 }}>
+              <input
+                className="input"
+                placeholder="ابحثي عن بريد أو اسم"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <label className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
+                <input type="checkbox" checked={showSelectedOnly} onChange={(e) => setShowSelectedOnly(e.target.checked)} />
+                عرض المحددة فقط
+              </label>
+              <div className="text-xs text-gray-500">المعروضة الآن: {filteredCount} / {totalLoaded}</div>
+            </div>
+            <div style={{ maxHeight: '55vh', overflowY: 'auto', display: 'grid', gap: 12 }}>
+              {filteredCount === 0 ? (
+                <div className="text-sm text-gray-500">لا توجد نتائج مطابقة.</div>
+              ) : (
+                filteredRecipients.map((item) => (
+                  <RecipientListItem key={item.emailKey} item={item} isSelected={!!selected[item.emailKey]} onToggle={toggleRecipient} />
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }
+
+type RecipientListItemProps = {
+  item: Recipient
+  isSelected: boolean
+  onToggle: (emailKey: string) => void
+}
+
+const RecipientListItem = React.memo(({ item, isSelected, onToggle }: RecipientListItemProps) => {
+  return (
+    <label
+      className="glass-water"
+      style={{
+        borderRadius: 12,
+        padding: '12px 16px',
+        display: 'grid',
+        gap: 8,
+        background: 'var(--card-bg, rgba(255,255,255,0.85))',
+        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>{item.email}</span>
+        <input type="checkbox" checked={isSelected} onChange={() => onToggle(item.emailKey)} />
+      </div>
+      {item.names.length > 0 && <div className="text-xs text-gray-600">{item.names.join(' / ')}</div>}
+      <div className="text-xs" style={{ color: '#4b5563' }}>{item.summary}</div>
+      <div className="text-xs text-gray-500">آخر نشاط: {item.lastActivityLabel}</div>
+    </label>
+  )
+})
+
+RecipientListItem.displayName = 'RecipientListItem'
 
 // Tokens tab removed per request; token summary appears in Stats
 

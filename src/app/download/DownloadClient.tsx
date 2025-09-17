@@ -85,18 +85,19 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
 
   return (
     <section dir="rtl" className="dl-section">
-      <h1 className="dl-title">تحميل المنتج</h1>
+      <div className="dl-card glass-water">
+        <h1 className="dl-title">تحميل المنتج</h1>
 
-      {productMissing ? (
-        <p className="dl-warn">
-          الصفحة تتطلب تحديد منتج. الرجاء العودة للمتجر واختيار المنتج ثم الضغط على «تحميل».
-        </p>
-      ) : (
-        <p className="dl-sub">
-          الرجاء إدخال معلوماتك أدناه. فور الإرسال ستصلك رسالة تأكيد تحتوي على:
-          <br />- 🔗 رابط مباشر لتحميل المنتج<br />- 🎁 كود مكالمة مجانية صالح لمدة 30 يوم
-        </p>
-      )}
+        {productMissing ? (
+          <p className="dl-warn">
+            الصفحة تتطلب تحديد منتج. الرجاء العودة للمتجر واختيار المنتج ثم الضغط على «تحميل».
+          </p>
+        ) : (
+          <p className="dl-sub">
+            الرجاء إدخال معلوماتك أدناه. فور الإرسال ستصلك رسالة تأكيد تحتوي على:
+            <br />- 🔗 رابط مباشر لتحميل المنتج<br />- 🎁 كود مكالمة مجانية صالح لمدة 30 يوم
+          </p>
+        )}
 
       <form id="dl-form" onSubmit={onSubmit} className="dl-form" noValidate>
         <input type="hidden" name="product" value={product} />
@@ -136,8 +137,9 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       </form>
 
       <style jsx global>{`
-        /* place your .dl-* CSS here (or import an external stylesheet) */
+        /* place your .dl-* CSS هنا إن لزم */
       `}</style>
+      </div>
     </section>
   )
 }

@@ -113,7 +113,7 @@ export default function AdminLibraryManager() {
 
       {open && (
         <div className="modal-backdrop" onClick={() => setOpen(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h2>إضافة كتاب/فيديو</h2>
               <button className="btn" onClick={() => setOpen(false)}>إغلاق</button>

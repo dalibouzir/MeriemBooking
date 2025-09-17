@@ -58,7 +58,7 @@ export default function RedeemPage() {
 
   return (
     <section id="redeem" dir="rtl" className="rd-section">
-      <div className="rd-card">
+      <div className="rd-card glass-water">
         <h1 className="rd-title">استبدال الكود</h1>
         <p className="rd-sub">أدخل/ي الكود الذي وصلك عبر البريد الإلكتروني للحصول على موعد المكالمة المجانية.</p>
 

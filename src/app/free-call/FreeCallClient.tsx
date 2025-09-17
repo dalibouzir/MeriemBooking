@@ -31,7 +31,7 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
     return (
       <section dir="rtl" aria-labelledby="no-access-title">
         <div className="container fc-noaccess-wrap">
-          <div className="card fc-card">
+          <div className="card glass-water fc-card">
             <header className="fc-header">
               <h1 id="no-access-title" className="fc-title" style={{ marginBottom: 6 }}>لا يمكنك الدخول</h1>
               <p className="fc-subtle">
@@ -144,7 +144,7 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
         <Image src="/Meriem.webp" alt="مريم" width={160} height={160} className="w-full h-full object-cover" priority />
       </motion.div>
 
-      <motion.section className="fc-hero"
+      <motion.section className="fc-hero glass-water"
         initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
         <h1 className="fc-title">احجزي مكالمتك المجانية</h1>
         <ul className="fc-list">
@@ -154,12 +154,12 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
         </ul>
       </motion.section>
 
-      <motion.section className="fc-hero"
+      <motion.section className="fc-hero glass-water"
         initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
         <h2 className="text-2xl font-semibold text-purple-700 mb-4">اختاري اليوم والساعة</h2>
 
         <div className="fc-calendar">
-          <div className="card" style={{ padding: '12px' }}>
+          <div className="card glass-water" style={{ padding: '12px' }}>
             <Calendar
               onActiveStartDateChange={async ({ activeStartDate }) => {
                 if (activeStartDate) await fetchAvailableDays(activeStartDate)
@@ -218,7 +218,7 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
         {/* Booking modal */}
         {showModal && (
           <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h2>Confirm Appointment</h2>
               <button className="btn" onClick={() => setShowModal(false)}>Close</button>
