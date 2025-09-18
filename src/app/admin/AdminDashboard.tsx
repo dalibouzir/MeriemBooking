@@ -42,11 +42,22 @@ type Reservation = {
   free_call_slots?: { day: string; start_time: string; end_time: string } | null
 }
 
+type DownloadRow = {
+  id: number
+  created_at: string
+  name: string
+  first_name: string | null
+  last_name: string | null
+  email: string
+  product_slug: string | null
+  phone: string | null
+}
+
 function SectionHeader({ title }: { title: string }) {
   return <h2 className="text-xl font-semibold text-purple-700 mb-4">{title}</h2>
 }
 
-type TabKey = 'schedule'|'reservations'|'email'|'products'|'stats'
+type TabKey = 'schedule'|'reservations'|'email'|'whatsapp'|'products'|'stats'
 export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
   const [tab, setTab] = useState<TabKey>('schedule')
 
@@ -71,6 +82,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
           { key: 'schedule', label: '📅 جدول المواعيد' },
           { key: 'reservations', label: '👥 الحجوزات' },
           { key: 'email', label: '✉️ الإرسال الجماعي' },
+          { key: 'whatsapp', label: '💬 واتساب جماعي' },
           { key: 'products', label: '📚 المنتجات' },
           { key: 'stats', label: '📈 الإحصائيات' },
         ] as { key: TabKey; label: string }[]).map((t) => (
@@ -91,6 +103,7 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
         {tab==='schedule' && <ScheduleTab/>}
         {tab==='reservations' && <ReservationsTab/>}
         {tab==='email' && <BulkEmailTab adminEmail={adminEmail}/>}
+        {tab==='whatsapp' && <BulkWhatsappTab/>}
         {tab==='products' && <ProductsTab/>}
         {tab==='stats' && <StatsTab/>}
       </main>
@@ -306,13 +319,154 @@ type Recipient = {
   reservationConfirmedCount: number
   downloadCount: number
   productSlugs: string[]
-  countries: string[]
   statuses: string[]
   lastSeen: number
   details: string[]
   summary: string
   detailsText: string
   lastActivityLabel: string
+  phones: string[]
+}
+
+async function fetchRecipientAggregates(): Promise<Recipient[]> {
+  const [reservationsRes, downloadsRes] = await Promise.all([
+    fetch('/api/admin/free-call/reservations'),
+    fetch('/api/admin/download-requests'),
+  ])
+
+  const reservationsJson = await reservationsRes.json().catch(() => ({} as { reservations?: Reservation[]; error?: string }))
+  const downloadsJson = await downloadsRes.json().catch(() => ({} as { rows?: DownloadRow[]; error?: string }))
+
+  if (!reservationsRes.ok) throw new Error(reservationsJson?.error || 'فشل تحميل الحجوزات')
+  if (!downloadsRes.ok) throw new Error(downloadsJson?.error || 'فشل تحميل التنزيلات')
+
+  type RecipientAccumulator = {
+    key: string
+    email: string
+    names: Set<string>
+    reservationCount: number
+    reservationConfirmedCount: number
+    downloadCount: number
+    productSlugs: Set<string>
+    statuses: Set<string>
+    lastSeen: number
+    details: Set<string>
+    phones: Set<string>
+  }
+
+  const map = new Map<string, RecipientAccumulator>()
+  const ensureEntry = (rawEmail?: string | null) => {
+    const trimmed = (rawEmail || '').trim()
+    if (!trimmed || !trimmed.includes('@')) return null
+    const key = trimmed.toLowerCase()
+    let entry = map.get(key)
+    if (!entry) {
+      entry = {
+        key,
+        email: trimmed,
+        names: new Set<string>(),
+        reservationCount: 0,
+        reservationConfirmedCount: 0,
+        downloadCount: 0,
+        productSlugs: new Set<string>(),
+        statuses: new Set<string>(),
+        lastSeen: 0,
+        details: new Set<string>(),
+        phones: new Set<string>(),
+      }
+      map.set(key, entry)
+    }
+    return entry
+  }
+
+  const reservations = (reservationsJson?.reservations || []) as Reservation[]
+  for (const res of reservations) {
+    const entry = ensureEntry(res?.email)
+    if (!entry) continue
+    entry.reservationCount += 1
+    const status = (res?.status || '').trim()
+    if (status) entry.statuses.add(status)
+    if (status.toLowerCase() === 'confirmed') entry.reservationConfirmedCount += 1
+    const createdAt = res?.created_at ? Date.parse(res.created_at) : 0
+    if (createdAt && createdAt > entry.lastSeen) entry.lastSeen = createdAt
+    const slot = res?.free_call_slots
+    const slotLabel = slot?.day ? `${slot.day} ${slot.start_time || ''}`.trim() : ''
+    if (slotLabel) entry.details.add(`حجز: ${slotLabel}${status ? ` (${status})` : ''}`)
+  }
+
+  const downloads = (downloadsJson?.rows || []) as DownloadRow[]
+  for (const row of downloads) {
+    const entry = ensureEntry(row?.email)
+    if (!entry) continue
+    entry.downloadCount += 1
+    const combinedName = [row?.first_name, row?.last_name].filter(Boolean).join(' ').trim()
+    if (combinedName) entry.names.add(combinedName)
+    else if (row?.name) entry.names.add(row.name)
+    if (row?.product_slug) entry.productSlugs.add(row.product_slug)
+    if (row?.phone) entry.phones.add(row.phone)
+    const createdAt = row?.created_at ? Date.parse(row.created_at) : 0
+    if (createdAt && createdAt > entry.lastSeen) entry.lastSeen = createdAt
+    entry.details.add(`تنزيل: ${row?.product_slug || 'بدون اسم'}`)
+  }
+
+  const aggregated: Recipient[] = Array.from(map.values()).map((entry) => {
+    const names = Array.from(entry.names)
+    const productSlugs = Array.from(entry.productSlugs)
+    const statuses = Array.from(entry.statuses)
+    const details = Array.from(entry.details)
+    const phones = Array.from(entry.phones)
+    const confirmed = entry.reservationConfirmedCount
+    const pending = entry.reservationCount - confirmed
+    const summaryParts: string[] = []
+    if (entry.reservationCount) {
+      let part = `حجوزات: ${entry.reservationCount}`
+      if (confirmed) part += ` (مؤكدة: ${confirmed})`
+      if (pending > 0) part += ` (أخرى: ${pending})`
+      summaryParts.push(part)
+    }
+    if (entry.downloadCount) summaryParts.push(`تنزيلات: ${entry.downloadCount}`)
+    if (productSlugs.length) summaryParts.push(`منتجات: ${productSlugs.join(', ')}`)
+    if (phones.length) summaryParts.push(`هاتف: ${phones.join(', ')}`)
+    const summary = summaryParts.join(' • ') || '—'
+    const detailsText = details.join(' • ')
+    const lastActivityLabel = entry.lastSeen ? new Date(entry.lastSeen).toLocaleString('en-GB') : '—'
+
+    return {
+      email: entry.email,
+      emailKey: entry.key,
+      names,
+      reservationCount: entry.reservationCount,
+      reservationConfirmedCount: entry.reservationConfirmedCount,
+      downloadCount: entry.downloadCount,
+      productSlugs,
+      statuses,
+      lastSeen: entry.lastSeen,
+      details,
+      summary,
+      detailsText,
+      lastActivityLabel,
+      phones,
+    }
+  })
+
+  aggregated.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0) || a.email.localeCompare(b.email))
+  return aggregated
+}
+
+function isWhatsappPreferred(rec: Recipient): boolean {
+  return rec.phones.length > 0
+}
+
+function sanitizePhone(raw?: string | null): string | null {
+  if (!raw) return null
+  let value = raw.trim()
+  if (!value) return null
+  value = value.replace(/[^0-9+]/g, '')
+  if (value.startsWith('00')) value = value.slice(2)
+  if (value.startsWith('+')) value = value.slice(1)
+  value = value.replace(/[^0-9]/g, '')
+  if (value.length < 8) return null
+  return value
 }
 
 function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
@@ -330,126 +484,7 @@ function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
     setLoading(true)
     setError('')
     try {
-      const [reservationsRes, downloadsRes] = await Promise.all([
-        fetch('/api/admin/free-call/reservations'),
-        fetch('/api/admin/download-requests'),
-      ])
-
-      const reservationsJson = await reservationsRes.json().catch(() => ({} as { reservations?: Reservation[]; error?: string }))
-      const downloadsJson = await downloadsRes.json().catch(() => ({} as { rows?: Array<{ id: number; created_at: string; name: string; email: string; country: string | null; product_slug: string | null }>; error?: string }))
-
-      if (!reservationsRes.ok) throw new Error(reservationsJson?.error || 'فشل تحميل الحجوزات')
-      if (!downloadsRes.ok) throw new Error(downloadsJson?.error || 'فشل تحميل التنزيلات')
-
-      type RecipientAccumulator = {
-        key: string
-        email: string
-        names: Set<string>
-        reservationCount: number
-        reservationConfirmedCount: number
-        downloadCount: number
-        productSlugs: Set<string>
-        countries: Set<string>
-        statuses: Set<string>
-        lastSeen: number
-        details: Set<string>
-      }
-
-      const map = new Map<string, RecipientAccumulator>()
-      const ensureEntry = (rawEmail?: string | null) => {
-        const trimmed = (rawEmail || '').trim()
-        if (!trimmed || !trimmed.includes('@')) return null
-        const key = trimmed.toLowerCase()
-        let entry = map.get(key)
-        if (!entry) {
-          entry = {
-            key,
-            email: trimmed,
-            names: new Set<string>(),
-            reservationCount: 0,
-            reservationConfirmedCount: 0,
-            downloadCount: 0,
-            productSlugs: new Set<string>(),
-            countries: new Set<string>(),
-            statuses: new Set<string>(),
-            lastSeen: 0,
-            details: new Set<string>(),
-          }
-          map.set(key, entry)
-        }
-        return entry
-      }
-
-      const reservations = (reservationsJson?.reservations || []) as Reservation[]
-      for (const res of reservations) {
-        const entry = ensureEntry(res?.email)
-        if (!entry) continue
-        entry.reservationCount += 1
-        const status = (res?.status || '').trim()
-        if (status) entry.statuses.add(status)
-        if (status.toLowerCase() === 'confirmed') entry.reservationConfirmedCount += 1
-        const createdAt = res?.created_at ? Date.parse(res.created_at) : 0
-        if (createdAt && createdAt > entry.lastSeen) entry.lastSeen = createdAt
-        const slot = res?.free_call_slots
-        const slotLabel = slot?.day ? `${slot.day} ${slot.start_time || ''}`.trim() : ''
-        if (slotLabel) entry.details.add(`حجز: ${slotLabel}${status ? ` (${status})` : ''}`)
-      }
-
-      type DownloadRow = { id: number; created_at: string; name: string; email: string; country: string | null; product_slug: string | null }
-      const downloads = (downloadsJson?.rows || []) as DownloadRow[]
-      for (const row of downloads) {
-        const entry = ensureEntry(row?.email)
-        if (!entry) continue
-        entry.downloadCount += 1
-        if (row?.name) entry.names.add(row.name)
-        if (row?.product_slug) entry.productSlugs.add(row.product_slug)
-        if (row?.country) entry.countries.add(row.country)
-        const createdAt = row?.created_at ? Date.parse(row.created_at) : 0
-        if (createdAt && createdAt > entry.lastSeen) entry.lastSeen = createdAt
-        entry.details.add(`تنزيل: ${row?.product_slug || 'بدون اسم'}`)
-      }
-
-      const aggregated: Recipient[] = Array.from(map.values()).map((entry) => {
-        const names = Array.from(entry.names)
-        const productSlugs = Array.from(entry.productSlugs)
-        const countries = Array.from(entry.countries)
-        const statuses = Array.from(entry.statuses)
-        const details = Array.from(entry.details)
-        const confirmed = entry.reservationConfirmedCount
-        const pending = entry.reservationCount - confirmed
-        const summaryParts: string[] = []
-        if (entry.reservationCount) {
-          let part = `حجوزات: ${entry.reservationCount}`
-          if (confirmed) part += ` (مؤكدة: ${confirmed})`
-          if (pending > 0) part += ` (أخرى: ${pending})`
-          summaryParts.push(part)
-        }
-        if (entry.downloadCount) summaryParts.push(`تنزيلات: ${entry.downloadCount}`)
-        if (productSlugs.length) summaryParts.push(`منتجات: ${productSlugs.join(', ')}`)
-        const summary = summaryParts.join(' • ') || '—'
-        const detailsText = details.length ? details.join(' • ') : ''
-        const lastActivityLabel = entry.lastSeen ? new Date(entry.lastSeen).toLocaleString('en-GB') : '—'
-
-        return {
-          email: entry.email,
-          emailKey: entry.key,
-          names,
-          reservationCount: entry.reservationCount,
-          reservationConfirmedCount: entry.reservationConfirmedCount,
-          downloadCount: entry.downloadCount,
-          productSlugs,
-          countries,
-          statuses,
-          lastSeen: entry.lastSeen,
-          details,
-          summary,
-          detailsText,
-          lastActivityLabel,
-        }
-      })
-
-      aggregated.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0) || a.email.localeCompare(b.email))
-
+      const aggregated = await fetchRecipientAggregates()
       setRecipients(aggregated)
       setSelected((prev) => {
         const next: Record<string, boolean> = {}
@@ -480,7 +515,9 @@ function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
     return list.filter((r) =>
       r.email.toLowerCase().includes(q) ||
       r.summary.toLowerCase().includes(q) ||
-      (r.names.length > 0 && r.names.some((name) => name.toLowerCase().includes(q)))
+      r.detailsText.toLowerCase().includes(q) ||
+      (r.names.length > 0 && r.names.some((name) => name.toLowerCase().includes(q))) ||
+      (r.phones.length > 0 && r.phones.some((phone) => phone.toLowerCase().includes(q)))
     )
   }, [deferredRecipients, searchTerm, selected, showSelectedOnly])
 
@@ -604,6 +641,265 @@ function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
   )
 }
 
+function BulkWhatsappTab() {
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [recipients, setRecipients] = useState<Recipient[]>([])
+  const [selected, setSelected] = useState<Record<string, boolean>>({})
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false)
+  const [optInOnly, setOptInOnly] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  const loadRecipients = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const aggregated = await fetchRecipientAggregates()
+      const withPhones = aggregated.filter((item) => item.phones.length > 0)
+      setRecipients(withPhones)
+      setSelected((prev) => {
+        const next: Record<string, boolean> = {}
+        for (const item of withPhones) {
+          const auto = isWhatsappPreferred(item)
+          next[item.emailKey] = prev[item.emailKey] ?? auto
+        }
+        return next
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'تعذر تحميل البيانات'
+      setError(message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { loadRecipients() }, [loadRecipients])
+
+  useEffect(() => {
+    if (!copied) return
+    const timer = window.setTimeout(() => setCopied(false), 2000)
+    return () => window.clearTimeout(timer)
+  }, [copied])
+
+  const filteredRecipients = useMemo(() => {
+    let list = recipients
+    if (optInOnly) list = list.filter(isWhatsappPreferred)
+    if (showSelectedOnly) list = list.filter((item) => selected[item.emailKey])
+    const q = searchTerm.trim().toLowerCase()
+    if (!q) return list
+    return list.filter((item) =>
+      item.email.toLowerCase().includes(q) ||
+      item.summary.toLowerCase().includes(q) ||
+      item.detailsText.toLowerCase().includes(q) ||
+      (item.names.length > 0 && item.names.some((name) => name.toLowerCase().includes(q))) ||
+      (item.phones.length > 0 && item.phones.some((phone) => phone.toLowerCase().includes(q)))
+    )
+  }, [recipients, optInOnly, showSelectedOnly, selected, searchTerm])
+
+  const totalLoaded = recipients.length
+  const filteredCount = filteredRecipients.length
+
+  const selectedNumbers = useMemo(() => {
+    const base = recipients.filter((item) => selected[item.emailKey])
+    const eligible = optInOnly ? base.filter(isWhatsappPreferred) : base
+    const numbers = eligible.flatMap((item) => item.phones.map(sanitizePhone).filter(Boolean) as string[])
+    return Array.from(new Set(numbers))
+  }, [recipients, selected, optInOnly])
+
+  const selectedContactsCount = useMemo(() => {
+    const base = recipients.filter((item) => selected[item.emailKey])
+    const eligible = optInOnly ? base.filter(isWhatsappPreferred) : base
+    return eligible.length
+  }, [recipients, selected, optInOnly])
+
+  const toggleRecipient = useCallback((emailKey: string) => {
+    setSelected((prev) => ({ ...prev, [emailKey]: !prev[emailKey] }))
+  }, [])
+
+  const copyNumbers = useCallback(async () => {
+    if (selectedNumbers.length === 0) {
+      alert('اختاري جهة اتصال واحدة على الأقل برقم هاتف صالح.')
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(selectedNumbers.join('\n'))
+      setCopied(true)
+    } catch (err) {
+      console.error(err)
+      alert('تعذر نسخ الأرقام إلى الحافظة، انسخيها يدويًا من القائمة.')
+    }
+  }, [selectedNumbers])
+
+  const openWhatsApp = useCallback(() => {
+    if (selectedNumbers.length === 0) {
+      alert('اختاري جهات اتصال تحوي رقم واتساب أولاً.')
+      return
+    }
+    const maxOpens = Math.min(5, selectedNumbers.length)
+    const text = message.trim()
+    selectedNumbers.slice(0, maxOpens).forEach((num, idx) => {
+      const base = `https://wa.me/${num}`
+      const url = text ? `${base}?text=${encodeURIComponent(text)}` : base
+      window.setTimeout(() => { window.open(url, '_blank', 'noopener') }, idx * 180)
+    })
+    if (selectedNumbers.length > maxOpens) {
+      const remaining = selectedNumbers.slice(maxOpens)
+      void navigator.clipboard.writeText(remaining.join('\n')).catch(() => {})
+      alert(`تم فتح ${maxOpens} محادثة واتساب. تم نسخ ${remaining.length} رقمًا إضافيًا إلى الحافظة لإكمال الإرسال يدويًا.`)
+    }
+  }, [selectedNumbers, message])
+
+  function selectAll() {
+    setSelected((prev) => {
+      const next: Record<string, boolean> = {}
+      for (const item of recipients) {
+        const shouldSelect = isWhatsappPreferred(item)
+        next[item.emailKey] = prev[item.emailKey] ?? shouldSelect
+      }
+      return next
+    })
+  }
+
+  function clearSelection() {
+    setSelected((prev) => {
+      const next = { ...prev }
+      for (const item of recipients) next[item.emailKey] = false
+      return next
+    })
+  }
+
+  return (
+    <div>
+      <SectionHeader title="واتساب جماعي" />
+      <div className="card p-4 space-y-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="text-sm text-gray-700">
+            <div>ملفات جهات الاتصال: {totalLoaded}</div>
+            <div>جهات مختارة: {selectedContactsCount}</div>
+            <div>أرقام صالحة: {selectedNumbers.length}</div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn" onClick={loadRecipients} disabled={loading}>تحديث</button>
+            <button className="btn btn-outline" onClick={() => setPickerOpen(true)} disabled={totalLoaded === 0}>اختيار الأرقام</button>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          <textarea
+            className="input textarea"
+            rows={4}
+            placeholder="رسالة واتساب (اختياري)"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+          <label className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
+            <input type="checkbox" checked={optInOnly} onChange={(e) => setOptInOnly(e.target.checked)} />
+            عرض جهات الاتصال التي تحتوي على رقم هاتف فقط
+          </label>
+        </div>
+
+        {error && <div className="text-sm text-red-600">{error}</div>}
+        {loading && <div className="text-sm text-gray-600">جارٍ التحميل…</div>}
+
+        {selectedNumbers.length > 0 ? (
+          <div className="text-sm text-gray-700">
+            سيتم فتح روابط واتساب لعدد يصل إلى 5 جهات في كل دفعة. انسخي بقية الأرقام لإرسالها يدويًا.
+          </div>
+        ) : (
+          <div className="text-sm text-gray-600">حددي جهات اتصال تحتوي رقم واتساب صالح.</div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          <button className="btn btn-primary" onClick={openWhatsApp} disabled={selectedNumbers.length === 0}>فتح روابط واتساب</button>
+          <button className="btn btn-outline" onClick={copyNumbers} disabled={selectedNumbers.length === 0}>
+            {copied ? 'تم النسخ ✅' : 'نسخ قائمة الأرقام'}
+          </button>
+        </div>
+      </div>
+
+      <Modal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        title="اختيار جهات الاتصال"
+        centered
+        footer={
+          <div className="flex flex-wrap gap-2">
+            <button className="btn btn-primary" onClick={() => { selectAll(); }}>تحديد الكل</button>
+            <button className="btn btn-outline" onClick={() => { clearSelection(); }}>إلغاء الكل</button>
+            <button className="btn" onClick={() => setPickerOpen(false)}>تم</button>
+          </div>
+        }
+      >
+        {totalLoaded === 0 ? (
+          <div className="text-sm text-gray-600">لا توجد جهات اتصال لعرضها.</div>
+        ) : (
+          <div style={{ display: 'grid', gap: 12 }}>
+            <div className="grid" style={{ gap: 12 }}>
+              <input
+                className="input"
+                placeholder="ابحثي عن بريد، اسم أو رقم"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <label className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
+                <input type="checkbox" checked={showSelectedOnly} onChange={(e) => setShowSelectedOnly(e.target.checked)} />
+                عرض المحددة فقط
+              </label>
+              <div className="text-xs text-gray-500">المعروضة الآن: {filteredCount} / {totalLoaded}</div>
+            </div>
+            <div style={{ maxHeight: '55vh', overflowY: 'auto', display: 'grid', gap: 12 }}>
+              {filteredCount === 0 ? (
+                <div className="text-sm text-gray-500">لا توجد نتائج مطابقة.</div>
+              ) : (
+                filteredRecipients.map((item) => (
+                  <WhatsappRecipientItem key={item.emailKey} item={item} isSelected={!!selected[item.emailKey]} onToggle={toggleRecipient} />
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  )
+}
+
+type WhatsappRecipientItemProps = {
+  item: Recipient
+  isSelected: boolean
+  onToggle: (emailKey: string) => void
+}
+
+const WhatsappRecipientItem = React.memo(({ item, isSelected, onToggle }: WhatsappRecipientItemProps) => {
+  return (
+    <label
+      className="glass-water"
+      style={{
+        borderRadius: 12,
+        padding: '12px 16px',
+        display: 'grid',
+        gap: 6,
+        background: 'var(--card-bg, rgba(255,255,255,0.85))',
+        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <span style={{ fontWeight: 600 }}>{item.names[0] || item.email}</span>
+        <input type="checkbox" checked={isSelected} onChange={() => onToggle(item.emailKey)} />
+      </div>
+      {item.phones.length > 0 && (
+        <div className="text-xs" style={{ color: '#2563eb' }}>{item.phones.join(' / ')}</div>
+      )}
+      <div className="text-xs" style={{ color: '#4b5563' }}>{item.summary}</div>
+      {item.detailsText && <div className="text-xs" style={{ color: '#6b7280', lineHeight: 1.5 }}>{item.detailsText}</div>}
+      <div className="text-xs text-gray-500">آخر نشاط: {item.lastActivityLabel}</div>
+    </label>
+  )
+})
+WhatsappRecipientItem.displayName = 'WhatsappRecipientItem'
+
 type RecipientListItemProps = {
   item: Recipient
   isSelected: boolean
@@ -629,10 +925,12 @@ const RecipientListItem = React.memo(({ item, isSelected, onToggle }: RecipientL
       </div>
       {item.names.length > 0 && <div className="text-xs text-gray-600">{item.names.join(' / ')}</div>}
       <div className="text-xs" style={{ color: '#4b5563' }}>{item.summary}</div>
+      {item.detailsText && <div className="text-xs" style={{ color: '#6b7280', lineHeight: 1.5 }}>{item.detailsText}</div>}
       <div className="text-xs text-gray-500">آخر نشاط: {item.lastActivityLabel}</div>
     </label>
   )
 })
+RecipientListItem.displayName = 'RecipientListItem'
 
 RecipientListItem.displayName = 'RecipientListItem'
 
@@ -778,17 +1076,26 @@ interface PlotlyStatic { react: (id: string, data: PlotData[], layout?: PlotLayo
 declare global { interface Window { Plotly?: PlotlyStatic } }
 
 function StatsTab() {
-  const [data, setData] = useState<{ reservations: { day: string; count: number }[]; downloads: { day: string; count: number }[] }>({ reservations: [], downloads: [] })
+  const [data, setData] = useState<{
+    reservations: { day: string; count: number }[]
+    downloads: { day: string; count: number }[]
+  }>({ reservations: [], downloads: [] })
   const [tokenSummary, setTokenSummary] = useState<{ total: number; redeemed: number; unredeemed: number }>({ total: 0, redeemed: 0, unredeemed: 0 })
   const [loading, setLoading] = useState(false)
-  const [reqs, setReqs] = useState<Array<{ id: number; created_at: string; name: string; email: string; country: string | null; product_slug: string }>>([])
+  const [reqs, setReqs] = useState<DownloadRow[]>([])
 
   useEffect(() => {
     ;(async () => {
       setLoading(true)
       const r = await fetch('/api/admin/stats')
       const j = await r.json(); setLoading(false)
-      if (r.ok) { setData(j); if (j.tokens) setTokenSummary(j.tokens) }
+      if (r.ok) {
+        setData({
+          reservations: j.reservations || [],
+          downloads: j.downloads || [],
+        })
+        if (j.tokens) setTokenSummary(j.tokens)
+      }
     })()
   }, [])
 
@@ -797,7 +1104,7 @@ function StatsTab() {
       const r = await fetch('/api/admin/download-requests')
       const j = await r.json()
       if (r.ok) {
-        const rows = (j.rows || []) as Array<{ id: number; created_at: string; name: string; email: string; country: string | null; product_slug: string }>
+        const rows = (j.rows || []) as DownloadRow[]
         // Keep only the latest row per email (API returns newest first)
         const seen = new Set<string>()
         const uniq: typeof rows = []
@@ -830,24 +1137,42 @@ function StatsTab() {
     })
   }
 
-  function renderPlots(d: { reservations: { day: string; count: number }[]; downloads: { day: string; count: number }[] }, tokens: { total: number; redeemed: number; unredeemed: number }) {
+  function renderPlots(
+    d: {
+      reservations: { day: string; count: number }[]
+      downloads: { day: string; count: number }[]
+    },
+    tokens: { total: number; redeemed: number; unredeemed: number }
+  ) {
     const P = window.Plotly
     if (!P) return
-    const daysR = d.reservations.map(x => x.day)
-    const valsR = d.reservations.map(x => x.count)
-    P.react('chart-resv', [{ type: 'bar', x: daysR, y: valsR, marker: { color: '#7c3aed' } }], { title: 'الحجوزات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
+    const daysR = d.reservations.map((x) => x.day)
+    const valsR = d.reservations.map((x) => x.count)
+    P.react(
+      'chart-resv',
+      [{ type: 'scatter', mode: 'lines+markers', x: daysR, y: valsR, line: { color: '#7c3aed', width: 3 }, marker: { size: 8, color: '#7c3aed' } }],
+      { title: 'الحجوزات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' },
+      { displayModeBar: false, responsive: true }
+    )
 
-    const daysD = d.downloads.map(x => x.day)
-    const valsD = d.downloads.map(x => x.count)
-    P.react('chart-dl', [{ type: 'bar', x: daysD, y: valsD, marker: { color: '#22c55e' } }], { title: 'التنزيلات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
+    const daysD = d.downloads.map((x) => x.day)
+    const valsD = d.downloads.map((x) => x.count)
+    P.react(
+      'chart-dl',
+      [{ type: 'scatter', mode: 'lines+markers', x: daysD, y: valsD, line: { color: '#22c55e', width: 3 }, marker: { size: 8, color: '#22c55e' } }],
+      { title: 'التنزيلات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' },
+      { displayModeBar: false, responsive: true }
+    )
 
     const total = Math.max(1, tokens.total)
     const redeemed = Math.min(total, Math.max(0, tokens.redeemed))
     const unredeemed = Math.max(0, total - redeemed)
-    P.react('chart-tokens', [{
-      type: 'pie', values: [redeemed, unredeemed], labels: ['Redeemed', 'Unredeemed'], hole: 0.5,
-      marker: { colors: ['#7c3aed', '#c084fc'] }
-    }], { title: 'Tokens', margin: { t: 40, r: 10, l: 10, b: 10 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true })
+    P.react(
+      'chart-tokens',
+      [{ type: 'pie', values: [redeemed, unredeemed], labels: ['مستبدل', 'غير مستبدل'], hole: 0.5, marker: { colors: ['#7c3aed', '#d8b4fe'] } }],
+      { title: 'استبدال الرموز', margin: { t: 40, r: 10, l: 10, b: 10 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' },
+      { displayModeBar: false, responsive: true }
+    )
   }
 
   return (
@@ -869,8 +1194,8 @@ function StatsTab() {
                 <th className="p-2 text-right">التاريخ</th>
                 <th className="p-2 text-right">الاسم</th>
                 <th className="p-2 text-right">البريد</th>
-                <th className="p-2 text-right">البلد</th>
                 <th className="p-2 text-right">المنتج</th>
+                <th className="p-2 text-right">الهاتف</th>
               </tr>
             </thead>
             <tbody>
@@ -880,10 +1205,10 @@ function StatsTab() {
                 reqs.map(r => (
                   <tr key={r.id}>
                     <td className="p-2" data-th="التاريخ">{new Date(r.created_at).toLocaleString('ar-TN')}</td>
-                    <td className="p-2" data-th="الاسم">{r.name}</td>
+                    <td className="p-2" data-th="الاسم">{[r.first_name, r.last_name].filter(Boolean).join(' ').trim() || r.name}</td>
                     <td className="p-2" data-th="البريد">{r.email}</td>
-                    <td className="p-2" data-th="البلد">{r.country || '-'}</td>
                     <td className="p-2" data-th="المنتج">{r.product_slug}</td>
+                    <td className="p-2" data-th="الهاتف">{r.phone || '-'}</td>
                   </tr>
                 ))
               )}

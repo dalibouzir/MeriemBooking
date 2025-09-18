@@ -14,11 +14,10 @@ export async function GET() {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('download_requests')
-    .select('id, created_at, name, email, country, product_slug')
+    .select('id, created_at, name, first_name, last_name, email, product_slug, phone')
     .order('created_at', { ascending: false })
     .limit(1000)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ rows: data })
 }
-

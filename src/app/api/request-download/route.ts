@@ -9,20 +9,35 @@ function generateToken(len = 10) {
 }
 
 type RequestDownloadBody = {
-  name: string
+  name?: string
   email: string
-  country?: string
   product: string
+  first_name?: string
+  last_name?: string
+  phone?: string
 }
 
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Partial<RequestDownloadBody>
-    const { name, email, country, product } = body || {}
+    const {
+      name,
+      first_name,
+      last_name,
+      email,
+      product,
+      phone,
+    } = body || {}
 
-    if (!email || !product || !name) {
+    const firstName = (first_name ?? '').trim()
+    const lastName = (last_name ?? '').trim()
+    const fallbackName = (name ?? '').trim()
+
+    if (!email || !product || (!firstName && !fallbackName) || (!lastName && !fallbackName)) {
       return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 })
     }
+
+    const fullName = fallbackName || `${firstName} ${lastName}`.trim()
 
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE!
@@ -48,7 +63,12 @@ export async function POST(req: Request) {
 
     // 3) Save request + token
     const { error: e1 } = await supabase.from('download_requests').insert({
-      name, email, country, product_slug: product,
+      name: fullName,
+      first_name: firstName || null,
+      last_name: lastName || null,
+      email,
+      product_slug: product,
+      phone,
     })
     if (e1) throw e1
 
@@ -72,7 +92,7 @@ export async function POST(req: Request) {
         Authorization: `Bearer ${SERVICE_ROLE}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name, email, product, downloadUrl, redeemUrl, token, isVideo }),
+      body: JSON.stringify({ name: fullName, email, product, downloadUrl, redeemUrl, token, isVideo }),
     })
 
     if (!resFn.ok) {
@@ -80,7 +100,7 @@ export async function POST(req: Request) {
       throw new Error(`Send email failed: ${txt}`)
     }
 
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true, token, redeemUrl, downloadUrl })
   } catch (err: unknown) {
     const error = err as Error
     console.error(error)

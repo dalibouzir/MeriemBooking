@@ -3,15 +3,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-type ApiError = { error?: string; message?: string }
+type RequestDownloadResponse = {
+  ok?: boolean
+  token?: string
+  error?: string
+  message?: string
+  redeemUrl?: string
+  downloadUrl?: string
+}
+
+const SUCCESS_VIDEO_URL = (process.env.NEXT_PUBLIC_SUCCESS_VIDEO_URL || '').trim()
+const SUCCESS_CALL_URL = (process.env.NEXT_PUBLIC_SUCCESS_CALL_BOOKING_URL || 'https://calendly.com/meriembouzir/30min').trim()
+const SUCCESS_SUPPORT_TEXT = (process.env.NEXT_PUBLIC_SUCCESS_SUPPORT_TEXT || 'اطمئني، أرسلنا لك كل التفاصيل عبر الإيميل والواتساب. إذا لم تصلك الرسالة خلال دقائق راسلينا على واتساب.').trim()
+const SUCCESS_CTA_LABEL = (process.env.NEXT_PUBLIC_SUCCESS_CTA_LABEL || 'احجز مكالمتك المجانية الآن').trim()
 
 export default function DownloadClient({ initialProduct = '' }: { initialProduct?: string }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [redirectIn, setRedirectIn] = useState<number | null>(null)
-  const countdownRef = useRef<number | null>(null)
 
   const product = initialProduct
   const hpRef = useRef<HTMLInputElement | null>(null)
@@ -22,7 +32,6 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   useEffect(() => {
     setMessage(null)
     setError(null)
-    setRedirectIn(null)
   }, [product])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -37,21 +46,30 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       const fd = new FormData(formEl)
       if ((hpRef.current?.value || '').trim() !== '') throw new Error('Spam detected')
 
-      const name = String(fd.get('name') || '').trim()
+      const firstName = String(fd.get('first_name') || '').trim()
+      const lastName = String(fd.get('last_name') || '').trim()
       const email = String(fd.get('email') || '').trim()
-      const country = String(fd.get('country') || '').trim()
+      const phone = String(fd.get('phone') || '').trim()
 
-      if (!name) throw new Error('الاسم مطلوب')
+      if (!firstName) throw new Error('الاسم مطلوب')
+      if (!lastName) throw new Error('اللقب مطلوب')
       if (!isValidEmail(email)) throw new Error('البريد الإلكتروني غير صالح')
+      if (!phone) throw new Error('رقم الهاتف مطلوب')
       if (!product) throw new Error('المنتج غير محدد')
 
       const res = await fetch('/api/request-download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, country, product }),
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          product,
+          phone,
+        }),
       })
 
-      const data: ApiError = await res.json().catch(() => ({} as ApiError))
+      const data: RequestDownloadResponse = await res.json().catch(() => ({} as RequestDownloadResponse))
 
       if (!res.ok) {
         const msg = data.error || data.message || 'تعذّر الإرسال، حاول/ي مجددًا.'
@@ -59,22 +77,28 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         return
       }
 
-      setMessage('📩 تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. تفقد البريد الوارد/الغير هام.')
+      const token = (data.token || '').trim()
+      const redeemUrl = (data.redeemUrl || '').trim()
+      if (!token) {
+        setError('تم الإرسال لكن تعذّر الحصول على رمز المكالمة. تواصلي مع الدعم لو استمرّت المشكلة.')
+        return
+      }
+
       formEl.reset()
-      // Start a 10s countdown then redirect to /redeem so user can paste the code
-      const total = 10
-      setRedirectIn(total)
-      countdownRef.current = window.setInterval(() => {
-        setRedirectIn((prev) => {
-          const next = (prev ?? total) - 1
-          if (next <= 0) {
-            if (countdownRef.current) window.clearInterval(countdownRef.current)
-            router.push('/redeem')
-            return 0
-          }
-          return next
-        })
-      }, 1000)
+      setMessage('📩 تم إرسال رسالة التأكيد إلى بريدك الإلكتروني. جارٍ تحويلك لصفحة التأكيد...')
+
+      const params = new URLSearchParams()
+      params.set('locale', 'ar')
+      params.set('customerName', firstName)
+      if (SUCCESS_VIDEO_URL) params.set('videoUrl', SUCCESS_VIDEO_URL)
+      const bookingUrl = redeemUrl || SUCCESS_CALL_URL
+      if (bookingUrl) params.set('callBookingUrl', bookingUrl)
+      params.set('callCode', `code=${token}`)
+      if (SUCCESS_SUPPORT_TEXT) params.set('supportText', SUCCESS_SUPPORT_TEXT)
+      if (SUCCESS_CTA_LABEL) params.set('ctaLabel', SUCCESS_CTA_LABEL)
+
+      const successUrl = `/success?${params.toString()}`
+      router.push(successUrl)
     } catch (err: unknown) {
       const errorObj = err as Error
       setError(errorObj.message || 'تعذّر الإرسال، حاول/ي مجددًا.')
@@ -104,10 +128,12 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         {/* Honeypot */}
         <input ref={hpRef} name="website" tabIndex={-1} autoComplete="off" className="dl-hp" />
 
-        <input name="name" required className="dl-input" placeholder="الإسم الكامل" />
+        <div className="dl-name-group">
+          <input name="first_name" required className="dl-input" placeholder="الإسم" />
+          <input name="last_name" required className="dl-input" placeholder="اللقب" />
+        </div>
         <input name="email" type="email" inputMode="email" required className="dl-input" placeholder="البريد الإلكتروني" />
-        <input name="country" className="dl-input" placeholder="الدولة (اختياري)" />
-        <input name="captcha_token" className="dl-input" placeholder="التحقق (اختياري)" />
+        <input name="phone" type="tel" inputMode="tel" required className="dl-input" placeholder="رقم الهاتف" />
 
         <button type="submit" className="dl-btn" disabled={loading || productMissing}>
           {loading ? '⏳ يرجى الإنتظار…' : 'إرسال واستلام رابط التحميل'}
@@ -121,11 +147,6 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         {message && (
           <div className="alert alert-success" role="status" style={{ marginTop: '10px' }}>
             <p>{message}</p>
-            <p style={{ marginTop: 6 }}>
-              سنحوّلك الآن لصفحة إدخال الكود لاستبداله
-              {typeof redirectIn === 'number' ? ` خلال ${redirectIn} ثانية` : ''}
-              — أو <a href="/redeem" className="link">اذهب الآن</a>.
-            </p>
           </div>
         )}
 
@@ -137,7 +158,21 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       </form>
 
       <style jsx global>{`
-        /* place your .dl-* CSS هنا إن لزم */
+        .dl-form {
+          display: grid;
+          gap: 12px;
+        }
+
+        .dl-name-group {
+          display: grid;
+          gap: 10px;
+        }
+
+        @media (min-width: 540px) {
+          .dl-name-group {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
       `}</style>
       </div>
     </section>
