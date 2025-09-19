@@ -45,17 +45,40 @@ export async function POST(req: Request) {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE)
 
-    // 1) Resolve product type and build official site download page URL (not raw storage)
+    // 1) Resolve product file link from library (fallback to legacy products table/page)
     let isVideo = false
-    {
+    let downloadUrl: string | null = null
+
+    const { data: libraryItem } = await supabase
+      .from('library_items')
+      .select('type, public_url')
+      .eq('id', product)
+      .maybeSingle()
+
+    if (libraryItem) {
+      isVideo = libraryItem.type === 'video'
+      downloadUrl = libraryItem.public_url || null
+    } else {
       const { data: prod } = await supabase
         .from('products')
-        .select('type, slug')
+        .select('type, slug, public_url')
         .eq('slug', product)
         .maybeSingle()
       if (prod?.type) isVideo = prod.type === 'فيديو'
+      if (prod?.public_url) {
+        downloadUrl = prod.public_url
+      } else if (prod?.slug) {
+        const storageBase = `${SUPABASE_URL}/storage/v1/object/public`
+        const bucket = 'assets'
+        const folder = isVideo ? 'videos' : 'books'
+        const defaultExt = isVideo ? 'mp4' : 'pdf'
+        downloadUrl = `${storageBase}/${bucket}/public/${folder}/${prod.slug}.${defaultExt}`
+      }
     }
-    const downloadUrl = `${SITE_URL}/download?product=${encodeURIComponent(product)}`
+
+    if (!downloadUrl) {
+      downloadUrl = `${SITE_URL}/download?product=${encodeURIComponent(product)}`
+    }
 
     // 2) Generate call token (30-day expiry)
     const token = generateToken(10)
