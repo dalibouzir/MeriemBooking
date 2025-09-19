@@ -21,27 +21,6 @@ function Modal({ open, onClose, title, children, footer, centered }: { open: boo
   )
 }
 
-type Slot = {
-  id: string
-  day: string
-  start_time: string
-  end_time: string
-  capacity: number
-  remaining?: number
-  is_open: boolean
-  note: string | null
-}
-
-type Reservation = {
-  id: string
-  slot_id: string
-  user_id: string
-  email: string
-  status: string
-  created_at: string
-  free_call_slots?: { day: string; start_time: string; end_time: string } | null
-}
-
 type DownloadRow = {
   id: number
   created_at: string
@@ -57,9 +36,9 @@ function SectionHeader({ title }: { title: string }) {
   return <h2 className="text-xl font-semibold text-purple-700 mb-4">{title}</h2>
 }
 
-type TabKey = 'schedule'|'reservations'|'email'|'whatsapp'|'products'|'stats'
+type TabKey = 'calendar' | 'email' | 'whatsapp' | 'products' | 'stats'
 export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
-  const [tab, setTab] = useState<TabKey>('schedule')
+  const [tab, setTab] = useState<TabKey>('calendar')
 
   return (
     <div dir="rtl" className="admin-shell" style={{ maxWidth: 1600, marginInline: 'auto' }}>
@@ -67,41 +46,37 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
       <header className="admin-header-card glass-water">
         <div className="admin-header-row">
           <div>
-            <h1 className="admin-title">Fittrah Moms — Admin</h1>
-            <div className="admin-sub">{adminEmail}</div>
+            <h1 className="admin-title">لوحة التحكم — فطرة الأمهات</h1>
+            <div className="admin-sub">مرحبًا يا مريم 🌸</div>
           </div>
-          <div className="admin-head-tools" role="toolbar" aria-label="Header actions">
+          <div className="admin-head-tools" role="toolbar" aria-label="إجراءات الرأس">
             <button className="btn btn-outline">تحديث</button>
           </div>
         </div>
+        <nav aria-label="أقسام لوحة التحكم" className="admin-action" role="tablist">
+          {([
+            { key: 'calendar', label: '📅 المواعيد (Calendly)' },
+            { key: 'email', label: '✉️ الإرسال الجماعي' },
+            { key: 'whatsapp', label: '💬 واتساب جماعي' },
+            { key: 'products', label: '📚 المنتجات' },
+            { key: 'stats', label: '📈 الإحصائيات' },
+          ] as { key: TabKey; label: string }[]).map((t) => (
+            <button
+              key={t.key}
+              role="tab"
+              aria-selected={tab===t.key}
+              className={`admin-pill ${tab===t.key?'is-active':''}`}
+              onClick={()=>setTab(t.key)}
+            >
+              <span className="pill-label">{t.label}</span>
+            </button>
+          ))}
+        </nav>
       </header>
-
-      {/* Tabs/action bar (separate glass bar) */}
-      <nav aria-label="Admin tabs" className="admin-action glass-water" role="tablist">
-        {([
-          { key: 'schedule', label: '📅 جدول المواعيد' },
-          { key: 'reservations', label: '👥 الحجوزات' },
-          { key: 'email', label: '✉️ الإرسال الجماعي' },
-          { key: 'whatsapp', label: '💬 واتساب جماعي' },
-          { key: 'products', label: '📚 المنتجات' },
-          { key: 'stats', label: '📈 الإحصائيات' },
-        ] as { key: TabKey; label: string }[]).map((t) => (
-          <button
-            key={t.key}
-            role="tab"
-            aria-selected={tab===t.key}
-            className={`admin-pill ${tab===t.key?'is-active':''}`}
-            onClick={()=>setTab(t.key)}
-          >
-            <span className="pill-label">{t.label}</span>
-          </button>
-        ))}
-      </nav>
 
       {/* Switchable content only */}
       <main className="admin-content glass-water">
-        {tab==='schedule' && <ScheduleTab/>}
-        {tab==='reservations' && <ReservationsTab/>}
+        {tab==='calendar' && <CalendlyInfoTab/>}
         {tab==='email' && <BulkEmailTab adminEmail={adminEmail}/>}
         {tab==='whatsapp' && <BulkWhatsappTab/>}
         {tab==='products' && <ProductsTab/>}
@@ -111,202 +86,15 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
   )
 }
 
-function ScheduleTab() {
-  const [slots, setSlots] = useState<Slot[]>([])
-  const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState<{day: string; start_time: string; end_time: string; capacity: number; note: string}>({ day: '', start_time: '', end_time: '', capacity: 1, note: '' })
-  const [durationMin, setDurationMin] = useState<number>(60)
-  const [openModal, setOpenModal] = useState(false)
-  const [editId, setEditId] = useState<string | null>(null)
-  const [busySlotId, setBusySlotId] = useState<string | null>(null)
-  const [savingSlot, setSavingSlot] = useState(false)
-
-  async function load() {
-    setLoading(true)
-    const today = new Date().toISOString().slice(0,10)
-    const r = await fetch(`/api/admin/free-call/slots?from=${today}`)
-    const j = await r.json()
-    setLoading(false)
-    if (!r.ok) return alert(j.error || 'فشل التحميل')
-    setSlots(j.slots || [])
-  }
-
-  useEffect(()=>{ load() },[])
-
-  // createSlot merged into saveSlot
-
-  async function toggleOpen(id: string, is_open: boolean) {
-    setBusySlotId(id)
-    const r = await fetch('/api/admin/free-call/slots', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_open: !is_open }) })
-    const j = await r.json();
-    setBusySlotId(null)
-    if (!r.ok) return alert(j.error || 'Update failed'); await load()
-  }
-  async function del(id: string) {
-    if (!confirm('Delete this slot?')) return
-    setBusySlotId(id)
-    const r = await fetch(`/api/admin/free-call/slots?id=${id}`, { method: 'DELETE' })
-    const j = await r.json();
-    setBusySlotId(null)
-    if (!r.ok) return alert(j.error || 'Delete failed'); await load()
-  }
-
-  async function saveSlot() {
-    if (!form.day || !form.start_time || form.capacity <= 0) { alert('تحققي من المدخلات'); return }
-    const end_time = form.end_time || addDuration(form.start_time, durationMin)
-    const method = editId ? 'PATCH' : 'POST'
-    const body = editId ? { id: editId, ...form, end_time, is_open: true, note: form.note || null } : { ...form, end_time, is_open: true, note: form.note || null }
-    setSavingSlot(true)
-    const r = await fetch('/api/admin/free-call/slots', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-    const j = await r.json();
-    setSavingSlot(false)
-    if (!r.ok) return alert(j.error || 'Save failed')
-    setOpenModal(false); setEditId(null); setForm({ day: '', start_time: '', end_time: '', capacity: 1, note: '' }); await load()
-  }
-
+function CalendlyInfoTab() {
   return (
-    <div>
-      <SectionHeader title="جدول المواعيد"/>
-        <div className="section-toolbar">
-          <div className="flex items-center gap-2 flex-wrap">
-            <button className="btn btn-primary" onClick={()=>{ setEditId(null); setForm({ day: '', start_time: '', end_time: '', capacity: 1, note: '' }); setOpenModal(true) }}>+ إضافة موعد</button>
-            <span className="text-sm text-gray-600">اختيارات سريعة:</span>
-            {['11:00','12:00','13:00','14:00','15:00','16:00'].map(t => (
-              <button key={t} className="btn btn-outline" onClick={()=>{ setEditId(null); setForm({ day: new Date().toISOString().slice(0,10), start_time: t, end_time: addDuration(t, durationMin), capacity: 1, note: '' }); setOpenModal(true) }}>{t}</button>
-            ))}
-          </div>
-        </div>
-      <div className="overflow-x-auto">
-        <table className="table responsive text-sm">
-          <thead>
-            <tr className="bg-purple-100 text-purple-800">
-              <th className="p-2 text-right">اليوم</th>
-              <th className="p-2 text-right">البدء</th>
-              <th className="p-2 text-right">النهاية</th>
-              <th className="p-2 text-right">السعة</th>
-              <th className="p-2 text-right">المتبقي</th>
-              <th className="p-2 text-right">الحالة</th>
-              <th className="p-2 text-right">ملاحظة</th>
-              <th className="p-2 text-right">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td className="p-2" colSpan={8}>جارٍ التحميل…</td></tr>
-            ) : slots.length === 0 ? (
-              <tr><td className="p-2" colSpan={8}>لا يوجد مواعيد</td></tr>
-            ) : slots.map((s) => (
-              <tr key={s.id} className="odd:bg-gray-50">
-                <td className="p-2" data-th="Day">{s.day}</td>
-                <td className="p-2" data-th="Start">{s.start_time}</td>
-                <td className="p-2" data-th="End">{s.end_time}</td>
-                <td className="p-2" data-th="Capacity">{s.capacity}</td>
-                <td className="p-2" data-th="Remaining">{s.remaining ?? 0}</td>
-                <td className="p-2" data-th="Status">{s.is_open ? 'Open' : 'Closed'}</td>
-                <td className="p-2" data-th="Note">{s.note || ''}</td>
-                <td className="p-2 actions" data-th="Actions">
-                  <button className="btn btn-outline" disabled={busySlotId===s.id} onClick={()=>toggleOpen(s.id, s.is_open)}>{busySlotId===s.id ? '...' : (s.is_open ? 'Close' : 'Open')}</button>
-                  <button className="btn" disabled={busySlotId===s.id} onClick={()=>{ setEditId(s.id); setForm({ day: s.day, start_time: s.start_time, end_time: s.end_time, capacity: s.capacity, note: s.note || '' }); setOpenModal(true) }}>Edit</button>
-                  <button className="btn" disabled={busySlotId===s.id} onClick={()=>del(s.id)}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="admin-section">
+      <SectionHeader title="إدارة المواعيد عبر Calendly" />
+      <p className="text-sm text-gray-600">تم نقل إنشاء المواعيد وتأكيدها إلى حساب Calendly الخاص بك. افتحي Calendly لإضافة أو تعديل الأوقات المتاحة وسيتم إرسال التذكيرات من هناك مباشرةً.</p>
+      <div className="section-toolbar" style={{ marginTop: '1.5rem' }}>
+        <a className="btn btn-primary" href="https://calendly.com/meriembouzir/30min" target="_blank" rel="noopener noreferrer">فتح Calendly</a>
       </div>
-
-      <Modal open={openModal} onClose={()=>setOpenModal(false)} title={editId ? 'Edit Slot' : 'Add Slot'} footer={<div className="flex gap-2"><button className="btn btn-primary" disabled={savingSlot} onClick={saveSlot}>{savingSlot ? 'Saving…' : (editId ? 'Save' : 'Add')}</button><button className="btn" onClick={()=>setOpenModal(false)}>Cancel</button></div>}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <label className="field"><span className="field-label">Day</span><input className="input" type="date" value={form.day} onChange={(e)=>setForm(f=>({...f, day: e.target.value}))} /></label>
-          <label className="field"><span className="field-label">Start</span><input className="input" type="time" value={form.start_time} onChange={(e)=>setForm(f=>({...f, start_time: e.target.value}))} /></label>
-          <label className="field"><span className="field-label">End</span><input className="input" type="time" value={form.end_time} onChange={(e)=>setForm(f=>({...f, end_time: e.target.value}))} placeholder="Optional" /></label>
-          <label className="field"><span className="field-label">Duration</span><select className="input" value={durationMin} onChange={(e)=>setDurationMin(Number(e.target.value))}><option value={30}>30 min</option><option value={45}>45 min</option><option value={60}>60 min</option><option value={90}>90 min</option></select></label>
-          <label className="field"><span className="field-label">Capacity</span><input className="input" type="number" min={1} value={form.capacity} onChange={(e)=>setForm(f=>({...f, capacity: Number(e.target.value||1)}))} /></label>
-          <label className="field md:col-span-2"><span className="field-label">Note</span><input className="input" value={form.note} onChange={(e)=>setForm(f=>({...f, note: e.target.value}))} /></label>
-        </div>
-      </Modal>
-    </div>
-  )
-}
-
-function addDuration(startHHMM: string, minutes: number): string {
-  const [h, m] = startHHMM.split(':').map((x) => parseInt(x || '0', 10))
-  const base = new Date(0,0,1,h||0,m||0,0)
-  const end = new Date(base.getTime() + minutes * 60000)
-  const hh = String(end.getHours()).padStart(2,'0')
-  const mm = String(end.getMinutes()).padStart(2,'0')
-  return `${hh}:${mm}`
-}
-
-function ReservationsTab() {
-  const [items, setItems] = useState<Reservation[]>([])
-  const [loading, setLoading] = useState(false)
-  const [day, setDay] = useState('')
-  const [slotId, setSlotId] = useState('')
-  const [cancelBusy, setCancelBusy] = useState<string | null>(null)
-
-  async function load() {
-    setLoading(true)
-    const params = new URLSearchParams()
-    if (day) params.set('day', day)
-    if (slotId) params.set('slot_id', slotId)
-    const r = await fetch(`/api/admin/free-call/reservations?${params.toString()}`)
-    const j = await r.json()
-    setLoading(false)
-    if (!r.ok) return alert(j.error || 'فشل التحميل')
-    setItems(j.reservations || [])
-  }
-
-  useEffect(()=>{ load() },[])
-
-  async function cancel(id: string) {
-    if (!confirm('Cancel this reservation?')) return
-    setCancelBusy(id)
-    const r = await fetch('/api/admin/free-call/reservations', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-    const j = await r.json(); setCancelBusy(null); if (!r.ok) return alert(j.error || 'Cancel failed')
-    await load()
-  }
-
-  return (
-    <div>
-      <SectionHeader title="الحجوزات"/>
-      <div className="section-toolbar">
-        <div className="flex items-center gap-2 flex-wrap">
-          <input className="input" placeholder="اليوم (اختياري)" value={day} onChange={(e)=>setDay(e.target.value)} />
-          <input className="input" placeholder="معرّف الموعد (اختياري)" value={slotId} onChange={(e)=>setSlotId(e.target.value)} />
-          <button className="btn btn-primary" onClick={load}>تحديث</button>
-        </div>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="table responsive text-sm">
-          <thead>
-            <tr className="bg-purple-100 text-purple-800">
-              <th className="p-2 text-right">البريد</th>
-              <th className="p-2 text-right">اليوم</th>
-              <th className="p-2 text-right">الوقت</th>
-              <th className="p-2 text-right">الحالة</th>
-              <th className="p-2 text-right">أُنشئت</th>
-              <th className="p-2 text-right">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td className="p-2" colSpan={6}>جارٍ التحميل…</td></tr>
-            ) : items.length === 0 ? (
-              <tr><td className="p-2" colSpan={6}>لا يوجد حجوزات</td></tr>
-            ) : items.map((r) => (
-              <tr key={r.id} className="odd:bg-gray-50">
-                <td className="p-2" data-th="Email">{r.email}</td>
-                <td className="p-2" data-th="Day">{r.free_call_slots?.day}</td>
-                <td className="p-2" data-th="Time">{r.free_call_slots?.start_time} – {r.free_call_slots?.end_time}</td>
-                <td className="p-2" data-th="Status">{r.status}</td>
-                <td className="p-2" data-th="Created">{new Date(r.created_at).toLocaleString('en-GB')}</td>
-                <td className="p-2 actions" data-th="Actions"><button className="btn" disabled={cancelBusy===r.id} onClick={()=>cancel(r.id)}>{cancelBusy===r.id ? '...' : 'Cancel'}</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <p className="text-xs text-gray-500" style={{ marginTop: '1rem' }}>لم تعد هناك حاجة لإدارة السعة أو Google Calendar من داخل لوحة التحكم — Calendly يتكفّل بكل شيء.</p>
     </div>
   )
 }
@@ -329,15 +117,9 @@ type Recipient = {
 }
 
 async function fetchRecipientAggregates(): Promise<Recipient[]> {
-  const [reservationsRes, downloadsRes] = await Promise.all([
-    fetch('/api/admin/free-call/reservations'),
-    fetch('/api/admin/download-requests'),
-  ])
+  const downloadsRes = await fetch('/api/admin/download-requests')
+  const downloadsJson = await downloadsRes.json().catch(() => ({ rows: [], error: 'فشل تحميل التنزيلات' } as { rows?: DownloadRow[]; error?: string }))
 
-  const reservationsJson = await reservationsRes.json().catch(() => ({} as { reservations?: Reservation[]; error?: string }))
-  const downloadsJson = await downloadsRes.json().catch(() => ({} as { rows?: DownloadRow[]; error?: string }))
-
-  if (!reservationsRes.ok) throw new Error(reservationsJson?.error || 'فشل تحميل الحجوزات')
   if (!downloadsRes.ok) throw new Error(downloadsJson?.error || 'فشل تحميل التنزيلات')
 
   type RecipientAccumulator = {
@@ -377,21 +159,6 @@ async function fetchRecipientAggregates(): Promise<Recipient[]> {
       map.set(key, entry)
     }
     return entry
-  }
-
-  const reservations = (reservationsJson?.reservations || []) as Reservation[]
-  for (const res of reservations) {
-    const entry = ensureEntry(res?.email)
-    if (!entry) continue
-    entry.reservationCount += 1
-    const status = (res?.status || '').trim()
-    if (status) entry.statuses.add(status)
-    if (status.toLowerCase() === 'confirmed') entry.reservationConfirmedCount += 1
-    const createdAt = res?.created_at ? Date.parse(res.created_at) : 0
-    if (createdAt && createdAt > entry.lastSeen) entry.lastSeen = createdAt
-    const slot = res?.free_call_slots
-    const slotLabel = slot?.day ? `${slot.day} ${slot.start_time || ''}`.trim() : ''
-    if (slotLabel) entry.details.add(`حجز: ${slotLabel}${status ? ` (${status})` : ''}`)
   }
 
   const downloads = (downloadsJson?.rows || []) as DownloadRow[]
@@ -449,9 +216,9 @@ async function fetchRecipientAggregates(): Promise<Recipient[]> {
     }
   })
 
-  aggregated.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0) || a.email.localeCompare(b.email))
   return aggregated
 }
+
 
 function isWhatsappPreferred(rec: Recipient): boolean {
   return rec.phones.length > 0
@@ -963,17 +730,18 @@ function ProductsTab() {
       // Update metadata only
       if (!form.title || !form.description || !form.slug) return alert('أكملي الحقول المطلوبة')
       setSaving(true)
-      const payload: Record<string, unknown> = {
-        id: editId,
-        type: form.type,
-        title: form.title,
-        description: form.description,
-        slug: form.slug,
-        snippet: form.snippet || null,
-      }
-      const r = await fetch('/api/admin/products', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const fd = new FormData()
+      fd.set('id', editId)
+      fd.set('type', form.type)
+      fd.set('title', form.title)
+      fd.set('description', form.description)
+      fd.set('slug', form.slug)
+      fd.set('snippet', form.snippet || '')
+      if (form.file) fd.set('file', form.file)
+      if (form.cover) fd.set('cover', form.cover)
+      const r = await fetch('/api/admin/products', { method: 'PATCH', body: fd })
       const j = await r.json(); setSaving(false)
-      if (!r.ok) return alert(j.error || 'Update failed')
+      if (!r.ok) return alert(j.error || 'فشل التعديل')
       setOpen(false); setEditId(null)
       setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null })
       await load()
@@ -1041,7 +809,7 @@ function ProductsTab() {
                 <td className="p-2" data-th="Type">{p.type}</td>
                 <td className="p-2" data-th="Slug">{p.slug}</td>
                 <td className="p-2 actions" data-th="Actions">
-                  <button className="btn" onClick={()=>{ setEditId(p.id); setForm({ type: p.type, title: p.title, description: p.description || '', slug: p.slug, snippet: p.snippet || '', file: null, cover: null }); setOpen(true) }}>Edit</button>
+                  <button className="btn" onClick={()=>{ setEditId(p.id); setForm({ type: p.type, title: p.title, description: p.description || '', slug: p.slug, snippet: p.snippet || '', file: null, cover: null }); setOpen(true) }}>تعديل</button>
                   <button className="btn" disabled={delBusy===p.id} onClick={()=>del(p.id)}>{delBusy===p.id ? '...' : 'حذف'}</button>
                 </td>
               </tr>
@@ -1057,12 +825,20 @@ function ProductsTab() {
           <label className="field md:col-span-2"><span className="field-label">الوصف</span><textarea className="input textarea" rows={3} value={form.description} onChange={(e)=>setForm(f=>({ ...f, description: e.target.value }))} /></label>
           <label className="field"><span className="field-label">Slug</span><input className="input" value={form.slug} onChange={(e)=>setForm(f=>({ ...f, slug: e.target.value }))} /></label>
           <label className="field"><span className="field-label">مقتطف</span><input className="input" value={form.snippet} onChange={(e)=>setForm(f=>({ ...f, snippet: e.target.value }))} /></label>
-          {!editId && (
-            <>
-              <label className="field"><span className="field-label">ملف المنتج</span><input className="input" type="file" onChange={(e)=>setForm(f=>({ ...f, file: e.target.files?.[0] || null }))} /></label>
-              <label className="field"><span className="field-label">صورة الغلاف</span><input className="input" type="file" onChange={(e)=>setForm(f=>({ ...f, cover: e.target.files?.[0] || null }))} /></label>
-            </>
-          )}
+          <label className="field">
+            <span className="field-label">
+              ملف المنتج
+              <span className="block text-xs text-gray-500 font-normal">{editId ? 'اختياري، ارفعي ملفًا جديدًا لتحديث PDF أو MP4.' : 'PDF أو MP4 — مطلوب عند الإضافة.'}</span>
+            </span>
+            <input className="input" type="file" onChange={(e)=>setForm(f=>({ ...f, file: e.target.files?.[0] || null }))} />
+          </label>
+          <label className="field">
+            <span className="field-label">
+              صورة الغلاف
+              <span className="block text-xs text-gray-500 font-normal">{editId ? 'اختياري، استخدميه لتحديث الغلاف الحالي.' : 'اختياري، يفضل رفع صورة للغلاف.'}</span>
+            </span>
+            <input className="input" type="file" accept="image/*" onChange={(e)=>setForm(f=>({ ...f, cover: e.target.files?.[0] || null }))} />
+          </label>
         </div>
       </Modal>
     </div>

@@ -166,7 +166,7 @@ export default function SuccessClient() {
         </div>
       )}
 
-      <section className="success-card" aria-labelledby="success-heading">
+      <section className="success-card glass-water polished" aria-labelledby="success-heading">
         <header className="success-header">
           <h1 id="success-heading">{defaults.heading}</h1>
           <p className="success-subheading">{defaults.subheading}</p>
@@ -217,6 +217,9 @@ export default function SuccessClient() {
           >
             {ctaLabel}
           </Link>
+          <p className="free-note">
+            الجلسة مجانية بالكامل — لن يتم تحصيل أي مبلغ داخل Calendly، فقط اختاري الوقت الأنسب لك.
+          </p>
           {callCodeValue && (
             <div className="code-area">
               <span className="code-label">{defaults.callLabel}</span>
@@ -247,9 +250,9 @@ export default function SuccessClient() {
           align-items: center;
           padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem) 3rem;
           background:
-            radial-gradient(900px 500px at 80% -10%, rgba(124,58,237,.08), rgba(255,255,255,0)),
-            radial-gradient(700px 400px at 20% 100%, rgba(168,85,247,.08), rgba(255,255,255,0)),
-            linear-gradient(180deg, rgba(255,255,255,.95), rgba(250,245,255,.92));
+            linear-gradient(180deg, rgba(255,255,255,0.14), rgba(250,245,255,0.28)),
+            url('/background.jpg') center center / cover fixed;
+          background-blend-mode: lighten;
         }
 
         .success-shell.en {
@@ -297,11 +300,12 @@ export default function SuccessClient() {
 
         .success-card {
           width: min(960px, 100%);
-          background: var(--glass-purple-tint), var(--surface);
-          border: 1px solid var(--glass-border);
+          background: rgba(255,255,255,0.46);
+          border: 1px solid rgba(255,255,255,0.38);
           border-radius: clamp(var(--r-md), 5vw, var(--r-xl));
-          box-shadow: var(--glass-shadow-1);
-          backdrop-filter: blur(16px) saturate(180%);
+          box-shadow: 0 28px 70px rgba(92,60,231,0.18);
+          backdrop-filter: blur(22px) saturate(180%);
+          -webkit-backdrop-filter: blur(22px) saturate(180%);
           padding: clamp(1.75rem, 4vw, 3rem);
           display: flex;
           flex-direction: column;
@@ -451,6 +455,13 @@ export default function SuccessClient() {
           box-shadow: 0 18px 40px rgba(124,58,237,.25);
         }
 
+        .free-note {
+          font-size: 0.95rem;
+          color: var(--purple-700);
+          line-height: 1.6;
+          margin: -0.5rem 0 0;
+        }
+
         .code-area {
           display: flex;
           flex-direction: column;
@@ -512,11 +523,11 @@ export default function SuccessClient() {
         }
 
         .success-footer {
-          background: rgba(255,255,255,0.55);
+          background: rgba(255,255,255,0.42);
           border-radius: clamp(var(--r-sm), 3vw, var(--r-lg));
-          border: 1px solid rgba(124,58,237,0.18);
+          border: 1px solid rgba(124,58,237,0.16);
           padding: 1rem 1.25rem;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
         }
 
         .success-footer p {

@@ -1,253 +1,246 @@
-'use client'
+"use client"
 
-import React, { useEffect, useMemo, useState } from 'react'
-import Calendar from 'react-calendar'
-// CalendarProps not used; keep import minimal
-import 'react-calendar/dist/Calendar.css'
-import { motion } from 'motion/react'
-import Image from 'next/image'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import ModalPortal from '@/components/ModalPortal'
-// No auth needed — reservations are created server-side using a guest/user-for-email
+import Image from 'next/image'
+
+const CALENDLY_URL = (process.env.NEXT_PUBLIC_SUCCESS_CALL_BOOKING_URL || 'https://calendly.com/meriembouzir/30min').trim()
+
+type Status = 'missing' | 'checking' | 'valid' | 'invalid'
+
+type VerifyResponse = {
+  valid?: boolean
+  email?: string | null
+  error?: string
+}
 
 export default function FreeCallClient({ initialToken = '' }: { initialToken?: string }) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [freeSlots, setFreeSlots] = useState<{ id: string; start: string; end: string; remaining?: number }[]>([])
-  const [chosen, setChosen] = useState<{ id: string; start: string; end: string } | null>(null)
-  const [availableDays, setAvailableDays] = useState<string[]>([])
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [notes, setNotes] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [showModal, setShowModal] = useState(false)
+  const token = initialToken.trim()
+  const [status, setStatus] = useState<Status>(token ? 'checking' : 'missing')
+  const [email, setEmail] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const hasAccess = useMemo(() => Boolean(initialToken), [initialToken])
-
-  // Fetch availability for the initial month on mount so days glow immediately
   useEffect(() => {
-    fetchAvailableDays(new Date()).catch(() => {})
-  }, [])
+    if (!token) return
+    let cancelled = false
 
-  if (!hasAccess) {
+    async function verify() {
+      try {
+        const res = await fetch(`/api/call/verify?token=${encodeURIComponent(token)}`, { cache: 'no-store' })
+        const data = (await res.json().catch(() => ({}))) as VerifyResponse
+        if (cancelled) return
+        if (!res.ok || !data?.valid) {
+          setStatus('invalid')
+          setError(data?.error || 'انتهت صلاحية هذا الرمز أو تم استخدامه مسبقًا.')
+          return
+        }
+        setEmail((data.email ?? '') || null)
+        setStatus('valid')
+      } catch {
+        if (!cancelled) {
+          setStatus('invalid')
+          setError('تعذّر التحقق من الرمز. أعيدي المحاولة بعد لحظات أو تواصلي مع الدعم.')
+        }
+      }
+    }
+
+    verify()
+    return () => {
+      cancelled = true
+    }
+  }, [token])
+
+  const calendlyHref = useMemo(() => (CALENDLY_URL ? CALENDLY_URL : '#'), [])
+
+  if (status === 'missing') {
     return (
-      <section dir="rtl" aria-labelledby="no-access-title">
-        <div className="container fc-noaccess-wrap">
-          <div className="card glass-water fc-card">
-            <header className="fc-header">
-              <h1 id="no-access-title" className="fc-title" style={{ marginBottom: 6 }}>لا يمكنك الدخول</h1>
-              <p className="fc-subtle">
-                هذه الصفحة محمية برمز (توكن) صالح لحجز مكالمة مجانية مع مريم.
-              </p>
-            </header>
-            <div className="alert alert-danger fc-alert-space" role="alert" aria-live="polite">
-              🚫 لا يوجد توكن مرفق. يلزم إدخال/استبدال كود صالح للمتابعة.
-            </div>
-            <section className="fc-section">
-              <h2 className="fc-title" style={{ fontSize: '1.05rem' }}>لماذا تظهر هذه الرسالة؟</h2>
-              <ul className="fc-list" style={{ paddingRight: '1.2rem' }}>
-                <li>لم تُدخلي كودًا بعد، أو انتهت صلاحية الكود السابق.</li>
-                <li>دخلتِ للصفحة مباشرة بدون المرور بعملية التحميل التي تُرسل الكود.</li>
-              </ul>
-            </section>
-            <section className="fc-section">
-              <h2 className="fc-title" style={{ fontSize: '1.05rem' }}>كيف أحصل على الكود؟</h2>
-              <ul className="fc-list" style={{ paddingRight: '1.2rem' }}>
-                <li>حمّلي أي منتج من المتجر.</li>
-                <li>سيصلك بريد فيه رابط التنزيل + رمز مكالمة مجانية صالح ٣٠ يومًا.</li>
-              </ul>
-            </section>
-            <div className="fc-calendar" style={{ gap: 8, flexWrap: 'wrap' }}>
-              <Link href="/redeem" className="btn btn-primary">عندي كود — أريد استبداله</Link>
-              <Link href="/" className="btn btn-outline">رجوع للمتجر</Link>
-            </div>
+      <section dir="rtl" className="fc-simple-wrapper">
+        <div className="fc-card glass-water polished">
+          <header className="fc-header">
+            <h1>لا يمكنك الدخول</h1>
+            <p>هذه الصفحة محمية برمز مخصّص لتأكيد الجلسة المجانية. استعيني بالكود الذي وصلك بعد التنزيل أو تواصلي مع الدعم.</p>
+          </header>
+          <div className="fc-actions">
+            <Link href="/redeem" className="btn btn-primary">عندي كود — أريد تفعيله</Link>
+            <Link href="/" className="btn btn-outline">رجوع للمتجر</Link>
           </div>
         </div>
       </section>
     )
   }
 
-  function extractDateFromValue(value: unknown): Date | null {
-    if (value instanceof Date) return value
-    if (Array.isArray(value)) for (const v of value) if (v instanceof Date) return v
-    return null
+  if (status === 'checking') {
+    return (
+      <section dir="rtl" className="fc-simple-wrapper">
+        <div className="fc-card glass-water polished">
+          <p className="fc-status">جارٍ التحقق من الرمز…</p>
+        </div>
+      </section>
+    )
   }
 
-  function toDateKeyLocal(d: Date): string {
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
-  }
-
-  const formatArabicDate = (d: Date) =>
-    d.toLocaleDateString('ar-TN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-
-  async function fetchAvailableDays(active: Date) {
-    // Determine the first and last day of the visible month
-    const year = active.getFullYear()
-    const month = active.getMonth()
-    const first = new Date(year, month, 1)
-    const last = new Date(year, month + 1, 0)
-    const from = toDateKeyLocal(first)
-    const to = toDateKeyLocal(last)
-    const r = await fetch(`/api/public/free/days?from=${from}&to=${to}`, { cache: 'no-store' })
-    const j = await r.json()
-    if (!r.ok) return
-    setAvailableDays(Array.isArray(j.days) ? j.days : [])
-  }
-
-  
-
-  async function fetchFree(isoDate: string) {
-    const r = await fetch('/api/public/free', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date: isoDate }),
-    })
-    const j = await r.json()
-    if (!r.ok) throw new Error(j.error || 'خطأ')
-    setFreeSlots(j.free || [])
-    setChosen(null)
-  }
-
-  async function bookChosen() {
-    if (!chosen || !email) return alert('Enter email and choose a time')
-    setLoading(true)
-    const r = await fetch('/api/reservations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slot_id: chosen.id, email, name, notes }),
-    })
-    const j = await r.json()
-    setLoading(false)
-    if (!r.ok) return alert(j.error || 'Booking failed')
-    alert('Booking confirmed ✅')
-    setFreeSlots([]); setChosen(null); setName(''); setEmail(''); setNotes(''); setSelectedDate(null)
-  }
-
-  const notesMap: Record<string, string> = {}
-  const unavailableDates: string[] = []
-
-  return (
-    <motion.div
-      className="main-container fc-wrapper"
-      dir="rtl"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: 'easeOut' }}
-    >
-      <motion.div
-        className="fc-avatar"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Image src="/Meriem.webp" alt="مريم" width={160} height={160} className="w-full h-full object-cover" priority />
-      </motion.div>
-
-      <motion.section className="fc-hero glass-water"
-        initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-        <h1 className="fc-title">احجزي مكالمتك المجانية</h1>
-        <ul className="fc-list">
-          <li>⏱️ ٢٥–٣٠ دقيقة</li>
-          <li>📍 أونلاين (رابط يُنشأ تلقائيًا)</li>
-          <li>🕐 توقيت تونس (Africa/Tunis)</li>
-        </ul>
-      </motion.section>
-
-      <motion.section className="fc-hero glass-water"
-        initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-        <h2 className="text-2xl font-semibold text-purple-700 mb-4">اختاري اليوم والساعة</h2>
-
-        <div className="fc-calendar">
-          <div className="card glass-water" style={{ padding: '12px' }}>
-            <Calendar
-              onActiveStartDateChange={async ({ activeStartDate }) => {
-                if (activeStartDate) await fetchAvailableDays(activeStartDate)
-              }}
-              onChange={async (value) => {
-                const d = extractDateFromValue(value)
-                if (!d) return
-                setSelectedDate(d)
-                const iso = toDateKeyLocal(d)
-                try {
-                  await fetchFree(iso)
-                } catch (e: unknown) {             // ✅ safe type
-                  const msg = e instanceof Error ? e.message : 'خطأ'
-                  alert(msg)
-                }                            
-              }}
-              value={selectedDate}
-              minDate={new Date()}
-              locale="ar-TN"
-              calendarType="gregory"
-              selectRange={false}
-              allowPartialRange={false}
-              tileDisabled={({ date }) => unavailableDates.includes(toDateKeyLocal(date))}
-              tileContent={({ date }) => {
-                const iso = toDateKeyLocal(date)
-                return notesMap[iso] ? <div className="note-tooltip" title={notesMap[iso]}>🟣<div className="note-text">{notesMap[iso]}</div></div> : null
-              }}
-              tileClassName={({ date, view }) => {
-                const iso = toDateKeyLocal(date)
-                if (view === 'month') {
-                  if (notesMap[iso]) return 'highlight-note'
-                  if (availableDays.includes(iso)) return 'fc-available-day'
-                }
-                return ''
-              }}
-            />
+  if (status === 'invalid') {
+    return (
+      <section dir="rtl" className="fc-simple-wrapper">
+        <div className="fc-card glass-water polished">
+          <header className="fc-header">
+            <h1>الرمز غير صالح</h1>
+            <p>{error || 'هذا الرمز غير صالح أو انتهت صلاحيته. يرجى استبداله برمز جديد أو التواصل مع الدعم.'}</p>
+          </header>
+          <div className="fc-actions">
+            <Link href="/redeem" className="btn btn-primary">استبدال رمز جديد</Link>
+            <a className="btn btn-outline" href="https://wa.me/" target="_blank" rel="noopener noreferrer">مراسلة الدعم</a>
           </div>
         </div>
+      </section>
+    )
+  }
 
-        {selectedDate && (
-          <p className="fc-picked">اليوم المختار: {formatArabicDate(selectedDate)}</p>
-        )}
+  return (
+    <section dir="rtl" className="fc-simple-wrapper">
+      <div className="fc-card glass-water polished">
+        <Image
+          src="/Meriem.webp"
+          alt="مريم"
+          width={120}
+          height={120}
+          className="fc-avatar"
+          priority
+        />
+        <header className="fc-header">
+          <h1>جاهزة لحجز جلستك المجانية</h1>
+          <p>
+            مبروك! هذا الكود يمنحك جلسة استشارية مجانية بالكامل عبر Calendly.
+            {email ? ` سيتم إرسال تأكيد الحجز إلى ${email}.` : ''}
+          </p>
+        </header>
 
-        {freeSlots.length > 0 && (
-          <div className="fc-time-buttons">
-            {freeSlots.map((s, i) => (
-              <button key={i} className={`btn ${chosen?.start === s.start ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => { setChosen({ id: s.id, start: s.start, end: s.end }); setShowModal(true) }}>
-                {new Date(s.start).toLocaleTimeString('ar-TN', { hour: '2-digit', minute: '2-digit' })}
-                {typeof s.remaining === 'number' ? ` — ${s.remaining}` : ''}
-              </button>
-            ))}
-          </div>
-        )}
+        <ol className="fc-steps" aria-label="خطوات الحجز">
+          <li>اضغطي الزر أدناه لفتح صفحة الحجز على Calendly في نافذة جديدة.</li>
+          <li>اختاري الوقت المناسب، وأكملي بياناتك داخل Calendly.</li>
+          <li>تأكدي من وصول رسالة التأكيد إلى بريدك (الجلسة مجانية — لن يُطلب منك الدفع).</li>
+        </ol>
 
-        {/* Booking modal */}
-        {showModal && (
-          <ModalPortal>
-            <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-              <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-head">
-                  <h2>Confirm Appointment</h2>
-                  <button className="btn" onClick={() => setShowModal(false)}>Close</button>
-                </div>
-                <p className="fc-muted" style={{ marginBottom: 10 }}>
-                  Selected time:
-                  <strong> {chosen ? new Date(chosen.start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''}</strong>
-                </p>
-                <div className="grid2">
-                  <input className="input" placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
-                  <input className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
-                </div>
-                <label className="field" style={{ marginTop: 10 }}>
-                  <span className="field-label">Notes (optional)</span>
-                  <textarea className="input textarea" rows={3} placeholder="Any details you want to add" value={notes} onChange={(e)=>setNotes(e.target.value)} />
-                </label>
-                <div className="fc-calendar" style={{ gap: 8, marginTop: 12 }}>
-                  <button className="btn btn-primary" disabled={!chosen || !email || !name || loading} onClick={async ()=>{ await bookChosen(); setShowModal(false) }}>
-                    {loading ? 'Booking…' : 'Confirm Booking'}
-                  </button>
-                  <button className="btn" onClick={() => setShowModal(false)}>Back</button>
-                </div>
-              </div>
-            </div>
-          </ModalPortal>
-        )}
-      </motion.section>
-    </motion.div>
+        <a
+          className="fc-calendly-btn"
+          href={calendlyHref}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          فتح صفحة الحجز على Calendly
+        </a>
+
+        <p className="fc-support">
+          إن واجهت أي مشكلة في الحجز، راسلينا عبر واتساب وسنساعدك فورًا.
+        </p>
+      </div>
+
+      <style jsx>{`
+        .fc-simple-wrapper {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: clamp(1.5rem, 4vw, 3rem);
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.16), rgba(250,245,255,0.26)),
+            url('/background.jpg') center center / cover fixed;
+          background-blend-mode: lighten;
+        }
+
+        .fc-card {
+          width: min(560px, 100%);
+          padding: clamp(1.5rem, 5vw, 2.75rem);
+          text-align: right;
+          display: grid;
+          gap: 1.25rem;
+          background: rgba(255,255,255,0.48);
+          border-radius: clamp(22px, 4vw, 32px);
+          border: 1px solid rgba(255,255,255,0.45);
+          box-shadow: 0 24px 65px rgba(79,70,229,0.16);
+          -webkit-backdrop-filter: blur(22px) saturate(160%);
+          backdrop-filter: blur(22px) saturate(160%);
+        }
+
+        .fc-avatar {
+          border-radius: 50%;
+          box-shadow: 0 12px 30px rgba(124,58,237,0.25);
+          align-self: center;
+        }
+
+        .fc-header h1 {
+          font-size: clamp(1.35rem, 3vw, 1.9rem);
+          font-weight: 800;
+          color: #5b21b6;
+          margin-bottom: 0.35rem;
+        }
+
+        .fc-header p {
+          font-size: 1rem;
+          color: #4338ca;
+          line-height: 1.7;
+          margin: 0;
+        }
+
+        .fc-steps {
+          margin: 0;
+          padding: 0 1.3rem 0 0;
+          display: grid;
+          gap: 0.65rem;
+          color: #312e81;
+          font-size: 0.98rem;
+        }
+
+        .fc-steps li {
+          list-style: decimal;
+          line-height: 1.55;
+        }
+
+        .fc-calendly-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.6rem;
+          padding: 0.9rem 1.4rem;
+          border-radius: 999px;
+          background: linear-gradient(90deg, #6366f1, #a855f7);
+          color: #fff;
+          font-weight: 700;
+          font-size: 1rem;
+          text-decoration: none;
+          box-shadow: 0 20px 35px rgba(99,102,241,0.25);
+          transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .fc-calendly-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 24px 40px rgba(99,102,241,0.3);
+        }
+
+        .fc-support {
+          font-size: 0.95rem;
+          color: #4c1d95;
+          margin: 0;
+        }
+
+        .fc-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+        }
+
+        .fc-status {
+          font-size: 1rem;
+          color: #4338ca;
+          text-align: center;
+        }
+
+        @media (max-width: 640px) {
+          .fc-card {
+            text-align: right;
+          }
+        }
+      `}</style>
+    </section>
   )
 }
