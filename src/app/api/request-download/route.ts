@@ -44,6 +44,15 @@ export async function POST(req: Request) {
     const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.fittrahmoms.com').replace(/^https?:\/\//, 'https://').replace(/\/$/, '')
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE)
+    const supabaseBaseUrl = SUPABASE_URL.replace(/\/$/, '')
+    const buildStorageUrl = (bucket: string, path: string) => {
+      const normalized = path.replace(/^\/+/g, '')
+      const encoded = normalized
+        .split('/')
+        .map((part) => encodeURIComponent(part))
+        .join('/')
+      return `${supabaseBaseUrl}/storage/v1/object/public/${bucket}/${encoded}`
+    }
 
     // 1) Resolve product file link from library (fallback to legacy products table/page)
     let isVideo = false
@@ -51,28 +60,36 @@ export async function POST(req: Request) {
 
     const { data: libraryItem } = await supabase
       .from('library_items')
-      .select('type, public_url')
+      .select('type, public_url, file_path')
       .eq('id', product)
       .maybeSingle()
 
     if (libraryItem) {
       isVideo = libraryItem.type === 'video'
-      downloadUrl = libraryItem.public_url || null
+      if (libraryItem.file_path) {
+        downloadUrl = buildStorageUrl('library', libraryItem.file_path)
+      } else if (libraryItem.public_url) {
+        downloadUrl = libraryItem.public_url
+      }
     } else {
       const { data: prod } = await supabase
         .from('products')
-        .select('type, slug, public_url')
+        .select('type, slug')
         .eq('slug', product)
         .maybeSingle()
-      if (prod?.type) isVideo = prod.type === 'فيديو'
-      if (prod?.public_url) {
-        downloadUrl = prod.public_url
-      } else if (prod?.slug) {
-        const storageBase = `${SUPABASE_URL}/storage/v1/object/public`
-        const bucket = 'assets'
-        const folder = isVideo ? 'videos' : 'books'
-        const defaultExt = isVideo ? 'mp4' : 'pdf'
-        downloadUrl = `${storageBase}/${bucket}/public/${folder}/${prod.slug}.${defaultExt}`
+      if (prod?.type) isVideo = prod.type === 'فيديو' || prod.type === 'video'
+
+      if (prod?.slug) {
+        const assetsPrefix = isVideo ? 'public/videos' : 'public/books'
+        const { data: assetsFiles } = await supabase.storage
+          .from('assets')
+          .list(assetsPrefix, { limit: 20, search: prod.slug })
+
+        const match = assetsFiles?.find((file) => file.name === prod.slug || file.name.startsWith(`${prod.slug}.`))
+
+        if (match) {
+          downloadUrl = buildStorageUrl('assets', `${assetsPrefix}/${match.name}`)
+        }
       }
     }
 

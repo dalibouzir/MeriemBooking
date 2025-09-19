@@ -126,23 +126,126 @@ export async function PATCH(req: Request) {
   if (!isAdminEmail(session?.user?.email)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  const body = await req.json().catch(() => null)
-  if (!body || !body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-  const { id, title, description, price } = body as { id: string; title?: string; description?: string; price?: number | null }
-  const update: Partial<{ title: string; description: string; price: number | null; updated_at: string }> = { updated_at: new Date().toISOString() }
-  if (typeof title === 'string') update.title = title
-  if (typeof description === 'string') update.description = description
-  if (typeof price === 'number' || price === null) update.price = price
+  const supabase = getSupabaseAdmin()
+  const contentType = req.headers.get('content-type') || ''
+  const update: Partial<{
+    title: string
+    description: string
+    price: number | null
+    file_path: string | null
+    public_url: string | null
+    thumbnail_path: string | null
+    updated_at: string
+  }> = { updated_at: new Date().toISOString() }
+
+  let id = ''
+
+  if (contentType.includes('multipart/form-data')) {
+    const form = await req.formData()
+    id = String(form.get('id') || '').trim()
+    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
+    const title = form.get('title')
+    const description = form.get('description')
+    const priceRaw = form.get('price')
+
+    if (typeof title === 'string') update.title = title
+    if (typeof description === 'string') update.description = description
+    if (typeof priceRaw === 'string') {
+      if (priceRaw.trim() === '') update.price = null
+      else {
+        const parsed = Number(priceRaw)
+        if (!Number.isNaN(parsed)) update.price = parsed
+      }
+    }
+
+    const bucket = 'library'
+    const fileEntry = form.get('file')
+    const thumbEntry = form.get('thumbnail')
+    const file = fileEntry instanceof File && fileEntry.size > 0 ? fileEntry : null
+    const thumb = thumbEntry instanceof File && thumbEntry.size > 0 ? thumbEntry : null
+
+    let existing: { type: 'book' | 'video'; file_path: string | null; thumbnail_path: string | null } | null = null
+    if (file || thumb) {
+      const { data: item, error: itemErr } = await supabase
+        .from('library_items')
+        .select('type, file_path, thumbnail_path')
+        .eq('id', id)
+        .single()
+      if (itemErr || !item) {
+        const message = itemErr?.message || 'Library item not found'
+        return NextResponse.json({ error: message }, { status: 404 })
+      }
+      existing = item as typeof existing
+    }
+
+    if (file) {
+      const type = existing?.type === 'video' ? 'video' : 'book'
+      const ext = (file.name.split('.').pop() || (type === 'video' ? 'mp4' : 'pdf')).toLowerCase()
+      const previousPath = existing?.file_path ?? null
+      const basePath = (previousPath ?? `${type === 'video' ? 'videos' : 'books'}/${id}`).replace(/\.[^/.]+$/, '')
+      const filePath = `${basePath}.${ext}`
+      const fileBytes = Buffer.from(await file.arrayBuffer())
+      const { error: upErr } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, fileBytes, {
+          contentType: file.type || (type === 'video' ? 'video/mp4' : 'application/pdf'),
+          upsert: true,
+        })
+      if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
+      if (previousPath && previousPath !== filePath) {
+        await supabase.storage.from(bucket).remove([previousPath]).catch(() => null)
+      }
+      const { data: pub } = supabase.storage.from(bucket).getPublicUrl(filePath)
+      update.file_path = filePath
+      update.public_url = pub?.publicUrl || null
+    }
+
+    if (thumb) {
+      const ext = (thumb.name.split('.').pop() || 'jpg').toLowerCase()
+      const previousPath = existing?.thumbnail_path ?? null
+      const basePath = (previousPath ?? `thumbnails/${id}`).replace(/\.[^/.]+$/, '')
+      const thumbPath = `${basePath}.${ext}`
+      const thumbBytes = Buffer.from(await thumb.arrayBuffer())
+      const { error: thErr } = await supabase.storage
+        .from(bucket)
+        .upload(thumbPath, thumbBytes, {
+          contentType: thumb.type || 'image/jpeg',
+          upsert: true,
+        })
+      if (thErr) return NextResponse.json({ error: thErr.message }, { status: 500 })
+      if (previousPath && previousPath !== thumbPath) {
+        await supabase.storage.from(bucket).remove([previousPath]).catch(() => null)
+      }
+      update.thumbnail_path = thumbPath
+    }
+  } else {
+    const body = await req.json().catch(() => null)
+    if (!body || !body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
+    const { title, description, price } = body as {
+      id: string
+      title?: string
+      description?: string
+      price?: number | null
+    }
+
+    id = String(body.id)
+    if (typeof title === 'string') update.title = title
+    if (typeof description === 'string') update.description = description
+    if (typeof price === 'number' || price === null) update.price = price
+  }
+
+  if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   try {
-    const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
-    .from('library_items')
-    .update(update)
-    .eq('id', id)
-    .select('*')
-    .single()
+      .from('library_items')
+      .update(update)
+      .eq('id', id)
+      .select('*')
+      .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ item: data })
   } catch (e: unknown) {

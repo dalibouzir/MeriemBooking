@@ -25,6 +25,8 @@ export default function AdminLibraryManager() {
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [editPrice, setEditPrice] = useState<string>('')
+  const [editFile, setEditFile] = useState<File | null>(null)
+  const [editThumb, setEditThumb] = useState<File | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -80,24 +82,36 @@ export default function AdminLibraryManager() {
     setEditTitle(i.title)
     setEditDesc(i.description || '')
     setEditPrice(i.price != null ? String(i.price) : '')
+    setEditFile(null)
+    setEditThumb(null)
+  }
+
+  function onCancelEdit() {
+    setEditingId(null)
+    setEditFile(null)
+    setEditThumb(null)
   }
 
   async function onSaveEdit() {
     if (!editingId) return
     setLoading(true)
     try {
-      type UpdatePayload = { id: string; title?: string; description?: string; price?: number | null }
-      const payload: UpdatePayload = { id: editingId, title: editTitle, description: editDesc }
-      if (editPrice === '') payload.price = null
-      else payload.price = Number(editPrice)
+      const fd = new FormData()
+      fd.append('id', editingId)
+      fd.append('title', editTitle)
+      fd.append('description', editDesc)
+      fd.append('price', editPrice)
+      if (editFile) fd.append('file', editFile)
+      if (editThumb) fd.append('thumbnail', editThumb)
       const res = await fetch('/api/admin/library', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: fd,
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Update failed')
       setItems((prev) => prev.map((it) => (it.id === json.item.id ? json.item : it)))
+      setEditFile(null)
+      setEditThumb(null)
       setEditingId(null)
     } catch (err) {
       alert((err as Error).message)
@@ -173,15 +187,45 @@ export default function AdminLibraryManager() {
                         {i.type === 'video' ? 'فيديو' : 'كتاب'}
                       </span>
                       {editingId === i.id ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
                           <input className="input" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
                           <textarea className="input textarea" rows={2} value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
-                          <div className="grid2">
+                          <div className="grid2" style={{ alignItems: 'flex-start', gap: 10 }}>
                             <input className="input" placeholder="السعر" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
                             <div style={{ display: 'flex', gap: 6 }}>
                               <button type="button" className="btn btn-primary" onClick={onSaveEdit} disabled={loading}>حفظ</button>
-                              <button type="button" className="btn" onClick={() => setEditingId(null)} disabled={loading}>إلغاء</button>
+                              <button type="button" className="btn" onClick={onCancelEdit} disabled={loading}>إلغاء</button>
                             </div>
+                          </div>
+                          <div className="grid2" style={{ gap: 12 }}>
+                            <label className="field">
+                              <span className="field-label">ملف جديد (PDF/MP4)</span>
+                              <input
+                                type="file"
+                                className="input"
+                                accept="application/pdf,video/*"
+                                onChange={(e) => setEditFile(e.target.files?.[0] ?? null)}
+                              />
+                              {editFile ? (
+                                <span style={{ fontSize: '0.8rem', color: '#666' }}>سيتم استبدال الملف الحالي بـ {editFile.name}</span>
+                              ) : (
+                                <span style={{ fontSize: '0.8rem', color: '#666' }}>اتركه فارغًا للإبقاء على الملف الحالي.</span>
+                              )}
+                            </label>
+                            <label className="field">
+                              <span className="field-label">صورة مصغرة جديدة</span>
+                              <input
+                                type="file"
+                                className="input"
+                                accept="image/*"
+                                onChange={(e) => setEditThumb(e.target.files?.[0] ?? null)}
+                              />
+                              {editThumb ? (
+                                <span style={{ fontSize: '0.8rem', color: '#666' }}>سيتم تحديث الصورة إلى {editThumb.name}</span>
+                              ) : (
+                                <span style={{ fontSize: '0.8rem', color: '#666' }}>اتركه فارغًا للإبقاء على الصورة الحالية.</span>
+                              )}
+                            </label>
                           </div>
                         </div>
                       ) : (

@@ -5,6 +5,7 @@ import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { supabaseClient } from '@/lib/supabase'
 import AdminLibraryManager from '@/components/AdminLibraryManager'
+import AdminProductsManager from '@/components/AdminProductsManager'
 
 type منتج = {
   id: string
@@ -135,6 +136,7 @@ export default function HomePage() {
               استبدال رمز الهدية
             </Link>
             <div style={{ marginInlineStart: 8 }}><AdminLibraryManager /></div>
+            <div style={{ marginInlineStart: 8 }}><AdminProductsManager /></div>
           </div>
           <div className="hp-hero-media glass-water" aria-hidden>
             <img className="hp-hero-img hp-hero-img--small" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgonr3d8J7NwalGZmddonsQmwDMIXBNdTnwkZaSZml6qlqVtBZT0gV9Bzk-rSuY9TTG59F8FHVJyF1OtPxAuGJO_gXzv0AE7dN998GMQBEh0mbQlYTDT26hzPj0c19oOEcWY5m09c27WRt_9NsM3XNYGqvNXYybvYXrwZYPr1cL8LIqL2JTfYgfZ9wIpA/s1440/%D8%A7%D9%84%D8%AA%D8%B1%D8%A8%D9%8A%D8%A9%20%D8%A7%D9%84%D8%A5%D9%8A%D8%A7%D8%A8%D9%8A%D8%A9%201.jpg" alt="عائلة معًا" />
