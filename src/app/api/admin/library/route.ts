@@ -166,7 +166,12 @@ export async function PATCH(req: Request) {
     const file = fileEntry instanceof File && fileEntry.size > 0 ? fileEntry : null
     const thumb = thumbEntry instanceof File && thumbEntry.size > 0 ? thumbEntry : null
 
-    let existing: { type: 'book' | 'video'; file_path: string | null; thumbnail_path: string | null } | null = null
+    type ExistingLibraryItem = {
+      type: 'book' | 'video'
+      file_path: string | null
+      thumbnail_path: string | null
+    }
+    let existing: ExistingLibraryItem | null = null
     if (file || thumb) {
       const { data: item, error: itemErr } = await supabase
         .from('library_items')
@@ -177,7 +182,12 @@ export async function PATCH(req: Request) {
         const message = itemErr?.message || 'Library item not found'
         return NextResponse.json({ error: message }, { status: 404 })
       }
-      existing = item as typeof existing
+      const normalizedType = item.type === 'video' ? 'video' : 'book'
+      existing = {
+        type: normalizedType,
+        file_path: item.file_path ?? null,
+        thumbnail_path: item.thumbnail_path ?? null,
+      }
     }
 
     if (file) {
