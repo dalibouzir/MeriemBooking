@@ -828,7 +828,7 @@ p { font-size: 1.05rem; line-height: 1.8; color: #4a4a4a; }
 /* =========================
    Redeem (استبدال الكود)
    ========================= */
-   #redeem.rd-section{ padding: 32px 16px; background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(250,245,255,0.92)), url('/background.jpg') center center / cover fixed; }
+  #redeem.rd-section{ padding: 32px 16px; background: transparent; }
    .rd-card{
      max-width: 560px; margin: 0 auto;
      border-radius: var(--r-xl, 22px);
