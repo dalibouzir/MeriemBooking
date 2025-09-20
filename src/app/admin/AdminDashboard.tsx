@@ -419,6 +419,8 @@ function BulkWhatsappTab() {
   const [showSelectedOnly, setShowSelectedOnly] = useState(false)
   const [optInOnly, setOptInOnly] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [assistantOpen, setAssistantOpen] = useState(false)
+  const [assistantInfo, setAssistantInfo] = useState<{ numbers: string[]; message: string; copy: 'pending' | 'success' | 'error' } | null>(null)
 
   const loadRecipients = useCallback(async () => {
     setLoading(true)
@@ -482,6 +484,30 @@ function BulkWhatsappTab() {
     return eligible.length
   }, [recipients, selected, optInOnly])
 
+  const assistantClipboardText = useMemo(() => {
+    if (!assistantInfo) return ''
+    const lines: string[] = []
+    if (assistantInfo.message) {
+      lines.push('الرسالة:', assistantInfo.message, '')
+    }
+    if (assistantInfo.numbers.length) {
+      lines.push('الأرقام لإدخالها في مجموعة واتساب:', ...assistantInfo.numbers)
+    }
+    return lines.join('\n')
+  }, [assistantInfo])
+
+  const copyAssistantBundle = useCallback(async () => {
+    if (!assistantClipboardText) return
+    try {
+      await navigator.clipboard.writeText(assistantClipboardText)
+      setAssistantInfo((prev) => (prev ? { ...prev, copy: 'success' } : prev))
+    } catch (err) {
+      console.error(err)
+      setAssistantInfo((prev) => (prev ? { ...prev, copy: 'error' } : prev))
+      alert('تعذّر نسخ المحتوى، انسخي يدويًا من القائمة أدناه.')
+    }
+  }, [assistantClipboardText])
+
   const toggleRecipient = useCallback((emailKey: string) => {
     setSelected((prev) => ({ ...prev, [emailKey]: !prev[emailKey] }))
   }, [])
@@ -492,7 +518,8 @@ function BulkWhatsappTab() {
       return
     }
     try {
-      await navigator.clipboard.writeText(selectedNumbers.join('\n'))
+      const formatted = selectedNumbers.map((num) => `+${num}`)
+      await navigator.clipboard.writeText(formatted.join('\n'))
       setCopied(true)
     } catch (err) {
       console.error(err)
@@ -505,19 +532,35 @@ function BulkWhatsappTab() {
       alert('اختاري جهات اتصال تحوي رقم واتساب أولاً.')
       return
     }
-    const maxOpens = Math.min(5, selectedNumbers.length)
     const text = message.trim()
-    selectedNumbers.slice(0, maxOpens).forEach((num, idx) => {
-      const base = `https://wa.me/${num}`
-      const url = text ? `${base}?text=${encodeURIComponent(text)}` : base
-      window.setTimeout(() => { window.open(url, '_blank', 'noopener') }, idx * 180)
-    })
-    if (selectedNumbers.length > maxOpens) {
-      const remaining = selectedNumbers.slice(maxOpens)
-      void navigator.clipboard.writeText(remaining.join('\n')).catch(() => {})
-      alert(`تم فتح ${maxOpens} محادثة واتساب. تم نسخ ${remaining.length} رقمًا إضافيًا إلى الحافظة لإكمال الإرسال يدويًا.`)
+    const [first] = selectedNumbers
+    const base = `https://wa.me/${first}`
+    const url = text ? `${base}?text=${encodeURIComponent(text)}` : base
+    window.open(url, '_blank', 'noopener')
+
+    const formattedNumbers = selectedNumbers.map((num) => `+${num}`)
+    const clipboardLines: string[] = []
+    if (text) {
+      clipboardLines.push('الرسالة:', text, '')
     }
+    clipboardLines.push('الأرقام لإدخالها في مجموعة واتساب:', ...formattedNumbers)
+
+    setAssistantInfo({ numbers: formattedNumbers, message: text, copy: 'pending' })
+    setAssistantOpen(true)
+
+    navigator.clipboard.writeText(clipboardLines.join('\n'))
+      .then(() => {
+        setAssistantInfo((prev) => (prev ? { ...prev, copy: 'success' } : prev))
+      })
+      .catch(() => {
+        setAssistantInfo((prev) => (prev ? { ...prev, copy: 'error' } : prev))
+      })
   }, [selectedNumbers, message])
+
+  const closeAssistant = useCallback(() => {
+    setAssistantOpen(false)
+    setAssistantInfo(null)
+  }, [])
 
   function selectAll() {
     setSelected((prev) => {
@@ -573,14 +616,14 @@ function BulkWhatsappTab() {
 
         {selectedNumbers.length > 0 ? (
           <div className="text-sm text-gray-700">
-            سيتم فتح روابط واتساب لعدد يصل إلى 5 جهات في كل دفعة. انسخي بقية الأرقام لإرسالها يدويًا.
+            سيتم فتح أول محادثة واتساب وسيتم نسخ الرسالة وجميع الأرقام لمساعدتك على إنشاء مجموعة جديدة بسرعة.
           </div>
         ) : (
           <div className="text-sm text-gray-600">حددي جهات اتصال تحتوي رقم واتساب صالح.</div>
         )}
 
         <div className="flex flex-wrap gap-2">
-          <button className="btn btn-primary" onClick={openWhatsApp} disabled={selectedNumbers.length === 0}>فتح روابط واتساب</button>
+          <button className="btn btn-primary" onClick={openWhatsApp} disabled={selectedNumbers.length === 0}>تشغيل مساعد واتساب</button>
           <button className="btn btn-outline" onClick={copyNumbers} disabled={selectedNumbers.length === 0}>
             {copied ? 'تم النسخ ✅' : 'نسخ قائمة الأرقام'}
           </button>
@@ -627,6 +670,46 @@ function BulkWhatsappTab() {
               )}
             </div>
           </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={assistantOpen}
+        onClose={closeAssistant}
+        title="مساعد إنشاء مجموعة واتساب"
+        centered
+        footer={
+          <div className="flex flex-wrap gap-2">
+            <button className="btn btn-primary" onClick={copyAssistantBundle} disabled={!assistantClipboardText}>نسخ المحتوى مرة أخرى</button>
+            <button className="btn" onClick={closeAssistant}>إغلاق</button>
+          </div>
+        }
+      >
+        {assistantInfo ? (
+          <div className="grid gap-3 text-sm text-gray-700">
+            <p>1. افتحي واتساب ثم ابدئي إنشاء مجموعة جديدة.</p>
+            <div className="grid gap-2">
+              <div className="text-xs text-gray-500">الأرقام المختارة</div>
+              <textarea className="input textarea" rows={Math.min(6, Math.max(3, assistantInfo.numbers.length))} readOnly dir="ltr" value={assistantInfo.numbers.join('\n')} />
+            </div>
+            {assistantInfo.message ? (
+              <div className="grid gap-2">
+                <div className="text-xs text-gray-500">الرسالة الجاهزة</div>
+                <textarea className="input textarea" rows={Math.min(6, Math.max(3, Math.ceil(assistantInfo.message.length / 60)))} readOnly value={assistantInfo.message} />
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500">لم تتم كتابة رسالة، أضيفيها يدويًا داخل واتساب.</div>
+            )}
+            {assistantInfo.copy === 'success' ? (
+              <div className="text-xs text-green-600">تم نسخ الأرقام (ومحتوى الرسالة إن وجد) إلى الحافظة.</div>
+            ) : assistantInfo.copy === 'error' ? (
+              <div className="text-xs text-red-600">تعذّر النسخ التلقائي، انسخي يدويًا أو اضغطي على زر النسخ أعلاه.</div>
+            ) : (
+              <div className="text-xs text-gray-500">جارٍ تجهيز النسخة للتسهيل، لحظات…</div>
+            )}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-600">لا توجد بيانات للعرض.</div>
         )}
       </Modal>
     </div>

@@ -178,11 +178,19 @@ p { font-size: 1.05rem; line-height: 1.8; color: #4a4a4a; }
 /* --- Navbar --- */
 .topbar{
   position: sticky; top: 0; z-index: 40;
+  transform: translateY(0);
+  transition: transform .28s ease, opacity .28s ease;
+  opacity: 1;
   background: rgba(255,255,255,0.14);
   border-bottom: 1px solid rgba(255,255,255,0.28);
   -webkit-backdrop-filter: blur(14px) saturate(160%);
   backdrop-filter: blur(14px) saturate(160%);
   box-shadow: 0 10px 30px rgba(124,58,237,.08);
+}
+.topbar.is-hidden{
+  transform: translateY(-120%);
+  opacity: 0;
+  pointer-events: none;
 }
 .topbar .container{ display:flex; align-items:center; justify-content:space-between; height: var(--topbar-h); gap: 12px; }
 .brand{ display:inline-flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.5px; }

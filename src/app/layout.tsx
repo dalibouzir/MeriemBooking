@@ -3,11 +3,11 @@
 
 import '../styles/globals.css'
 import './globals.css'
-import Link from 'next/link'
 import type { ReactNode } from 'react'
 import type { Metadata, Viewport } from 'next'
 import Providers from './providers'
 import SiteBackgroundClient from './SiteBackgroundClient'
+import ScrollHideTopbar from '@/components/ScrollHideTopbar'
 export const metadata: Metadata = {
   title: 'Fittrah Moms',
   icons: {
@@ -16,7 +16,6 @@ export const metadata: Metadata = {
     apple: '/logo/logo.png',
   },
 }
-import TopbarAuth from '@/components/TopbarAuth'
 
 // Ensures proper mobile scaling (prevents weird "disappearing" when toggling device mode)
 export const viewport: Viewport = {
@@ -31,15 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <SiteBackgroundClient>
           <Providers>
-            <header className="topbar">
-              <div className="container topbar-row">
-                <Link href="/" className="brand" aria-label="الرجوع للصفحة الرئيسية — فطرة الأمهات">
-                  <img src="/logo/logo.png" alt="فطرة الأمهات" className="brand-logo" />
-                  <span className="brand-mark">Fittrah Moms </span>
-                </Link>
-                <TopbarAuth />
-              </div>
-            </header>
+            <ScrollHideTopbar />
 
             <main id="main" className="page-wrap">
               {children}
