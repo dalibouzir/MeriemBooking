@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import TopbarAuth from './TopbarAuth'
 
@@ -8,6 +8,19 @@ export default function ScrollHideTopbar() {
   const [hidden, setHidden] = useState(false)
   const lastY = useRef(0)
   const frame = useRef<number | null>(null)
+  const hiddenRef = useRef(hidden)
+
+  useEffect(() => {
+    hiddenRef.current = hidden
+  }, [hidden])
+
+  const applyHidden = useCallback((next: boolean) => {
+    setHidden((prev) => {
+      if (prev === next) return prev
+      hiddenRef.current = next
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,19 +30,23 @@ export default function ScrollHideTopbar() {
         const current = window.scrollY || 0
         const prev = lastY.current
         const delta = current - prev
-        lastY.current = current
+
+        const HIDE_DELTA = 6
+        const SHOW_DELTA = 4
 
         if (current < 80) {
-          setHidden(false)
+          if (hiddenRef.current) applyHidden(false)
+          lastY.current = current
           return
         }
 
-        const threshold = 12
-        if (delta > threshold) {
-          setHidden(true)
-        } else if (delta < -threshold) {
-          setHidden(false)
+        if (delta > HIDE_DELTA && !hiddenRef.current) {
+          applyHidden(true)
+        } else if (delta < -SHOW_DELTA && hiddenRef.current) {
+          applyHidden(false)
         }
+
+        lastY.current = current
       })
     }
 

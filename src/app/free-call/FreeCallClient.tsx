@@ -137,15 +137,33 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
 
       <style jsx>{`
         .fc-simple-wrapper {
+          position: relative;
+          overflow: hidden;
           min-height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: clamp(1.5rem, 4vw, 3rem);
           background:
-            linear-gradient(180deg, rgba(255,255,255,0.16), rgba(250,245,255,0.26)),
-            url('/background.jpg') center center / cover fixed;
-          background-blend-mode: lighten;
+            radial-gradient(58% 50% at 82% 6%, rgba(236, 72, 153, 0.24), transparent 74%),
+            radial-gradient(54% 46% at 18% 96%, rgba(168, 85, 247, 0.22), transparent 72%),
+            linear-gradient(180deg, #fde9ff 0%, #f6dcff 48%, #f0d1ff 100%);
+        }
+
+        .fc-simple-wrapper::before,
+        .fc-simple-wrapper::after {
+          content: '';
+          position: absolute;
+          inset: -32% -22%;
+          pointer-events: none;
+          background: radial-gradient(48% 48% at 24% 34%, rgba(246, 232, 255, 0.6), transparent 76%);
+          opacity: 0.4;
+        }
+
+        .fc-simple-wrapper::after {
+          inset: -28% -24%;
+          background: radial-gradient(48% 48% at 70% 70%, rgba(236, 72, 153, 0.22), transparent 78%);
+          opacity: 0.28;
         }
 
         .fc-card {

@@ -244,15 +244,33 @@ export default function SuccessClient() {
 
       <style jsx>{`
         .success-shell {
+          position: relative;
+          overflow: hidden;
           min-height: 100vh;
           display: flex;
           flex-direction: column;
           align-items: center;
           padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem) 3rem;
           background:
-            linear-gradient(180deg, rgba(255,255,255,0.14), rgba(250,245,255,0.28)),
-            url('/background.jpg') center center / cover fixed;
-          background-blend-mode: lighten;
+            radial-gradient(58% 50% at 80% 6%, rgba(236, 72, 153, 0.24), transparent 74%),
+            radial-gradient(54% 46% at 20% 96%, rgba(168, 85, 247, 0.22), transparent 72%),
+            linear-gradient(180deg, #fde9ff 0%, #f6dcff 48%, #f0d1ff 100%);
+        }
+
+        .success-shell::before,
+        .success-shell::after {
+          content: '';
+          position: absolute;
+          inset: -32% -24%;
+          pointer-events: none;
+          background: radial-gradient(48% 48% at 26% 32%, rgba(246, 232, 255, 0.6), transparent 76%);
+          opacity: 0.42;
+        }
+
+        .success-shell::after {
+          inset: -28% -26%;
+          background: radial-gradient(48% 48% at 70% 72%, rgba(236, 72, 153, 0.22), transparent 78%);
+          opacity: 0.3;
         }
 
         .success-shell.en {

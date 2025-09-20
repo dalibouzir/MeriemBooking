@@ -73,7 +73,6 @@ body{
     radial-gradient(1200px 600px at 80% -10%, rgba(124,58,237,.14), rgba(255,255,255,0)),
     radial-gradient(900px 500px at 10% 100%, rgba(168,85,247,.12), rgba(255,255,255,0)),
     linear-gradient(180deg, #fbfbff, #f7f5ff 40%, #ffffff);
-  background-attachment: fixed;
 }
 
 /* --- Typography --- */
@@ -500,10 +499,31 @@ p { font-size: 1.05rem; line-height: 1.8; color: #4a4a4a; }
   --sf-border: var(--border);
   --sf-shadow: var(--shadow-1);
   --sf-radius: var(--r-lg);
-  background: url('/background.jpg') center center / cover fixed;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(58% 50% at 82% 6%, rgba(236, 72, 153, 0.24), transparent 74%),
+    radial-gradient(54% 46% at 18% 96%, rgba(168, 85, 247, 0.22), transparent 72%),
+    linear-gradient(180deg, #fde9ff 0%, #f5dcff 48%, #f0d1ff 100%);
   min-height: 100dvh;
   color: var(--sf-ink);
   padding: 2rem 1rem 3rem;
+}
+
+#storefront.sf-wrapper::before,
+#storefront.sf-wrapper::after{
+  content: '';
+  position: absolute;
+  inset: -30% -20%;
+  pointer-events: none;
+  background: radial-gradient(48% 48% at 28% 32%, rgba(249, 240, 255, 0.5), transparent 76%);
+  opacity: 0.3;
+}
+
+#storefront.sf-wrapper::after{
+  inset: -26% -22%;
+  background: radial-gradient(52% 52% at 70% 72%, rgba(236, 72, 153, 0.2), transparent 78%);
+  opacity: 0.22;
 }
 
 /* Hero */
