@@ -1,4 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
+// If this is in Next.js app route (app/api/.../route.ts) you can keep it as-is.
+// For pages/api, export a default handler(Request, Response) differently.
+
+export const runtime = 'edge' // remove this line if you want Node runtime
 
 type DenoEnv = { env: { get(name: string): string | undefined } }
 const DENO: { env?: DenoEnv["env"]; serve?: (h: (req: Request) => Response | Promise<Response>) => void } =
@@ -123,16 +127,19 @@ const handler = async (req: Request): Promise<Response> => {
   return json({ sent, failed, details })
 }
 
-type FetchHandlerEvent = {
-  request: Request
-  respondWith: (response: Response | Promise<Response>) => void
-}
-
+// ---- Environment bridging -----------------------------------------------
+// If running on Deno, use Deno.serve. Otherwise, *do not* register a 'fetch' listener
+// in the browser type system — Next/Vercel will call the default export.
 const maybeServe = DENO?.serve
 if (typeof maybeServe === 'function') {
   maybeServe(handler)
-} else if (typeof addEventListener !== 'undefined') {
-  addEventListener('fetch', (event: FetchHandlerEvent) => {
+} else if (
+  // Only register in worker-like runtimes that actually support FetchEvent.
+  typeof (globalThis as any).addEventListener === 'function' &&
+  typeof (globalThis as any).FetchEvent !== 'undefined'
+) {
+  // Cast to any to avoid WindowEventMap typing issues.
+  ;(globalThis as any).addEventListener('fetch', (event: any) => {
     event.respondWith(handler(event.request))
   })
 }
