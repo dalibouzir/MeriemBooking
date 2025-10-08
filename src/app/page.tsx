@@ -70,7 +70,6 @@ const SOCIAL_LINKS: SocialLink[] = [
   { href: 'https://wa.me/21629852313', label: 'WhatsApp', icon: '💬' },
 ]
 
-
 export default function HomePage() {
   const [resources, setResources] = useState<ProductResource[]>([])
   const [loading, setLoading] = useState(true)
@@ -231,10 +230,10 @@ export default function HomePage() {
                     <span className="home-product-type">{item.type}</span>
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>
-                    {item.price ? (
+                    {typeof item.price === 'number' ? (
                       <p className="home-product-price">
                         <span>{item.price}</span>
-                        <span className="home-product-currency">{item.currency ?? 'د.ت'}</span>
+                        <span className="home-product-currency">د.ت</span>
                       </p>
                     ) : (
                       <p className="home-product-price free">مجاني مع رمز جلسة</p>
@@ -273,7 +272,7 @@ export default function HomePage() {
       <section className="home-story">
         <div className="home-story-wrap">
           <h2>مريم بوزير — معالجة معرفية سلوكية ترافقك خطوة بخطوة</h2>
-          <p>
+        <p>
             نعمل مع الأمهات اللواتي يرغبن في تهدئة التوتر اليومي وبناء حدود محبة داخل البيت. تشمل المرافقة مراجعة روتينك، تصميم تمارين صغيرة، ومتابعة أسبوعية برسائل قصيرة.
           </p>
           <ul className="home-story-points">
