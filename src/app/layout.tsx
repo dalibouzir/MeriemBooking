@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html dir="rtl" lang="ar">
+    <html dir="rtl" lang="ar" className="theme-l1">
       <body>
         <SiteBackgroundClient>
           <Providers>

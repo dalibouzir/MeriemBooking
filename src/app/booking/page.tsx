@@ -1,22 +1,21 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import Link from 'next/link'
+
+const BOOKING_URL = 'https://calendly.com/meriembouzir/30min'
 
 export default function BookingPage() {
-  const [data, setData] = useState<string[]>([])
-
-  useEffect(() => {
-    setData(['2025-08-26 — 10:00 to 11:00', '2025-08-27 — 14:00 to 15:00'])
-  }, [])
-
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-purple-700">Therapist Availability</h1>
-      <ul className="mt-4 space-y-2 text-gray-800">
-        {data.map((item, index) => (
-          <li key={index}>🗓️ {item}</li>
-        ))}
-      </ul>
+    <div className="booking-redirect">
+      <div className="booking-card">
+        <h1>الحجوزات أصبحت عبر Calendly</h1>
+        <p>
+          جميع المواعيد تُدار الآن من خلال لوحة Calendly الخاصة بمريم بوزير. اضغطي الزر بالأسفل لفتح الصفحة، ثم اختاري الوقت المناسب وسيصلك تأكيد تلقائي ورسالة تذكير.
+        </p>
+        <Link href={BOOKING_URL} className="btn btn-primary booking-btn" target="_blank" rel="noopener noreferrer">
+          فتح صفحة Calendly
+        </Link>
+      </div>
     </div>
   )
 }

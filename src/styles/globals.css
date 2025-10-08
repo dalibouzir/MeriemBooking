@@ -1,12 +1,12 @@
 /* ============ Global layout ============ */
 body {
   font-family: 'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  /* Background intentionally not set here so app-level background can control it */
-  color: #333;
+  color: hsl(var(--text));
   direction: rtl;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  background-color: hsl(var(--bg));
 }
 
 /* Site‑wide backgrounds controlled by layout wrapper */
@@ -16,16 +16,16 @@ body {
   min-height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(58% 50% at 82% 4%, rgba(236, 72, 153, 0.28), transparent 72%),
-    radial-gradient(52% 46% at 18% 96%, rgba(168, 85, 247, 0.24), transparent 70%),
-    linear-gradient(180deg, #fde9ff 0%, #f6dcff 48%, #f0d1ff 100%);
+    radial-gradient(58% 50% at 82% 4%, hsl(var(--accent) / 0.32), transparent 74%),
+    radial-gradient(52% 46% at 18% 96%, hsl(var(--secondary) / 0.26), transparent 70%),
+    linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--bg)) 52%, hsl(var(--surface-muted)) 100%);
 }
 
 .site-bg--image {
   background:
-    radial-gradient(55% 48% at 78% 6%, rgba(236, 72, 153, 0.3), transparent 74%),
-    radial-gradient(52% 44% at 20% 94%, rgba(168, 85, 247, 0.26), transparent 72%),
-    linear-gradient(180deg, #fbe5ff 0%, #f5d8ff 45%, #efccff 100%);
+    radial-gradient(55% 48% at 78% 6%, hsl(var(--accent) / 0.36), transparent 76%),
+    radial-gradient(52% 44% at 20% 94%, hsl(var(--secondary) / 0.28), transparent 72%),
+    linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--bg)) 50%, hsl(var(--surface-muted)) 100%);
 }
 
 .site-bg--purple::before,
@@ -36,14 +36,14 @@ body {
   position: absolute;
   inset: -30% -20%;
   pointer-events: none;
-  background: radial-gradient(45% 45% at 30% 28%, rgba(249, 240, 255, 0.55), transparent 74%);
+  background: radial-gradient(45% 45% at 30% 28%, hsl(var(--surface-strong) / 0.55), transparent 74%);
   opacity: 0.4;
 }
 
 .site-bg--purple::after,
 .site-bg--image::after {
   inset: -35% -25%;
-  background: radial-gradient(48% 48% at 72% 72%, rgba(236, 72, 153, 0.22), transparent 76%);
+  background: radial-gradient(48% 48% at 72% 72%, hsl(var(--primary) / 0.22), transparent 76%);
   opacity: 0.3;
 }
 
@@ -56,9 +56,10 @@ body {
   max-width: 1000px;
   margin: 0 auto;
   backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.15);
+  background: hsla(var(--glass));
   border-radius: 1rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-2);
 }
 
 /* ========= Avatar (Free Call) =========
@@ -74,17 +75,17 @@ body {
 
   /* Pretty frame */
   border-radius: 50%;
-  border: 4px solid #e9d5ff;
-  box-shadow: 0 8px 20px rgba(126, 34, 206, 0.3);
+  border: 4px solid hsl(var(--purple-200));
+  box-shadow: 0 8px 20px hsl(var(--primary-700) / 0.28);
   transition: transform 0.3s ease;
 }
 .main-container .rounded-full > img:hover { transform: scale(1.05); }
 
 /* ============ Typography ============ */
 h1, h2 {
-  color: #7e22ce;
+  color: hsl(var(--primary-700));
   margin-bottom: 0.5rem;
-  text-shadow: 1px 1px 2px rgba(126, 34, 206, 0.15);
+  text-shadow: 1px 1px 2px hsl(var(--primary-700) / 0.25);
 }
 h1 { font-size: 2.2rem; font-weight: 700; }
 h2 { font-size: 1.6rem; font-weight: 600; }
@@ -93,7 +94,7 @@ p {
   font-size: 1.2rem;
   line-height: 1.8;
   margin-bottom: 2rem;
-  color: #4a4a4a;
+  color: hsl(var(--text-dim));
   max-width: 800px;
 }
 
@@ -103,7 +104,7 @@ ul {
   padding: 0;
   margin: 1rem 0 2rem;
   font-size: 1.1rem;
-  color: #333;
+  color: hsl(var(--text));
   line-height: 1.8;
 }
 ul li {
@@ -116,6 +117,7 @@ ul li::before {
   position: absolute;
   right: 0;
   font-size: 1.1rem;
+  color: hsl(var(--primary-600));
 }
 
 /* ============ Calendar ============ */
@@ -123,10 +125,10 @@ ul li::before {
   border: none !important;
   border-radius: 1rem;
   padding: 1.5rem;
-  background: linear-gradient(0deg, rgba(124,58,237,0.06), rgba(124,58,237,0.06)), rgba(255,255,255,0.14);
+  background: linear-gradient(0deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0.08)), hsla(var(--glass));
   -webkit-backdrop-filter: blur(14px) saturate(160%);
   backdrop-filter: blur(14px) saturate(160%);
-  box-shadow: 0 12px 30px rgba(124,58,237,0.12);
+  box-shadow: 0 12px 30px hsl(var(--primary-700) / 0.18);
   font-family: 'Tajawal', sans-serif;
   direction: rtl;
   transition: all 0.3s ease-in-out;
@@ -137,20 +139,20 @@ ul li::before {
 /* Header + navigation */
 .react-calendar__navigation { margin-bottom: 1rem; }
 .react-calendar__navigation button {
-  color: #7e22ce;
+  color: hsl(var(--primary-700));
   font-weight: bold;
   background: none;
   border: none;
   font-size: 1rem;
   transition: color 0.3s ease;
 }
-.react-calendar__navigation button:hover { color: #9333ea; }
+.react-calendar__navigation button:hover { color: hsl(var(--primary-600)); }
 
 /* Weekday names */
 .react-calendar__month-view__weekdays {
   text-align: center;
   text-transform: capitalize;
-  color: #9333ea;
+  color: hsl(var(--primary-600));
   font-weight: 600;
   font-size: 0.95rem;
 }
@@ -167,34 +169,34 @@ ul li::before {
 
 /* Active day */
 .react-calendar__tile--active {
-  background-color: #7e22ce !important;
+  background-color: hsl(var(--primary-700)) !important;
   color: #fff !important;
   font-weight: bold;
-  box-shadow: 0 0 0 3px #e9d5ff;
+  box-shadow: 0 0 0 3px hsl(var(--purple-200));
 }
 
 /* Hover effect */
 .react-calendar__tile:hover {
-  background-color: #f3e8ff;
-  color: #7e22ce;
+  background-color: hsl(var(--purple-100));
+  color: hsl(var(--primary-700));
   cursor: pointer;
   transform: scale(1.05);
 }
 
 /* Today highlight */
 .react-calendar__tile--now {
-  background: #ede9fe;
-  color: #7e22ce;
+  background: hsl(var(--purple-100));
+  color: hsl(var(--primary-700));
   font-weight: bold;
-  border: 1px dashed #c084fc;
+  border: 1px dashed hsl(var(--purple-300));
 }
 
 /* Highlight special note dates */
 .highlight-note {
-  background-color: #f3e8ff !important;
-  color: #7e22ce !important;
+  background-color: hsl(var(--purple-100)) !important;
+  color: hsl(var(--primary-700)) !important;
   font-weight: bold;
-  border: 2px dashed #d8b4fe;
+  border: 2px dashed hsl(var(--purple-200));
 }
 
 /* Tooltip + emoji wrap */
@@ -228,15 +230,15 @@ ul li::before {
 /* ============ Storefront (scoped) ============ */
 #storefront.sf-wrapper {
   --sf-bg: transparent;
-  --sf-ink: #201a2d;
-  --sf-ink-dim: #5b5671;
-  --sf-purple: #6d28d9;
-  --sf-purple-2: #7c3aed;
-  --sf-book: #ede9fe;
-  --sf-video: #e0f2fe;
-  --sf-card: rgba(255, 255, 255, 0.95);
-  --sf-border: #ede3ff;
-  --sf-shadow: 0 10px 25px rgba(109, 40, 217, 0.12);
+  --sf-ink: hsl(var(--text));
+  --sf-ink-dim: hsl(var(--text-dim));
+  --sf-purple: hsl(var(--primary-700));
+  --sf-purple-2: hsl(var(--primary-600));
+  --sf-book: hsl(var(--purple-100));
+  --sf-video: hsl(var(--secondary) / 0.25);
+  --sf-card: hsla(var(--glass));
+  --sf-border: var(--surface-border);
+  --sf-shadow: var(--shadow-1);
   --sf-radius: 18px;
 
   /* Let app-level background (app/globals.css) control the homepage */

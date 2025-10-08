@@ -123,13 +123,18 @@ const handler = async (req: Request): Promise<Response> => {
   return json({ sent, failed, details })
 }
 
+type FetchHandlerEvent = {
+  request: Request
+  respondWith: (response: Response | Promise<Response>) => void
+}
+
 const maybeServe = DENO?.serve
 if (typeof maybeServe === 'function') {
   maybeServe(handler)
 } else if (typeof addEventListener !== 'undefined') {
-  // @ts-ignore
-  addEventListener('fetch', (event: any) => event.respondWith(handler(event.request)))
+  addEventListener('fetch', (event: FetchHandlerEvent) => {
+    event.respondWith(handler(event.request))
+  })
 }
 
 export default handler
-
