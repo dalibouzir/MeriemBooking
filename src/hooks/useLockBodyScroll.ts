@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react'
  * Restores previous inline overflow value on cleanup.
  */
 export default function useLockBodyScroll(active: boolean) {
-  const previousOverflow = useRef<string>()
+  const previousOverflow = useRef<string | null>(null)
 
   useEffect(() => {
     if (!active) return
@@ -13,7 +13,7 @@ export default function useLockBodyScroll(active: boolean) {
     previousOverflow.current = body.style.overflow
     body.style.overflow = 'hidden'
     return () => {
-      if (previousOverflow.current !== undefined) {
+      if (previousOverflow.current !== null) {
         body.style.overflow = previousOverflow.current
       } else {
         body.style.removeProperty('overflow')
