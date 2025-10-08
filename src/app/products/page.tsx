@@ -167,6 +167,27 @@ export default function ProductsPage() {
               </Link>
             </div>
           </div>
+          <div className="storefront-hero-gallery" aria-hidden>
+            <div className="storefront-hero-card">
+              <span className="storefront-hero-card-tag">كتاب PDF</span>
+              <h3>روتين صباحي هادئ</h3>
+              <p>خطة أسبوعية مع أوراق عمل للطباعة تساعدك على بدء اليوم بسلاسة.</p>
+              <div className="storefront-hero-card-price">
+                <span className="storefront-hero-card-number">35</span>
+                <span className="storefront-hero-card-currency">د.ت</span>
+              </div>
+              <span className="storefront-hero-card-note">يشمل رمز جلسة مجانية</span>
+            </div>
+            <div className="storefront-hero-card storefront-hero-card--video">
+              <span className="storefront-hero-card-tag">جلسة فيديو</span>
+              <h3>تنظيم وقت الشاشة</h3>
+              <p>درس تطبيقي قصير مع تمارين داخل البيت لتقليل التوتر حول الأجهزة.</p>
+              <div className="storefront-hero-card-price storefront-hero-card-price--watch">
+                <span>جاهز للمشاهدة</span>
+              </div>
+              <span className="storefront-hero-card-note">تحميل فوري + ملف متابعة</span>
+            </div>
+          </div>
           <ul className="storefront-promises">
             {STORE_PROMISES.map((item) => (
               <li key={item.title}>

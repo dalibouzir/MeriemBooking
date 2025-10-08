@@ -145,9 +145,9 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
           justify-content: center;
           padding: clamp(1.5rem, 4vw, 3rem);
           background:
-            radial-gradient(58% 50% at 82% 6%, rgba(236, 72, 153, 0.24), transparent 74%),
-            radial-gradient(54% 46% at 18% 96%, rgba(168, 85, 247, 0.22), transparent 72%),
-            linear-gradient(180deg, #fde9ff 0%, #f6dcff 48%, #f0d1ff 100%);
+            radial-gradient(58% 50% at 82% 6%, hsl(var(--accent) / 0.28), transparent 74%),
+            radial-gradient(54% 46% at 18% 96%, hsl(var(--secondary) / 0.24), transparent 72%),
+            linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--bg)) 48%, hsl(var(--surface-muted)) 100%);
         }
 
         .fc-simple-wrapper::before,
@@ -156,13 +156,13 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
           position: absolute;
           inset: -32% -22%;
           pointer-events: none;
-          background: radial-gradient(48% 48% at 24% 34%, rgba(246, 232, 255, 0.6), transparent 76%);
+          background: radial-gradient(48% 48% at 24% 34%, hsl(var(--surface-strong) / 0.45), transparent 76%);
           opacity: 0.4;
         }
 
         .fc-simple-wrapper::after {
           inset: -28% -24%;
-          background: radial-gradient(48% 48% at 70% 70%, rgba(236, 72, 153, 0.22), transparent 78%);
+          background: radial-gradient(48% 48% at 70% 70%, hsl(var(--primary) / 0.22), transparent 78%);
           opacity: 0.28;
         }
 
@@ -172,30 +172,30 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
           text-align: right;
           display: grid;
           gap: 1.25rem;
-          background: rgba(255,255,255,0.48);
+          background: hsla(var(--glass));
           border-radius: clamp(22px, 4vw, 32px);
-          border: 1px solid rgba(255,255,255,0.45);
-          box-shadow: 0 24px 65px rgba(79,70,229,0.16);
+          border: 1px solid var(--surface-border);
+          box-shadow: var(--shadow-2);
           -webkit-backdrop-filter: blur(22px) saturate(160%);
           backdrop-filter: blur(22px) saturate(160%);
         }
 
         .fc-avatar {
           border-radius: 50%;
-          box-shadow: 0 12px 30px rgba(124,58,237,0.25);
+          box-shadow: 0 12px 30px hsl(var(--primary-700) / 0.25);
           align-self: center;
         }
 
         .fc-header h1 {
           font-size: clamp(1.35rem, 3vw, 1.9rem);
           font-weight: 800;
-          color: #5b21b6;
+          color: hsl(var(--text));
           margin-bottom: 0.35rem;
         }
 
         .fc-header p {
           font-size: 1rem;
-          color: #4338ca;
+          color: hsl(var(--text-dim));
           line-height: 1.7;
           margin: 0;
         }
@@ -205,7 +205,7 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
           padding: 0 1.3rem 0 0;
           display: grid;
           gap: 0.65rem;
-          color: #312e81;
+          color: hsl(var(--text));
           font-size: 0.98rem;
         }
 
@@ -221,23 +221,23 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
           gap: 0.6rem;
           padding: 0.9rem 1.4rem;
           border-radius: 999px;
-          background: linear-gradient(90deg, #6366f1, #a855f7);
+          background: linear-gradient(90deg, hsl(var(--primary-700)), hsl(var(--accent)));
           color: #fff;
           font-weight: 700;
           font-size: 1rem;
           text-decoration: none;
-          box-shadow: 0 20px 35px rgba(99,102,241,0.25);
+          box-shadow: 0 20px 35px hsl(var(--primary-700) / 0.22);
           transition: transform 0.18s ease, box-shadow 0.18s ease;
         }
 
         .fc-calendly-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 24px 40px rgba(99,102,241,0.3);
+          box-shadow: 0 24px 44px hsl(var(--primary-700) / 0.28);
         }
 
         .fc-support {
           font-size: 0.95rem;
-          color: #4c1d95;
+          color: hsl(var(--text-dim));
           margin: 0;
         }
 
@@ -249,7 +249,7 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
 
         .fc-status {
           font-size: 1rem;
-          color: #4338ca;
+          color: hsl(var(--primary-700));
           text-align: center;
         }
 

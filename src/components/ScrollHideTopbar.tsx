@@ -5,8 +5,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Bars3Icon, CalendarDaysIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import ThemeSwitcher from './ThemeSwitcher'
+import ThemeSwitcher, { THEME_SWITCHER_CLOSE_EVENT } from './ThemeSwitcher'
 import TopbarAuth from './TopbarAuth'
+import MobileMenu from './MobileMenu'
 
 type NavLink = {
   href: string
@@ -79,19 +80,12 @@ export default function ScrollHideTopbar() {
   }, [applyHidden])
 
   useEffect(() => {
-    if (!menuOpen) return
-
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false)
-    }
-
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [menuOpen])
-
-  useEffect(() => {
     setMenuOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    if (menuOpen) window.dispatchEvent(new Event(THEME_SWITCHER_CLOSE_EVENT))
+  }, [menuOpen])
 
   const isActive = useCallback(
     (href: string) => {
@@ -116,8 +110,16 @@ export default function ScrollHideTopbar() {
     [isActive],
   )
 
-  const handleMenuToggle = () => setMenuOpen((prev) => !prev)
+  const handleMenuToggle = () =>
+    setMenuOpen((prev) => {
+      const next = !prev
+      if (!prev) window.dispatchEvent(new Event(THEME_SWITCHER_CLOSE_EVENT))
+      return next
+    })
   const closeMenu = () => setMenuOpen(false)
+  const handleThemePanel = (open: boolean) => {
+    if (open) setMenuOpen(false)
+  }
 
   return (
     <header className={`topbar${hidden ? ' is-hidden' : ''}`}>
@@ -143,7 +145,7 @@ export default function ScrollHideTopbar() {
         </nav>
 
         <div className="topbar-actions">
-          <ThemeSwitcher />
+          <ThemeSwitcher onOpenChange={handleThemePanel} />
           <Link
             href={BOOKING_URL}
             className="btn btn-nav btn-primary topbar-cta"
@@ -158,57 +160,7 @@ export default function ScrollHideTopbar() {
         </div>
       </div>
 
-      {menuOpen && (
-        <div className="topbar-drawer is-open" onClick={closeMenu}>
-          <div className="topbar-drawer-inner" onClick={(event) => event.stopPropagation()}>
-            <div className="topbar-drawer-header">
-              <span className="drawer-title">القائمة</span>
-              <ThemeSwitcher compact onSelect={closeMenu} />
-            </div>
-            <nav className="topbar-drawer-nav" aria-label="روابط الجوال">
-              {NAV_LINKS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`topbar-drawer-link${isActive(item.href) ? ' is-active' : ''}`}
-                  aria-current={isActive(item.href) ? 'page' : undefined}
-                  onClick={closeMenu}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-            <div className="topbar-drawer-card">
-              <div className="topbar-drawer-card-head">
-                <p className="topbar-drawer-title">ابدئي في دقيقتين</p>
-                <p className="topbar-drawer-note">احجزي جلسة عبر Calendly أو تسوقي الكتب والدورات الرقمية.</p>
-              </div>
-              <div className="topbar-drawer-buttons">
-                <Link
-                  href={BOOKING_URL}
-                  className="btn btn-primary drawer-cta"
-                  aria-label="احجزي جلسة من القائمة"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={closeMenu}
-                >
-                  <CalendarDaysIcon className="topbar-cta-icon" aria-hidden />
-                  <span>حجز جلسة فورية</span>
-                </Link>
-                <Link
-                  href="/products"
-                  className="btn btn-outline drawer-cta"
-                  aria-label="زيارة المتجر الرقمي"
-                  onClick={closeMenu}
-                >
-                  <span>زيارة المتجر</span>
-                </Link>
-              </div>
-              <TopbarAuth variant="mobile" onNavigate={closeMenu} />
-            </div>
-          </div>
-        </div>
-      )}
+      <MobileMenu open={menuOpen} onClose={closeMenu} links={NAV_LINKS} isActive={isActive} bookingUrl={BOOKING_URL} />
     </header>
   )
 }

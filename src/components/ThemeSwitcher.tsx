@@ -76,13 +76,15 @@ const THEMES: ThemeSpec[] = [
 const LIGHT_THEMES = THEMES.filter((theme) => theme.type === 'light')
 const DARK_THEMES = THEMES.filter((theme) => theme.type === 'dark')
 
+export const THEME_SWITCHER_CLOSE_EVENT = 'fitrah-theme-close'
 
 type ThemeSwitcherProps = {
   compact?: boolean
   onSelect?: () => void
+  onOpenChange?: (open: boolean) => void
 }
 
-export default function ThemeSwitcher({ compact = false, onSelect }: ThemeSwitcherProps) {
+export default function ThemeSwitcher({ compact = false, onSelect, onOpenChange }: ThemeSwitcherProps) {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState<ThemeId>('theme-l1')
   const containerRef = useRef<HTMLDivElement>(null)
@@ -128,6 +130,18 @@ export default function ThemeSwitcher({ compact = false, onSelect }: ThemeSwitch
     }
   }, [open])
 
+  useEffect(() => {
+    const handleExternalClose = () => setOpen(false)
+    window.addEventListener(THEME_SWITCHER_CLOSE_EVENT, handleExternalClose as EventListener)
+    return () => {
+      window.removeEventListener(THEME_SWITCHER_CLOSE_EVENT, handleExternalClose as EventListener)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (onOpenChange) onOpenChange(open)
+  }, [open, onOpenChange])
+
   const handleSelect = (theme: ThemeId) => {
     setActive(theme)
     applyTheme(theme)
@@ -136,32 +150,28 @@ export default function ThemeSwitcher({ compact = false, onSelect }: ThemeSwitch
     if (onSelect) onSelect()
   }
 
-  const renderThemeButton = (theme: ThemeSpec) => {
+  const handleToggle = () => {
+    setOpen((prev) => !prev)
+  }
+
+  const renderThemeSwatch = (theme: ThemeSpec) => {
     const isActive = theme.id === active
     return (
       <button
         key={theme.id}
         type="button"
-        className={`theme-option${isActive ? ' is-active' : ''}`}
+        className={`theme-swatch${isActive ? ' is-active' : ''}`}
         data-theme-tone={theme.type}
         onClick={() => handleSelect(theme.id)}
         aria-pressed={isActive}
         aria-label={theme.label}
       >
-        <span className="theme-option-meta">
-          <span className="theme-option-title">{theme.label}</span>
-          <span className="theme-option-hint">{theme.type === 'light' ? 'فاتح' : 'داكن'}</span>
-        </span>
-        <span className="theme-option-palette" aria-hidden>
-          {theme.colors.map((color, index) => (
-            <span
-              key={`${theme.id}-color-${index}`}
-              className="theme-option-chip"
-              style={{ background: color }}
-            />
-          ))}
-        </span>
-        <span className="sr-only">{theme.type === 'light' ? 'سمة فاتحة' : 'سمة داكنة'}</span>
+        <span
+          className="theme-swatch-dot"
+          style={{ background: theme.colors[0] }}
+          aria-hidden
+        />
+        <span className="sr-only">{theme.label}</span>
       </button>
     )
   }
@@ -171,7 +181,7 @@ export default function ThemeSwitcher({ compact = false, onSelect }: ThemeSwitch
       <button
         type="button"
         className={`theme-trigger${open ? ' is-open' : ''}${compact ? ' theme-trigger--compact' : ''}`}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={handleToggle}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label="تغيير ألوان الموقع"
@@ -195,29 +205,23 @@ export default function ThemeSwitcher({ compact = false, onSelect }: ThemeSwitch
             role="dialog"
             aria-label="اختيار السمة اللونية"
           >
-            <header className="theme-panel-head">
-              <div>
-                <p className="theme-panel-title">اختاري لوحة الألوان</p>
-                <p className="theme-panel-sub">كل خيار متوافق مع القراءة والحركة اللطيفة</p>
-              </div>
-            </header>
-            <div className="theme-sections">
-              <section className="theme-section">
-                <div className="theme-section-head">
-                  <SunIcon className="theme-section-icon" aria-hidden />
-                  <span className="theme-section-title">الوضع الفاتح</span>
+            <div className="theme-groups">
+              <section className="theme-group">
+                <div className="theme-group-head">
+                  <SunIcon className="theme-group-icon" aria-hidden />
+                  <span className="theme-group-title">الوضع الفاتح</span>
                 </div>
-                <div className="theme-section-list">
-                  {LIGHT_THEMES.map(renderThemeButton)}
+                <div className="theme-group-swatches">
+                  {LIGHT_THEMES.map(renderThemeSwatch)}
                 </div>
               </section>
-              <section className="theme-section">
-                <div className="theme-section-head">
-                  <MoonIcon className="theme-section-icon" aria-hidden />
-                  <span className="theme-section-title">الوضع الليلي</span>
+              <section className="theme-group">
+                <div className="theme-group-head">
+                  <MoonIcon className="theme-group-icon" aria-hidden />
+                  <span className="theme-group-title">الوضع الليلي</span>
                 </div>
-                <div className="theme-section-list">
-                  {DARK_THEMES.map(renderThemeButton)}
+                <div className="theme-group-swatches">
+                  {DARK_THEMES.map(renderThemeSwatch)}
                 </div>
               </section>
             </div>
