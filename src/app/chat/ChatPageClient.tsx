@@ -1,3 +1,4 @@
+// ./src/app/chat/ChatPageClient.tsx
 'use client'
 
 import { useMemo, useState } from 'react'
@@ -17,7 +18,8 @@ const intakeSchema = z.object({
 
 const feedbackSchema = z.object({
   sessionCode: z.string().min(4, 'أدخلي رمز الجلسة أو اسمك.'),
-  rating: z.coerce.number().min(1).max(5),
+  // changed from z.coerce.number() -> z.number() to match RHF input typing
+  rating: z.number().min(1).max(5),
   highlight: z.string().optional(),
   nextFocus: z.string().min(6, 'أخبرينا ماذا تودين تغطيته لاحقًا.'),
 })
@@ -78,7 +80,10 @@ function LiveChatPanel() {
       <div className="chat-info-card">
         <h2>الشات الفوري</h2>
         <p>
-          راسلينا الآن عبر المساعد أسفل الشاشة أو على واتساب <a className="chat-link" href="https://wa.me/21629852313" target="_blank" rel="noopener noreferrer">+216 29 852 313</a>.
+          راسلينا الآن عبر المساعد أسفل الشاشة أو على واتساب{' '}
+          <a className="chat-link" href="https://wa.me/21629852313" target="_blank" rel="noopener noreferrer">
+            +216 29 852 313
+          </a>.
           نرد عادة خلال 10 دقائق بين الساعة 9 صباحًا و6 مساءً بتوقيت تونس.
         </p>
         <ul className="chat-list">
@@ -91,7 +96,8 @@ function LiveChatPanel() {
       <div className="chat-side-card">
         <h3>لا يظهر المساعد؟</h3>
         <p>
-          تأكدي من عدم وجود إضافات تحجب النوافذ المنبثقة. يمكنك أيضًا استخدام البريد المباشر <a className="chat-link" href="mailto:meriembouzir05@gmail.com">meriembouzir05@gmail.com</a> أو ملء نموذج الدعم في التبويب التالي.
+          تأكدي من عدم وجود إضافات تحجب النوافذ المنبثقة. يمكنك أيضًا استخدام البريد المباشر{' '}
+          <a className="chat-link" href="mailto:meriembouzir05@gmail.com">meriembouzir05@gmail.com</a> أو ملء نموذج الدعم في التبويب التالي.
         </p>
       </div>
     </div>
@@ -203,7 +209,14 @@ function FeedbackForm() {
 
       <label className="chat-label">
         تقييمك للجلسة (1 - 5)
-        <input className="chat-input" type="number" min={1} max={5} {...register('rating', { valueAsNumber: true })} />
+        <input
+          className="chat-input"
+          type="number"
+          min={1}
+          max={5}
+          // keep valueAsNumber so RHF passes a number to the schema
+          {...register('rating', { valueAsNumber: true })}
+        />
         {errors.rating && <span className="chat-error">{errors.rating.message}</span>}
       </label>
 
