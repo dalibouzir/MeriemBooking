@@ -91,7 +91,7 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl 
             onClick={onClose}
           >
             <CalendarDaysIcon className="mobile-menu-btn-icon" aria-hidden />
-            <span>احجزي جلسة</span>
+            <span>استبدلي الرمز</span>
           </Link>
           <Link href="/products" className="btn mobile-menu-btn secondary" onClick={onClose}>
             المكتبة الرقمية

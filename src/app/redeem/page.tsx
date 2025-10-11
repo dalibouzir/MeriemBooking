@@ -1,13 +1,22 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function RedeemPage() {
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const preset = searchParams.get('code')?.trim()
+    if (preset) {
+      setCode(preset.toUpperCase())
+      setError(null)
+    }
+  }, [searchParams])
 
   async function redeem() {
     if (!code.trim()) return

@@ -29,25 +29,25 @@ const DEFAULTS: Record<Locale, {
   copied: string
 }> = {
   ar: {
-    heading: 'تم التفعيل — استمتعي بمحتواك الآن',
-    subheading: 'شاهدي الفيديو، ثم احجزي مكالمتك المجانية باستخدام الرمز المرفق.',
-    banner: 'مبروك! سيصلك الكتاب الإلكتروني عبر الإيميل والواتساب بعد قليل.',
+    heading: 'رمزك جاهز — استبدليه واحجزي مكالمتك',
+    subheading: 'ابدئي بالتوجه إلى صفحة استبدال الرمز، ثم تابعي اختيار موعدك على Calendly.',
+    banner: 'مبروك! سيصلك الملف ورمز المكالمة عبر الإيميل والواتساب خلال دقائق.',
     watchCta: 'اضغطي للتشغيل',
     watchHint: 'شغّلي الفيديو مع الصوت',
-    ctaLabel: 'احجز مكالمتك المجانية الآن',
-    support: 'فريق الدعم جاهز لأي سؤال — راسلينا على واتساب متى شئت.',
+    ctaLabel: 'استبدلي الرمز الآن',
+    support: 'فريق الدعم جاهز لأي استفسار حول الرمز أو التنزيل — راسلينا على واتساب متى شئت.',
     callLabel: 'رمز المكالمة',
     copy: 'نسخ',
     copied: 'تم النسخ!'
   },
   en: {
-    heading: 'You’re all set — enjoy your new material',
-    subheading: 'Watch the video, then book your free coaching call with the code below.',
-    banner: 'Success! Your downloads will arrive via email and WhatsApp shortly.',
+    heading: 'Your code is ready — redeem it to book the call',
+    subheading: 'Start by redeeming the code, then pick your Calendly slot with that code applied.',
+    banner: 'Awesome! Your download and call code will arrive by email and WhatsApp within minutes.',
     watchCta: 'Play video',
     watchHint: 'Click to turn on sound',
-    ctaLabel: 'Book your free call now',
-    support: 'Need help? Message our support on WhatsApp any time.',
+    ctaLabel: 'Redeem the code now',
+    support: 'Need help with the code or download? Message our WhatsApp support any time.',
     callLabel: 'Call code',
     copy: 'Copy',
     copied: 'Copied!'
@@ -64,7 +64,7 @@ export default function SuccessClient() {
   const customerName = searchParams.get('customerName')?.trim() || ''
   const videoUrlParam = searchParams.get('videoUrl')?.trim() || ''
   const videoUrl = videoUrlParam || ENV_DEFAULT_VIDEO_URL || ''
-  const callBookingUrl = searchParams.get('callBookingUrl')?.trim() || ENV_DEFAULT_CALL_URL || '/free-call'
+  const callBookingUrl = searchParams.get('callBookingUrl')?.trim() || ENV_DEFAULT_CALL_URL || '/redeem'
   const callCodeParam = searchParams.get('callCode')?.trim() || ''
   const supportText = searchParams.get('supportText')?.trim() || ENV_DEFAULT_SUPPORT_TEXT || defaults.support
   const ctaLabel = searchParams.get('ctaLabel')?.trim() || ENV_DEFAULT_CTA_LABEL || defaults.ctaLabel
@@ -114,6 +114,11 @@ export default function SuccessClient() {
     const separator = callBookingUrl.includes('?') ? '&' : '?'
     return `${callBookingUrl}${separator}code=${encodeURIComponent(callCodeValue)}`
   }, [callBookingUrl, callCodeParam, callCodeValue])
+
+  const isExternalBooking = useMemo(() => {
+    if (!bookingHref) return false
+    return !(bookingHref.startsWith('/') || bookingHref.startsWith('#'))
+  }, [bookingHref])
 
   const videoInfo = useMemo<VideoInfo>(() => parseVideoUrl(videoUrl), [videoUrl])
 
@@ -209,16 +214,11 @@ export default function SuccessClient() {
         </div>
 
         <div className="cta-block">
-          <Link
-            className="cta-button"
-            href={bookingHref || '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <Link className="cta-button" href={bookingHref || '#'} target={isExternalBooking ? '_blank' : undefined} rel={isExternalBooking ? 'noopener noreferrer' : undefined}>
             {ctaLabel}
           </Link>
           <p className="free-note">
-            الجلسة مجانية بالكامل — لن يتم تحصيل أي مبلغ داخل Calendly، فقط اختاري الوقت الأنسب لك.
+            الجلسة مجانية بالكامل — بعد استبدال الرمز يمكنك متابعة الحجز على Calendly دون أي دفع.
           </p>
           {callCodeValue && (
             <div className="code-area">
@@ -252,9 +252,11 @@ export default function SuccessClient() {
           align-items: center;
           padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem) 3rem;
           background:
-            radial-gradient(58% 50% at 80% 6%, rgba(236, 72, 153, 0.24), transparent 74%),
-            radial-gradient(54% 46% at 20% 96%, rgba(168, 85, 247, 0.22), transparent 72%),
-            linear-gradient(180deg, #fde9ff 0%, #f6dcff 48%, #f0d1ff 100%);
+            radial-gradient(58% 50% at 80% 6%, hsl(var(--accent) / 0.28), transparent 74%),
+            radial-gradient(54% 46% at 20% 96%, hsl(var(--secondary) / 0.24), transparent 72%),
+            linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--bg)) 48%, hsl(var(--surface-muted)) 100%);
+          color: hsl(var(--text));
+          transition: background 0.4s ease;
         }
 
         .success-shell::before,
@@ -263,13 +265,13 @@ export default function SuccessClient() {
           position: absolute;
           inset: -32% -24%;
           pointer-events: none;
-          background: radial-gradient(48% 48% at 26% 32%, rgba(246, 232, 255, 0.6), transparent 76%);
+          background: radial-gradient(48% 48% at 26% 32%, hsl(var(--surface-strong) / 0.55), transparent 76%);
           opacity: 0.42;
         }
 
         .success-shell::after {
           inset: -28% -26%;
-          background: radial-gradient(48% 48% at 70% 72%, rgba(236, 72, 153, 0.22), transparent 78%);
+          background: radial-gradient(48% 48% at 70% 72%, hsl(var(--accent) / 0.22), transparent 78%);
           opacity: 0.3;
         }
 
@@ -279,7 +281,7 @@ export default function SuccessClient() {
 
         .success-banner {
           width: min(960px, 100%);
-          background: linear-gradient(90deg, var(--purple-600), var(--purple-400));
+          background: linear-gradient(90deg, hsl(var(--primary-700)), hsl(var(--accent)));
           color: var(--white);
           border-radius: var(--r-md);
           box-shadow: var(--shadow-1);
@@ -298,7 +300,7 @@ export default function SuccessClient() {
 
         .banner-dismiss {
           border: none;
-          background: rgba(255,255,255,0.2);
+          background: hsla(0 0% 100% / 0.22);
           color: inherit;
           border-radius: 50%;
           width: 32px;
@@ -312,18 +314,18 @@ export default function SuccessClient() {
         }
 
         .banner-dismiss:hover {
-          background: rgba(255,255,255,0.35);
+          background: hsla(0 0% 100% / 0.35);
           transform: translateY(-1px);
         }
 
         .success-card {
           width: min(960px, 100%);
-          background: rgba(255,255,255,0.46);
-          border: 1px solid rgba(255,255,255,0.38);
+          background: hsla(var(--glass-strong));
+          border: 1px solid var(--surface-border);
           border-radius: clamp(var(--r-md), 5vw, var(--r-xl));
-          box-shadow: 0 28px 70px rgba(92,60,231,0.18);
-          backdrop-filter: blur(22px) saturate(180%);
-          -webkit-backdrop-filter: blur(22px) saturate(180%);
+          box-shadow: var(--shadow-2);
+          backdrop-filter: blur(var(--blur)) saturate(180%);
+          -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
           padding: clamp(1.75rem, 4vw, 3rem);
           display: flex;
           flex-direction: column;
@@ -339,13 +341,13 @@ export default function SuccessClient() {
         .success-header h1 {
           font-size: clamp(1.8rem, 3vw, 2.4rem);
           font-weight: 800;
-          color: var(--purple-700);
-          text-shadow: 1px 1px 2px rgba(126, 34, 206, .16);
+          color: hsl(var(--text));
+          text-shadow: 1px 1px 2px hsl(var(--text-subtle) / 0.25);
         }
 
         .success-subheading {
           font-size: clamp(1.05rem, 2.8vw, 1.2rem);
-          color: var(--ink-dim);
+          color: hsl(var(--text-dim));
           font-weight: 600;
         }
 
@@ -460,22 +462,22 @@ export default function SuccessClient() {
           border-radius: clamp(var(--r-sm), 4vw, var(--r-lg));
           font-weight: 800;
           font-size: clamp(1rem, 2.6vw, 1.15rem);
-          background: linear-gradient(90deg, var(--purple-700), var(--purple-500));
+          background: linear-gradient(118deg, hsl(var(--primary-700)), hsl(var(--accent)));
           color: var(--white);
           text-decoration: none;
           border: none;
-          box-shadow: var(--glass-shadow-2);
+          box-shadow: var(--shadow-2);
           transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .cta-button:hover {
           transform: translateY(-3px);
-          box-shadow: 0 18px 40px rgba(124,58,237,.25);
+          box-shadow: 0 18px 40px hsl(var(--primary-700) / 0.28);
         }
 
         .free-note {
           font-size: 0.95rem;
-          color: var(--purple-700);
+          color: hsl(var(--text-dim));
           line-height: 1.6;
           margin: -0.5rem 0 0;
         }
@@ -489,7 +491,7 @@ export default function SuccessClient() {
 
         .code-label {
           font-weight: 700;
-          color: var(--ink-dim);
+          color: hsl(var(--primary-700));
           font-size: 0.95rem;
         }
 
@@ -501,25 +503,25 @@ export default function SuccessClient() {
           gap: var(--sp-3);
           padding: 0.75rem 1rem;
           border-radius: 999px;
-          border: 1px solid rgba(124,58,237,0.25);
-          background: rgba(255,255,255,0.8);
+          border: 1px solid var(--surface-border);
+          background: hsla(var(--glass-strong));
           box-shadow: var(--shadow-1);
           font-weight: 700;
-          color: var(--purple-700);
+          color: hsl(var(--text));
           cursor: pointer;
           transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
         }
 
         .code-pill:hover {
           transform: translateY(-2px);
-          box-shadow: 0 16px 32px rgba(124,58,237,.2);
-          background: rgba(255,255,255,0.92);
+          box-shadow: 0 16px 32px hsl(var(--primary) / 0.2);
+          background: hsla(var(--glass));
         }
 
         .code-pill.copied {
-          background: rgba(22,163,74,0.12);
-          border-color: rgba(22,163,74,0.45);
-          color: #166534;
+          background: linear-gradient(120deg, hsl(var(--primary-600)), hsl(var(--secondary)));
+          border-color: transparent;
+          color: var(--white);
         }
 
         .code-value {
@@ -541,16 +543,16 @@ export default function SuccessClient() {
         }
 
         .success-footer {
-          background: rgba(255,255,255,0.42);
+          background: hsla(var(--glass));
           border-radius: clamp(var(--r-sm), 3vw, var(--r-lg));
-          border: 1px solid rgba(124,58,237,0.16);
+          border: 1px solid var(--surface-border);
           padding: 1rem 1.25rem;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
+          box-shadow: inset 0 1px 0 hsla(0 0% 100% / 0.2);
         }
 
         .success-footer p {
           font-size: 0.98rem;
-          color: var(--ink);
+          color: hsl(var(--text-dim));
           line-height: 1.7;
         }
 
@@ -568,6 +570,125 @@ export default function SuccessClient() {
           .success-card {
             gap: 2.5rem;
           }
+        }
+      `}</style>
+      <style jsx>{`
+        :global(.success-shell) {
+          background:
+            radial-gradient(58% 50% at 80% 6%, hsl(var(--accent) / 0.28), transparent 74%),
+            radial-gradient(55% 48% at 20% 96%, hsl(var(--secondary) / 0.24), transparent 72%),
+            linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--bg)) 50%, hsl(var(--surface-muted)) 100%);
+          color: hsl(var(--text));
+        }
+
+        :global(.success-shell::before),
+        :global(.success-shell::after) {
+          background: radial-gradient(48% 48% at 26% 32%, hsl(var(--surface-strong) / 0.55), transparent 76%);
+        }
+
+        :global(.success-shell::after) {
+          background: radial-gradient(48% 48% at 70% 72%, hsl(var(--accent) / 0.22), transparent 78%);
+        }
+
+        :global(.success-card) {
+          background: hsla(var(--glass-strong));
+          border: 1px solid var(--surface-border);
+          box-shadow: var(--shadow-2);
+        }
+
+        :global(.success-header h1) {
+          color: hsl(var(--text));
+          text-shadow: 1px 1px 2px hsl(var(--text-subtle) / 0.25);
+        }
+
+        :global(.success-subheading) {
+          color: hsl(var(--text-dim));
+        }
+
+        :global(.success-banner) {
+          background: linear-gradient(90deg, hsl(var(--primary-700)), hsl(var(--accent)));
+          box-shadow: var(--shadow-1);
+          color: var(--white);
+        }
+
+        :global(.banner-dismiss) {
+          background: hsla(0 0% 100% / 0.22);
+        }
+
+        :global(.banner-dismiss:hover) {
+          background: hsla(0 0% 100% / 0.35);
+        }
+
+        :global(.video-poster) {
+          background:
+            radial-gradient(65% 80% at 70% 30%, hsla(var(--glass)), transparent),
+            linear-gradient(140deg, hsl(var(--primary) / 0.22), hsl(var(--accent) / 0.14));
+          border: 1px solid var(--surface-border);
+          color: hsl(var(--text));
+          box-shadow: var(--shadow-1);
+        }
+
+        :global(.video-poster:not(:disabled):hover) {
+          box-shadow: var(--shadow-2);
+        }
+
+        :global(.play-icon) {
+          color: hsl(var(--primary-600));
+        }
+
+        :global(.poster-hint) {
+          color: hsl(var(--text-dim));
+        }
+
+        :global(.video-fallback) {
+          color: var(--danger);
+        }
+
+        :global(.cta-button) {
+          background: linear-gradient(118deg, hsl(var(--primary-700)), hsl(var(--accent)));
+          box-shadow: 0 24px 60px hsl(var(--primary-700) / 0.28);
+          color: var(--white);
+        }
+
+        :global(.cta-button:hover) {
+          box-shadow: 0 28px 70px hsl(var(--primary-700) / 0.32);
+        }
+
+        :global(.free-note) {
+          color: hsl(var(--text-dim));
+        }
+
+        :global(.code-label) {
+          color: hsl(var(--primary-700));
+        }
+
+        :global(.code-pill) {
+          background: hsla(var(--glass-strong));
+          border: 1px solid var(--surface-border);
+          box-shadow: 0 12px 32px hsl(var(--primary) / 0.16);
+          color: hsl(var(--text));
+        }
+
+        :global(.code-pill:hover) {
+          box-shadow: 0 16px 36px hsl(var(--primary) / 0.2);
+          background: hsla(var(--glass));
+        }
+
+        :global(.code-pill.copied) {
+          background: linear-gradient(120deg, hsl(var(--primary-600)), hsl(var(--secondary)));
+          color: var(--white);
+        }
+
+        :global(.code-action) {
+          color: hsl(var(--primary-700));
+        }
+
+        :global(.code-pill.copied .code-action) {
+          color: hsla(0 0% 100% / 0.92);
+        }
+
+        :global(.success-footer) {
+          color: hsl(var(--text-dim));
         }
       `}</style>
     </main>

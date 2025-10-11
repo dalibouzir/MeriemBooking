@@ -18,11 +18,11 @@ type NavLink = {
 const NAV_LINKS: NavLink[] = [
   { href: '/', label: 'الرئيسية' },
   { href: '/products', label: 'المكتبة' },
-  { href: '/free-call', label: 'جلسة تعريفية' },
+  { href: '/redeem', label: 'استبدال الرمز' },
   { href: '/download', label: 'تنزيلاتي' },
 ]
 
-const BOOKING_URL = '/free-call'
+const BOOKING_URL = '/redeem'
 
 export default function ScrollHideTopbar() {
   const [hidden, setHidden] = useState(false)
@@ -146,9 +146,9 @@ export default function ScrollHideTopbar() {
 
         <div className="topbar-actions">
           <ThemeSwitcher onOpenChange={handleThemePanel} />
-          <Link href={BOOKING_URL} className="btn btn-nav btn-primary topbar-cta" aria-label="تعرفي على الجلسة المجانية">
+          <Link href={BOOKING_URL} className="btn btn-nav btn-primary topbar-cta" aria-label="استبدال رمز المكالمة">
             <CalendarDaysIcon className="topbar-cta-icon" aria-hidden />
-            <span>احجزي جلسة</span>
+            <span>استبدلي الرمز</span>
           </Link>
           <TopbarAuth />
         </div>

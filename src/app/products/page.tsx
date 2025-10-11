@@ -16,7 +16,7 @@ import {
   type ProductResource,
 } from '@/utils/products'
 
-const FREE_CALL_ROUTE = '/free-call'
+const FREE_CALL_ROUTE = '/redeem'
 
 const DOWNLOAD_FLOW = [
   {
@@ -32,7 +32,8 @@ const DOWNLOAD_FLOW = [
   {
     id: 'call',
     title: 'جلسة مجانية لمرة واحدة',
-    detail: 'يمكن استخدام الرمز لحجز جلسة تعريفية مجانية مع مريم. الرمز صالح لمرة واحدة ويمكنك إهداؤه إذا رغبتِ.',
+    detail:
+      'بعد استبدال الرمز في صفحة المكالمات يمكنك اختيار الموعد على Calendly دون رسوم. الرمز صالح لمرة واحدة ويمكنك إهداؤه إذا رغبتِ.',
   },
 ]
 
@@ -68,7 +69,7 @@ const FAQ_ITEMS = [
     id: 'code-usage',
     title: 'ما فائدة الكود الذي أستلمه؟',
     content:
-      'الكود يمنحك جلسة تعريفية مجانية مع مريم يمكن استخدامها مرة واحدة فقط. عندما تحجزين الموعد عبر Calendly أدخلي الكود لإتمام الحجز دون دفع.',
+      'الكود يمنحك جلسة تعريفية مجانية مع مريم يمكن استخدامها مرة واحدة فقط. بعد الحصول عليه، انتقلي إلى صفحة استبدال الرمز وأدخليه ثم تابعي تأكيد الموعد في Calendly دون أي دفع.',
   },
   {
     id: 'future',
@@ -194,7 +195,7 @@ export default function ProductsPage() {
           ))}
         </div>
         <Link className="maktba-cta" href={FREE_CALL_ROUTE}>
-          استخدمي الكود لحجز جلسة مجانية
+          استبدلي رمز المكالمة الآن
         </Link>
       </section>
 

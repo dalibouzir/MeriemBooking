@@ -12,8 +12,8 @@ function SuccessFallback() {
         justifyContent: 'center',
         padding: '2rem',
         background:
-          'radial-gradient(900px 500px at 80% -10%, rgba(124,58,237,.08), rgba(255,255,255,0)), radial-gradient(700px 400px at 20% 100%, rgba(168,85,247,.08), rgba(255,255,255,0)), linear-gradient(180deg, rgba(255,255,255,.95), rgba(250,245,255,.92))',
-        color: '#4c1d95',
+          'radial-gradient(900px 500px at 80% -10%, hsl(var(--accent) / 0.12), transparent), radial-gradient(700px 400px at 20% 100%, hsl(var(--secondary) / 0.12), transparent), linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--bg)) 55%, hsl(var(--surface-muted)) 100%)',
+        color: 'hsl(var(--text))',
         fontFamily: "'Tajawal', system-ui, -apple-system, Segoe UI, sans-serif",
         textAlign: 'center',
       }}
@@ -30,4 +30,3 @@ export default function SuccessPage() {
     </Suspense>
   )
 }
-
