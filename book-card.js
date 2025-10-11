@@ -21,19 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.classList.add('is-visible');
   }
 
-  const excerptList = card.querySelector('.card-excerpt-list');
-  const toggleButton = card.querySelector('.card-excerpt-toggle');
-
-  if (excerptList && toggleButton) {
-    toggleButton.addEventListener('click', () => {
-      const isCollapsed = excerptList.getAttribute('data-collapsed') === 'true';
-      excerptList.setAttribute('data-collapsed', String(!isCollapsed));
-      toggleButton.setAttribute('aria-expanded', String(!isCollapsed));
-      toggleButton.textContent = isCollapsed ? 'إخفاء' : 'اقرئي المزيد';
-    });
-  }
-
-  const primaryButton = card.querySelector('.card-btn-primary');
+  const primaryButton = card.querySelector('.card-btn');
   if (primaryButton) {
     primaryButton.addEventListener('click', () => {
       if (prefersReduced) return;
