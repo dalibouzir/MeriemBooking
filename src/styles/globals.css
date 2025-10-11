@@ -113,11 +113,11 @@ ul li {
   margin-bottom: 0.8rem;
 }
 ul li::before {
-  content: '💜';
+  content: '•';
   position: absolute;
   right: 0;
   font-size: 1.1rem;
-  color: hsl(var(--primary-600));
+  color: hsl(var(--text));
 }
 
 /* ============ Calendar ============ */

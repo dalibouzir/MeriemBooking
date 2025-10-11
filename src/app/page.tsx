@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useEffect, useMemo, useState } from 'react'
-import { motion } from 'motion/react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabaseClient } from '@/lib/supabase'
 import Accordion from '@/components/ui/Accordion'
 import ChatbotWidget from '@/components/ChatbotWidget'
@@ -14,24 +13,6 @@ import {
   type LegacyProductRow,
   type ProductResource,
 } from '@/utils/products'
-
-const HOW_IT_WORKS = [
-  {
-    title: 'اختاري موردًا أو جلسة',
-    description: 'ابدئي بتحميل كتاب أو مشاهدة فيديو يشرح الخطوات الافتتاحية، أو احجزي جلسة مباشرة مع مريم.',
-    icon: '📚',
-  },
-  {
-    title: 'طبّقي خطوة صغيرة كل يوم',
-    description: 'كل مورد يحتوي على تمارين سريعة ونماذج جاهزة لتسهيل التنفيذ داخل البيت ومع الأطفال.',
-    icon: '🧭',
-  },
-  {
-    title: 'تابعينا للمساءلة والدعم',
-    description: 'استخدمي الدردشة أو النماذج لمشاركة تقدّمك والحصول على تعديلات مخصّصة في أي وقت.',
-    icon: '💬',
-  },
-]
 
 const FAQ_SNIPPET = [
   {
@@ -54,7 +35,21 @@ const FAQ_SNIPPET = [
   },
 ]
 
-const BOOKING_URL = 'https://calendly.com/meriembouzir/30min'
+const HERO_FACTS = [
+  '👩🏻‍🔬 أم | 🎓 ماجستير كيمياء أدوية | 🌿 مرشدة اتزان شعوري',
+  'أرشدك نحو 🤍 أم مطمئنة 🌸 مستمتعة بأنوثتها ودورها',
+  '🤝 علاقات صحية | ✨ مساحة حقيقية بلا تكلّف',
+]
+
+const JOURNEY_STEPS = [
+  { id: 1, icon: '🎯', title: 'نحدد الهدف', text: 'جلسة تعريفية لالتقاط صورة دقيقة عن بيتك ومشاعرك.' },
+  { id: 2, icon: '📝', title: 'نرسم خطة صغيرة', text: 'تصميم خطوات أسبوعية قابلة للتنفيذ دون ضغط.' },
+  { id: 3, icon: '🧠', title: 'نطبّق ونتابع', text: 'تطبيقات CBT وأدوات تهدئة مدعومة بالملفات الرقمية.' },
+  { id: 4, icon: '🌱', title: 'نحتفل بالتقدّم', text: 'نقيس التغيير ونثبت العادات داخل الأسرة.' },
+]
+
+const BOOKING_ROUTE = '/free-call'
+const BOOKING_URL = BOOKING_ROUTE
 
 type SocialLink = {
   href: string
@@ -64,10 +59,10 @@ type SocialLink = {
 }
 
 const SOCIAL_LINKS: SocialLink[] = [
-  { href: 'https://linktr.ee/meriembouzir', label: 'Linktree', icon: '🌿', variant: 'linktree' },
-  { href: 'https://www.instagram.com/fittrah.moms', label: 'Instagram', icon: '📸' },
-  { href: 'https://www.youtube.com/@fittrahmoms', label: 'YouTube', icon: '▶️' },
-  { href: 'https://wa.me/21629852313', label: 'WhatsApp', icon: '💬' },
+  { href: 'https://linktr.ee/meriembouzir', label: 'لينك تري', icon: '🌿', variant: 'linktree' },
+  { href: 'https://www.instagram.com/fittrah.moms', label: 'إنستغرام', icon: '📸' },
+  { href: 'https://www.youtube.com/@fittrahmoms', label: 'يوتيوب', icon: '▶️' },
+  { href: 'https://wa.me/21629852313', label: 'واتساب', icon: '💬' },
 ]
 
 export default function HomePage() {
@@ -114,183 +109,171 @@ export default function HomePage() {
     }
   }, [])
 
-  const featuredProducts = useMemo(() => resources.slice(0, 3), [resources])
+  const downloads = useMemo(() => resources.slice(0, 6), [resources])
+  const newestProducts = useMemo(() => resources.slice(0, 5), [resources])
+  const activeProduct = newestProducts[0] ?? null
+  const bookSummary = activeProduct ? activeProduct.description || activeProduct.snippet || '' : ''
+  const bookExtra =
+    activeProduct && activeProduct.snippet && activeProduct.snippet !== bookSummary ? activeProduct.snippet : null
   const currentYear = useMemo(() => new Date().getFullYear(), [])
+
+  const handleScrollToDownloads = useCallback(() => {
+    const el = document.getElementById('downloads')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
 
   return (
     <div className="home-page">
-      <section className="home-hero-block">
-        <motion.div
-          className="home-hero-wrap"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: [0.25, 0.8, 0.25, 1] }}
-        >
-          <div className="home-hero-content">
-            <span className="home-hero-tag">مرافقة أسرية بالعربية</span>
-            <h1 className="home-hero-title">تنظيم لطيف يعيد الهدوء لبيتك</h1>
-            <p className="home-hero-text">
-              مريم بوزير ترافق الأمهات بخطوات واقعية، تجمع بين جلسات علاج معرفي سلوكي وملفات رقمية جاهزة للعمل فورًا داخل البيت. نضع خطة قصيرة، ثم نبقى معك للمساءلة والطمأنة.
-            </p>
-            <div className="home-hero-actions">
-              <Link
-                href={BOOKING_URL}
-                className="btn btn-primary home-hero-cta"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                احجزي جلسة شخصية
-              </Link>
-              <Link href="/products" className="btn home-hero-secondary">
-                استكشفي المتجر
-              </Link>
-            </div>
-            <dl className="home-hero-stats">
-              <div className="home-stat-item">
-                <dt>جلسات منجزة</dt>
-                <dd>+1800</dd>
-              </div>
-              <div className="home-stat-item">
-                <dt>خطة خلال أسبوع</dt>
-                <dd>7 أيام</dd>
-              </div>
-              <div className="home-stat-item">
-                <dt>تحميل فوري</dt>
-                <dd>24/7</dd>
-              </div>
-            </dl>
-          </div>
-          <div className="home-hero-media">
+      <section className="therapist-hero" aria-labelledby="hero-title">
+        <div className="hero-spotlight">
+          <div className="hero-texture" aria-hidden />
+          <div className="hero-portrait">
             <Image
               src="/Meriem.webp"
               alt="مريم بوزير — مرافقة الأمهات"
-              fill
-              sizes="(max-width: 960px) 80vw, 420px"
+              width={220}
+              height={280}
+              className="hero-photo"
               priority
             />
-            <span className="home-hero-media-fade" aria-hidden />
+            <span className="hero-bookmark" aria-hidden />
           </div>
-        </motion.div>
+          <div className="hero-content">
+            <span className="hero-name" id="hero-title">
+              مريم بوزير
+            </span>
+            <h1>أرشدك نحو أمومة مطمئنة، مليئة بالأنوثة والسكينة.</h1>
+            <ul className="hero-facts">
+              {HERO_FACTS.map((fact) => (
+                <li key={fact}>{fact}</li>
+              ))}
+            </ul>
+            <p className="hero-lead">
+              نشتغل معًا على إعادة الاتزان الشعوري داخل البيت، برحلة صادقة تحفظ حضورك كأم وتمنحك مساحة للتنفس.
+            </p>
+            <div className="hero-actions">
+              <Link href={BOOKING_ROUTE} className="btn hero-primary">
+                اطلبي جلسة تعريفية
+              </Link>
+              <button type="button" className="hero-secondary" onClick={handleScrollToDownloads}>
+                شاهدي الرحلة خطوة بخطوة
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="home-intro">
-        <div className="home-intro-wrap">
-          <h2>رحلة صغيرة لكن ثابتة</h2>
-          <p>
-            كل جلسة أو ملف نشاركه معك يركّز على خطوة واحدة قابلة للتطبيق فورًا. نراجعها سويًا، ثم نضيف عليها تدريجيًا حتى تشعري أن البيت يتحرّك بنَفَس أهدأ.
-          </p>
-          <ol className="home-timeline">
-            {HOW_IT_WORKS.map((step, index) => (
-              <li key={step.title} className="home-timeline-step">
-                <span className="home-timeline-index">{index + 1}</span>
-                <div>
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
+      <section className="journey-section">
+        <div className="journey-intro">
+          <p>نمشي معًا خطوة بخطوة، مع ترك مساحة لكِ لتلتقطي أنفاسك وتستمتعي بأسرتك.</p>
+        </div>
+        <div className="journey-grid">
+          {JOURNEY_STEPS.map((step) => (
+            <article key={step.id} className="journey-card">
+              <span className="journey-icon" aria-hidden>
+                {step.icon}
+              </span>
+              <h3>
+                {step.id}. {step.title}
+              </h3>
+              <p>{step.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="downloads" className="downloads-section">
+        <div className="downloads-hero">
+          <div className="downloads-hero-copy">
+            <p className="downloads-lead">كل ملف يحتوي على تمارين جاهزة، جداول للطباعة، وخطوات لطيفة تزيد هدوء البيت.</p>
+            <div className="downloads-headline">
+              <span>طريقك نحو أمومة أكثر هدوءًا وتوازنًا</span>
+              <h2>طريقك نحو أمومة أكثر هدوءًا وتوازنًا</h2>
+            </div>
+            <p className="downloads-description">
+              من خلال صفحاته، ستكتشفين كيف: تفهمين مشاعرك وتتعاملين معها بوعي وهدوء. تستعيدين اتصالك بأنوثتك الحقيقية
+              بعيدًا عن الإرهاق والتصنّع. تضعين حدودًا واضحة وتحميْن طاقتك من العلاقات السامة أو المستنزِفة.
+            </p>
+            {!loading && activeProduct && (
+              <div className="book-highlight">
+                <span className="book-slug">المعرّف: {activeProduct.slug}</span>
+                {bookSummary && <p className="book-summary">{bookSummary}</p>}
+                {bookExtra && <p className="book-snippet">{bookExtra}</p>}
+                <div className="book-highlight-actions">
+                  <Link href={`/download?product=${activeProduct.slug}`} className="btn book-highlight-primary">
+                    تصفّحي الملف
+                  </Link>
                 </div>
-              </li>
-            ))}
-          </ol>
+              </div>
+            )}
+          </div>
+          {!loading && activeProduct && (
+            <div className="downloads-cover">
+              <span className="downloads-cover-light" aria-hidden />
+              <span className="downloads-cover-spine" aria-hidden />
+              <Image
+                src={activeProduct.cover || '/Meriem.webp'}
+                alt={activeProduct.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 420px"
+                className="downloads-cover-image"
+              />
+            </div>
+          )}
         </div>
-      </section>
-
-      <section id="resources" className="home-featured">
-        <div className="home-section-head">
-          <h2>ملفات جاهزة للتحميل ومشاهدة فورية</h2>
-          <p>اختاري كتابًا عمليًا أو جلسة فيديو مختصرة. كل مورد مرفق بنماذج للعمل وخطوات يومية سهلة التطبيق.</p>
-        </div>
-
         {loading ? (
-          <div className="home-product-skeletons" aria-hidden>
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="home-product-skeleton" />
+          <div className="downloads-skeletons" aria-hidden>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={`skeleton-${index}`} className="downloads-skeleton" />
             ))}
           </div>
         ) : error ? (
           <div className="alert alert-danger">{error}</div>
         ) : (
-          <div className="home-product-rail">
-            {featuredProducts.map((item) => {
-              const primaryHref = item.downloadUrl ? item.downloadUrl : `/download?product=${item.slug}`
-              const secondaryHref = `/download?product=${item.slug}`
-              const tagList = Array.from(
-                new Set([item.type, item.format, item.duration].filter(Boolean)),
-              ) as string[]
-
-              return (
-                <article key={item.id} className="home-product-card">
-                  <div className="home-product-cover">
-                    <Image
-                      src={item.cover || '/Meriem.webp'}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 720px) 100vw, 320px"
-                    />
-                  </div>
-                  <div className="home-product-info">
-                    <span className="home-product-type">{item.type}</span>
-                    <h3>{item.title}</h3>
-                    <p>{item.description}</p>
-                    {typeof item.price === 'number' ? (
-                      <p className="home-product-price">
-                        <span>{item.price}</span>
-                        <span className="home-product-currency">د.ت</span>
-                      </p>
-                    ) : (
-                      <p className="home-product-price free">مجاني مع رمز جلسة</p>
-                    )}
-                    {!!tagList.length && (
-                      <div className="home-product-tags">
-                        {tagList.map((tag) => (
-                          <span key={`${item.id}-${tag}`} className="home-product-tag">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <div className="home-product-actions">
-                      <Link href={primaryHref} className="btn btn-primary home-product-btn">
-                        {item.type === 'فيديو' ? 'مشاهدة فورية' : 'تحميل فوري'}
-                      </Link>
-                      <Link href={secondaryHref} className="home-product-secondary">
-                        التفاصيل
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              )
-            })}
+          <div className="downloads-grid">
+            {downloads.map((item) => (
+              <article key={item.id} className="download-card">
+                <div className="download-thumb">
+                  <span className="download-thumb-shadow" aria-hidden />
+                  <span className="download-thumb-spine" aria-hidden />
+                  <Image
+                    src={item.cover || '/Meriem.webp'}
+                    alt={item.title}
+                    fill
+                    sizes="(max-width: 680px) 100vw, 220px"
+                  />
+                </div>
+                <div className="download-content">
+                  <Link href={`/download?product=${item.slug}`} className="download-title">
+                    {item.title}
+                  </Link>
+                  <p>{item.snippet || item.description}</p>
+                  <span className="download-tag">
+                    {item.type === 'فيديو' ? 'فيديو' : item.format?.includes('PDF') ? 'ملف PDF' : 'ملف رقمي'}
+                  </span>
+                </div>
+              </article>
+            ))}
           </div>
         )}
-
-        <div className="home-featured-more">
-          <Link href="/products" className="home-featured-link">
-            تصفّح المتجر الكامل
-          </Link>
-        </div>
       </section>
 
-      <section className="home-story">
-        <div className="home-story-wrap">
-          <h2>مريم بوزير — معالجة معرفية سلوكية ترافقك خطوة بخطوة</h2>
-        <p>
-            نعمل مع الأمهات اللواتي يرغبن في تهدئة التوتر اليومي وبناء حدود محبة داخل البيت. تشمل المرافقة مراجعة روتينك، تصميم تمارين صغيرة، ومتابعة أسبوعية برسائل قصيرة.
+      <section className="call-to-action">
+        <div className="cta-body">
+          <header>
+            <span className="cta-kicker">جلسة تعريفية مدتها 30 دقيقة</span>
+            <h2>اطلبي مكالمة مجانية لنضع معًا أول خطوة هادئة</h2>
+          </header>
+          <p>
+            شاركيني ما يحدث في بيتك، وسنرسم معًا أول أسبوع عملي. المكالمة مجانية وتفتح لك إمكانية تحميل كل الملفات المجانية
+            مباشرة.
           </p>
-          <ul className="home-story-points">
-            <li>جلسات خاصة عبر Google Meet مع تلخيص مكتوب لكل ما اتفقنا عليه.</li>
-            <li>كتب PDF وفيديوهات تطبيقية بالعربية تم اختبارها مع مئات العائلات.</li>
-            <li>دعم متواصل عبر البريد أو واتساب للمساءلة وتعديل الخطط عند الحاجة.</li>
-          </ul>
-          <div className="home-story-actions">
-            <Link
-              href={BOOKING_URL}
-              className="btn btn-primary home-story-cta"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              احجزي موعد Calendly
+          <div className="cta-actions">
+            <Link href={BOOKING_ROUTE} className="btn cta-primary">
+              اطلبي جلسة مجانية
             </Link>
-            <Link href="/free-call" className="btn home-story-secondary">
-              جلسة تعريفية مجانية
+            <Link href="/products" className="btn cta-secondary">
+              تصفّحي المكتبة
             </Link>
           </div>
         </div>

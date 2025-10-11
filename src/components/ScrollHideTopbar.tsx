@@ -17,12 +17,12 @@ type NavLink = {
 
 const NAV_LINKS: NavLink[] = [
   { href: '/', label: 'الرئيسية' },
-  { href: '/products', label: 'المتجر' },
+  { href: '/products', label: 'المكتبة' },
   { href: '/free-call', label: 'جلسة تعريفية' },
   { href: '/download', label: 'تنزيلاتي' },
 ]
 
-const BOOKING_URL = 'https://calendly.com/meriembouzir/30min'
+const BOOKING_URL = '/free-call'
 
 export default function ScrollHideTopbar() {
   const [hidden, setHidden] = useState(false)
@@ -146,13 +146,7 @@ export default function ScrollHideTopbar() {
 
         <div className="topbar-actions">
           <ThemeSwitcher onOpenChange={handleThemePanel} />
-          <Link
-            href={BOOKING_URL}
-            className="btn btn-nav btn-primary topbar-cta"
-            aria-label="احجزي جلسة عبر Calendly"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <Link href={BOOKING_URL} className="btn btn-nav btn-primary topbar-cta" aria-label="تعرفي على الجلسة المجانية">
             <CalendarDaysIcon className="topbar-cta-icon" aria-hidden />
             <span>احجزي جلسة</span>
           </Link>

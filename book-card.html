@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <title>بطاقة كتاب</title>
+    <link rel="stylesheet" href="./book-card.css" />
+  </head>
+  <body>
+    <article id="book-card" dir="rtl">
+      <figure class="card-cover">
+        <img
+          src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=960&q=80"
+          alt="غلاف كتاب خطة نوم هادئة"
+          loading="lazy"
+          decoding="async"
+        />
+      </figure>
+
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="card-badge" aria-label="صيغة الملف: كتاب PDF">
+            <svg class="badge-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M6 3h8l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm7 1.5V8h4.5"
+              />
+              <path d="M8 12h2.2a1.8 1.8 0 1 1 0 3.6H8zM8 15.6h2.2A1.8 1.8 0 1 0 10.2 12H8z" />
+              <path d="M13 12h1.4a1.6 1.6 0 1 1 0 3.2H13z" />
+            </svg>
+            كتاب PDF
+          </span>
+          <time datetime="2024-05-12" class="card-date">١٢ مايو ٢٠٢٤</time>
+        </div>
+
+        <h2 class="card-title">خطة نوم هادئة: دليل عملي لتحويل ساعة النوم إلى لحظة اطمئنان</h2>
+
+        <div class="card-rating" aria-label="تقييم 4.5 من 5">
+          <span class="rating-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3.5 14.9 9l6.1.9-4.4 4.3 1 6.1L12 17.8 6.4 20.3l1-6.1-4.4-4.3L9.1 9z" />
+            </svg>
+          </span>
+          <span class="rating-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3.5 14.9 9l6.1.9-4.4 4.3 1 6.1L12 17.8 6.4 20.3l1-6.1-4.4-4.3L9.1 9z" />
+            </svg>
+          </span>
+          <span class="rating-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3.5 14.9 9l6.1.9-4.4 4.3 1 6.1L12 17.8 6.4 20.3l1-6.1-4.4-4.3L9.1 9z" />
+            </svg>
+          </span>
+          <span class="rating-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3.5 14.9 9l6.1.9-4.4 4.3 1 6.1L12 17.8 6.4 20.3l1-6.1-4.4-4.3L9.1 9z" />
+            </svg>
+          </span>
+          <span class="rating-icon rating-icon-half">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <defs>
+                <clipPath id="half-star">
+                  <rect x="0" y="0" width="12" height="24" />
+                </clipPath>
+              </defs>
+              <path
+                class="star-outline"
+                d="M12 3.5 14.9 9l6.1.9-4.4 4.3 1 6.1L12 17.8 6.4 20.3l1-6.1-4.4-4.3L9.1 9z"
+              />
+              <path
+                class="star-fill"
+                d="M12 3.5 14.9 9l6.1.9-4.4 4.3 1 6.1L12 17.8V3.5z"
+                clip-path="url(#half-star)"
+              />
+            </svg>
+          </span>
+          <span class="rating-value">4.5</span>
+        </div>
+
+        <p class="card-description">
+          دليل عملي من ٨ فصول يساعدك على تصميم روتين نوم ثابت، يحمي نوم طفلك من الانتكاسات ويمنحك وقتًا لنفسك في المساء.
+        </p>
+
+        <section class="card-excerpt" aria-labelledby="card-excerpt-title">
+          <header class="card-excerpt-header">
+            <span class="card-excerpt-icon" aria-hidden="true">📝</span>
+            <h3 id="card-excerpt-title">لمحة</h3>
+          </header>
+          <ul class="card-excerpt-list" data-collapsed="true">
+            <li>أوراق عمل جاهزة لتتبع أنماط النوم على مدار الأسبوع.</li>
+            <li>جداول مرنة لتقسيم وقت العائلة بين اللعب والراحة بدون صراخ.</li>
+            <li>نصائح صديقة للأم تساعدك على قول “لا” بلطف وتثبيت الحدود.</li>
+          </ul>
+          <button type="button" class="card-excerpt-toggle" aria-expanded="false">اقرئي المزيد</button>
+        </section>
+
+        <div class="card-actions">
+          <button class="card-btn card-btn-primary" type="button" aria-label="تحميل كتاب خطة نوم هادئة">
+            تحميل مجاني
+          </button>
+          <a href="#" class="card-link">تحميل مجاني فوراً</a>
+        </div>
+      </div>
+    </article>
+
+    <script src="./book-card.js" defer></script>
+  </body>
+</html>

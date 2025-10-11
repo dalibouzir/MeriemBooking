@@ -16,59 +16,65 @@ import {
   type ProductResource,
 } from '@/utils/products'
 
-const BOOKING_URL = 'https://calendly.com/meriembouzir/30min'
+const FREE_CALL_ROUTE = '/free-call'
+
+const DOWNLOAD_FLOW = [
+  {
+    id: 'choose',
+    title: 'اختاري الملف المجاني',
+    detail: 'تصفحي مكتبة مريم الرقمية واختر الكتب أو الدلائل العملية التي تحتاجينها الآن. جميع المواد متاحة بدون أي تكلفة.',
+  },
+  {
+    id: 'unlock',
+    title: 'احصلي على الرمز والرابط',
+    detail: 'بعد الضغط على تحميل يظهر لك الرمز الخاص بك ويصلك بريد إلكتروني يحتوي على رابط التنزيل المباشر ورصيدك من الأكواد.',
+  },
+  {
+    id: 'call',
+    title: 'جلسة مجانية لمرة واحدة',
+    detail: 'يمكن استخدام الرمز لحجز جلسة تعريفية مجانية مع مريم. الرمز صالح لمرة واحدة ويمكنك إهداؤه إذا رغبتِ.',
+  },
+]
+
+const CLARIFICATION_CARDS = [
+  {
+    id: 'links',
+    title: 'روابط تنزيل ثابتة',
+    description:
+      'سيبقى رابط التحميل متاحًا داخل صندوق بريدك وداخل صفحة التنزيلات في الحساب، ولا ننهي صلاحيته حتى مع تحديث النسخة.',
+  },
+  {
+    id: 'upcoming',
+    title: 'مكتبة تتوسع باستمرار',
+    description:
+      'نضيف أدلة جديدة، جلسات تطبيقية، وملفات جاهزة للطباعة تدريجيًا. كل ما يُنشر في المستقبل سيبقى مجانًا.',
+  },
+  {
+    id: 'support',
+    title: 'دعم فني سريع',
+    description:
+      'إذا لم يصلك البريد أو احتجتِ إعادة إرسال الرابط، تواصلي معنا عبر الدردشة وسنرسل لك الملف خلال دقائق.',
+  },
+]
 
 const FAQ_ITEMS = [
   {
-    id: 'download',
-    title: 'كيف أستلم الملف بعد الدفع؟',
+    id: 'download-flow',
+    title: 'كيف يصلني رابط التحميل؟',
     content:
-      'يتم فتح رابط تحميل مباشر بعد إتمام الدفع مباشرة، كما يصلك بريد إلكتروني يحتوي على الملف وملخص الخطوات. يمكن إعادة التحميل بأي وقت من صفحة التنزيلات.',
+      'بمجرد الضغط على زر التحميل يظهر لك كود خاص مع رابط التنزيل الفوري. خلال دقائق يصلك أيضًا بريد إلكتروني يحتوي على نفس الرابط للاحتفاظ به.',
   },
   {
-    id: 'gift',
-    title: 'هل يشمل كل منتج رمز مكالمة استشارية؟',
+    id: 'code-usage',
+    title: 'ما فائدة الكود الذي أستلمه؟',
     content:
-      'نعم، بعد شراء أي كتاب أو فيديو يصلك رمز مكالمة مجانية يمكن استخدامه خلال ٣٠ يومًا لحجز جلسة مع مريم. بإمكانك إهداء الرمز لشخص آخر إذا رغبتِ.',
+      'الكود يمنحك جلسة تعريفية مجانية مع مريم يمكن استخدامها مرة واحدة فقط. عندما تحجزين الموعد عبر Calendly أدخلي الكود لإتمام الحجز دون دفع.',
   },
   {
-    id: 'refunds',
-    title: 'هل يمكن استرجاع المبلغ؟',
+    id: 'future',
+    title: 'هل ستبقى المواد مجانية مستقبلًا؟',
     content:
-      'يمكن طلب استرجاع خلال ٤٨ ساعة من الشراء إذا لم يتم فتح رابط التحميل. بعد تحميل الملف أو بدء مشاهدة الفيديو لا تتوفر إمكانية الاسترجاع، لكن يسعدنا مساعدتك في اختيار مورد آخر مناسب.',
-  },
-]
-
-const HIGHLIGHTS = [
-  {
-    icon: '📘',
-    title: 'كتب PDF مختصرة',
-    description: 'خطط جاهزة بخطوات يومية، مع نماذج وجداول لتطبيق الأسرار داخل البيت فورًا.',
-  },
-  {
-    icon: '🎥',
-    title: 'جلسات فيديو تطبيقية',
-    description: 'مشاهدات قصيرة مع تمارين عملية تساعدك على تعديل السلوك وتثبيت الروتين.',
-  },
-  {
-    icon: '🎁',
-    title: 'رموز جلسات مرافقة',
-    description: 'كل عملية شراء تمنحك رمز Calendly لموعد تعريفي، يمكنك استخدامه أو إهداؤه لصديقة.',
-  },
-]
-
-const STORE_PROMISES = [
-  {
-    title: 'تحميل فوري',
-    detail: 'بمجرد إتمام الدفع يصلك الملف أو الفيديو فورًا مع بريد يحتوي على رابط دائم.',
-  },
-  {
-    title: 'رمز جلسة مرافقة',
-    detail: 'كل منتج يتضمن رمز Calendly صالحًا 30 يومًا لموعد تعريف مع مريم.',
-  },
-  {
-    title: 'تحديثات مجانية',
-    detail: 'إذا تم تحسين المحتوى لاحقًا يصلك إشعار لتحميل النسخة المحدّثة دون تكلفة.',
+      'نعم. نعمل على تحويل كل مكتبة فطرة إلى مصادر مجانية قابلة للتنزيل، مع تحديثات مستمرة وإشعارات عند إضافة ملفات جديدة.',
   },
 ]
 
@@ -128,114 +134,89 @@ export default function ProductsPage() {
     () => [
       {
         id: 'all',
-        title: 'كل الموارد',
-        content: <ProductGrid items={resources} emptyLabel="لم نضف موارد بعد." />,
+        title: 'كل الملفات',
+        content: <ProductGrid items={resources} emptyLabel="قريبًا ستظهر ملفات مكتبة مريم كاملة." />,
       },
       {
         id: 'books',
         title: 'كتب PDF',
-        content: <ProductGrid items={books} emptyLabel="قريبًا ستضاف كتب جديدة." />,
+        content: <ProductGrid items={books} emptyLabel="نجهز دفعة جديدة من الكتب المجانية." />,
       },
       {
         id: 'videos',
-        title: 'جلسات فيديو',
-        content: <ProductGrid items={videos} emptyLabel="لا توجد فيديوهات حالياً." />,
+        title: 'جلسات تطبيقية',
+        content: <ProductGrid items={videos} emptyLabel="لا توجد جلسات فيديو حتى الآن." />,
       },
     ],
     [resources, books, videos],
   )
 
   return (
-    <div className="storefront-page">
-      <section className="storefront-hero">
-        <motion.div
-          className="storefront-hero-wrap"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.25, 0.8, 0.25, 1] }}
-        >
-          <div className="storefront-hero-copy">
-            <span className="storefront-tag">المتجر الرقمي</span>
-            <h1>مكتبة فطرة الأمهات</h1>
-            <p>
-              كتب مختصرة، فيديوهات تطبيقية، وحزم من النماذج الجاهزة لتساعدك على ترتيب يوم العائلة وتهدئة البيت. كل ملف باللغة العربية، ويأتي مع رمز جلسة تعريفية عبر Calendly.
-            </p>
-            <div className="storefront-actions">
-              <Link href="#catalog" className="btn btn-primary storefront-cta">ابدئي التسوق الآن</Link>
-              <Link href={BOOKING_URL} className="btn storefront-secondary" target="_blank" rel="noopener noreferrer">
-                جلسة شخصية مع مريم
-              </Link>
-            </div>
-          </div>
-          <div className="storefront-hero-gallery" aria-hidden>
-            <div className="storefront-hero-card">
-              <span className="storefront-hero-card-tag">كتاب PDF</span>
-              <h3>روتين صباحي هادئ</h3>
-              <p>خطة أسبوعية مع أوراق عمل للطباعة تساعدك على بدء اليوم بسلاسة.</p>
-              <div className="storefront-hero-card-price">
-                <span className="storefront-hero-card-number">35</span>
-                <span className="storefront-hero-card-currency">د.ت</span>
-              </div>
-              <span className="storefront-hero-card-note">يشمل رمز جلسة مجانية</span>
-            </div>
-            <div className="storefront-hero-card storefront-hero-card--video">
-              <span className="storefront-hero-card-tag">جلسة فيديو</span>
-              <h3>تنظيم وقت الشاشة</h3>
-              <p>درس تطبيقي قصير مع تمارين داخل البيت لتقليل التوتر حول الأجهزة.</p>
-              <div className="storefront-hero-card-price storefront-hero-card-price--watch">
-                <span>جاهز للمشاهدة</span>
-              </div>
-              <span className="storefront-hero-card-note">تحميل فوري + ملف متابعة</span>
-            </div>
-          </div>
-          <ul className="storefront-promises">
-            {STORE_PROMISES.map((item) => (
-              <li key={item.title}>
-                <span className="storefront-promise-title">{item.title}</span>
-                <span className="storefront-promise-detail">{item.detail}</span>
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      </section>
-
-      <section className="storefront-highlights">
-        {HIGHLIGHTS.map((highlight) => (
-          <article key={highlight.title} className="storefront-highlight-card">
-            <span className="storefront-highlight-icon" aria-hidden>
-              {highlight.icon}
-            </span>
-            <h3>{highlight.title}</h3>
-            <p>{highlight.description}</p>
-          </article>
-        ))}
-      </section>
-
-      <section id="catalog" className="storefront-catalog">
-        <div className="storefront-catalog-head">
-          <h2>تسوقي حسب ما تحتاجينه اليوم</h2>
-          <p>قسّمنا المنتجات إلى تبويبات تساعدك على اختيار الملف المناسب، سواء كنتِ تفضلين القراءة أو التطبيق المرئي.</p>
-        </div>
+    <div className="maktba-page">
+      <motion.section
+        id="maktba"
+        className="maktba-catalog"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.25, 0.8, 0.25, 1] }}
+      >
+        <header className="maktba-heading">
+          <span className="maktba-kicker">مكتبة</span>
+          <h1>مكتبة مريم الرقمية</h1>
+          <p>كل الكتب والجلسات هنا مجانية للتنزيل الفوري.</p>
+        </header>
 
         {loading ? (
-          <div className="home-product-skeletons" aria-hidden>
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="home-product-skeleton" />
+          <div className="maktba-skeletons" aria-hidden>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="maktba-skeleton" />
             ))}
           </div>
         ) : error ? (
           <div className="alert alert-danger">{error}</div>
         ) : (
-          <div className="storefront-tabs">
-            <Tabs tabs={tabs} defaultTabId="all" />
-          </div>
+          <Tabs tabs={tabs} defaultTabId="all" className="maktba-tabs" />
         )}
+      </motion.section>
+
+      <section className="maktba-flow">
+        <div className="maktba-section-head">
+          <h2>كيف يعمل التنزيل؟</h2>
+          <p>ثلاث خطوات سريعة تحفظ لك الملفات والرموز دون أي إجراءات دفع.</p>
+        </div>
+        <div className="maktba-flow-grid">
+          {DOWNLOAD_FLOW.map((step, index) => (
+            <article key={step.id} className="maktba-flow-card">
+              <span className="maktba-flow-step">{String(index + 1).padStart(2, '0')}</span>
+              <h3>{step.title}</h3>
+              <p>{step.detail}</p>
+            </article>
+          ))}
+        </div>
+        <Link className="maktba-cta" href={FREE_CALL_ROUTE}>
+          استخدمي الكود لحجز جلسة مجانية
+        </Link>
       </section>
 
-      <section className="storefront-faq">
-        <div className="storefront-faq-head">
-          <h2>أسئلة حول الدفع والتنزيل</h2>
-          <p>كل التفاصيل التقنية والعملية مذكورة هنا. إن لم تجدي إجابة، تواصلي معنا مباشرة على واتساب أو البريد.</p>
+      <section className="maktba-clarifications">
+        <div className="maktba-section-head">
+          <h2>لماذا سميناها «مكتبة»؟</h2>
+          <p>هدفنا توفير كتب ومراجع عربية مجانية مع تجربة مستقبلية في التصميم.</p>
+        </div>
+        <div className="maktba-clarifications-grid">
+          {CLARIFICATION_CARDS.map((card) => (
+            <article key={card.id} className="maktba-clarification-card">
+              <h3>{card.title}</h3>
+              <p>{card.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="maktba-faq">
+        <div className="maktba-section-head">
+          <h2>أسئلة شائعة حول المكْتَبة</h2>
+          <p>هذه الإجابات توضّح كيفية حفظ الروابط، استخدام الأكواد، وخطة التوسّع القادمة.</p>
         </div>
         <Accordion items={FAQ_ITEMS} defaultOpenIds={[FAQ_ITEMS[0].id]} />
       </section>
@@ -247,10 +228,10 @@ export default function ProductsPage() {
 
 function ProductGrid({ items, emptyLabel }: { items: ProductResource[]; emptyLabel: string }) {
   if (!items.length) {
-    return <p className="storefront-empty">{emptyLabel}</p>
+    return <p className="maktba-empty">{emptyLabel}</p>
   }
   return (
-    <div className="storefront-grid">
+    <div className="maktba-grid">
       {items.map((item) => (
         <CardProduct
           key={item.id}
@@ -265,10 +246,11 @@ function ProductGrid({ items, emptyLabel }: { items: ProductResource[]; emptyLab
           reviewCount={item.reviews}
           price={item.price}
           badge={item.badge}
-          primaryHref={item.downloadUrl ? item.downloadUrl : `/download?product=${item.slug}`}
-          primaryLabel={item.type === 'فيديو' ? 'مشاهدة' : 'تحميل'}
-          secondaryHref={`/download?product=${item.slug}`}
-          secondaryLabel="التفاصيل"
+          slug={item.slug}
+          snippet={item.snippet}
+          createdAt={item.createdAt}
+          primaryHref={item.slug ? `/download?product=${item.slug}` : `/download?product=${item.id}`}
+          primaryLabel="تحميل مجاني"
         />
       ))}
     </div>

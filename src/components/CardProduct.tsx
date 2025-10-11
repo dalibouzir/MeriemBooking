@@ -1,3 +1,5 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -18,8 +20,9 @@ export type ProductCardProps = {
   bestSeller?: boolean
   primaryHref: string
   primaryLabel?: string
-  secondaryHref?: string
-  secondaryLabel?: string
+  slug?: string
+  snippet?: string
+  createdAt?: string
 }
 
 export default function CardProduct({
@@ -27,80 +30,90 @@ export default function CardProduct({
   title,
   description,
   image,
-  type,
-  format,
-  duration,
   price,
-  currency = 'د.ت',
-  rating,
-  reviewCount,
-  tags = [],
   badge,
   bestSeller = false,
   primaryHref,
-  primaryLabel = 'تحميل',
-  secondaryHref,
-  secondaryLabel = 'التفاصيل',
+  primaryLabel = 'تحميل مجاني',
+  snippet,
+  createdAt,
 }: ProductCardProps) {
-  const displayRating = typeof rating === 'number' && !Number.isNaN(rating)
-  const displayPrice = typeof price === 'number' && price > 0
-  const tagList = Array.from(new Set([type, format, duration, ...tags].filter(Boolean))) as string[]
+  const isFree = typeof price !== 'number' || price <= 0
+  const createdLabel = createdAt ? formatCreatedAt(createdAt) : null
+  const ribbonLabel = badge ?? (bestSeller ? 'مميز' : undefined)
+  const externalDownload = /^https?:\/\//i.test(primaryHref)
+  const normalizedSnippet = snippet?.trim()
+
+  const downloadButton = externalDownload ? (
+    <a href={primaryHref} className="btn product-btn product-btn-download">
+      {primaryLabel}
+    </a>
+  ) : (
+    <Link href={primaryHref} className="btn product-btn product-btn-download" scroll={false} prefetch={false}>
+      {primaryLabel}
+    </Link>
+  )
 
   return (
     <article className={`product-card${bestSeller ? ' is-featured' : ''}`} data-product-id={id}>
+      {ribbonLabel && <span className="product-ribbon">{ribbonLabel}</span>}
+
       <div className="product-media">
-        <div className="product-frame">
-          <Image
-            src={image || '/Meriem.webp'}
-            alt={title}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-          />
-        </div>
-        {(badge || bestSeller) && (
-          <span className="product-ribbon">{badge ?? 'الأكثر مبيعًا'}</span>
-        )}
+        <Image
+          src={image || '/Meriem.webp'}
+          alt={title}
+          fill
+          sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 280px"
+          priority={false}
+        />
       </div>
 
       <div className="product-body">
         <header className="product-header">
-          <div className="product-meta">
-            {tagList.slice(0, 3).map((tag) => (
-              <span key={tag} className="product-pill">
-                {tag}
-              </span>
-            ))}
-          </div>
-          {displayRating && (
-            <span className="product-rating" aria-label={`تقييم ${rating} من 5`}>
-              ⭐ {rating?.toFixed(1)}
-              {typeof reviewCount === 'number' && reviewCount > 0 && <span className="product-rating-count"> · {reviewCount} مراجعة</span>}
-            </span>
+          <h3 className="product-title">{title}</h3>
+          {createdLabel && (
+            <time className="product-date" dateTime={createdAt ?? undefined}>
+              {createdLabel}
+            </time>
           )}
         </header>
 
-        <h3 className="product-title">{title}</h3>
-        <p className="product-description">{description}</p>
-
-        {displayPrice && (
-          <div className="product-price">
-            <span className="product-price-number">{price}</span>
-            <span className="product-price-currency">{currency}</span>
-            <span className="product-price-note">يشمل موارد قابلة للتنزيل</span>
+        <div className="product-text-grid">
+          <div className="product-text-block">
+            <span className="product-text-label" aria-hidden>
+              الوصف
+            </span>
+            <p className="product-description">{description}</p>
           </div>
-        )}
+          {normalizedSnippet ? (
+            <div className="product-text-block">
+              <span className="product-text-label" aria-hidden>
+                لمحة
+              </span>
+              <p className="product-snippet-text">{normalizedSnippet}</p>
+            </div>
+          ) : null}
+        </div>
 
         <div className="product-actions">
-          <Link href={primaryHref} className="btn btn-primary product-btn">
-            {primaryLabel}
-          </Link>
-          {secondaryHref && (
-            <Link href={secondaryHref} className="btn product-btn-secondary">
-              {secondaryLabel}
-            </Link>
-          )}
+          {downloadButton}
+          {isFree ? <span className="product-free-note">تحميل مجاني فورًا</span> : null}
         </div>
       </div>
     </article>
   )
+}
+
+function formatCreatedAt(value: string): string | null {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  try {
+    return new Intl.DateTimeFormat('ar', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(date)
+  } catch {
+    return date.toLocaleDateString()
+  }
 }

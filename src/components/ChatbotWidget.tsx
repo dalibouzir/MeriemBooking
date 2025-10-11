@@ -1,27 +1,81 @@
 "use client"
 
+import Link from 'next/link'
 import { AnimatePresence, motion } from 'motion/react'
 import { ChatBubbleOvalLeftEllipsisIcon, PaperAirplaneIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 
-const QUICK_REPLIES = [
-  'أرغب في حجز جلسة استشارية',
-  'أحتاج مساعدة في اختيار دورة مناسبة',
-  'كيف أستخدم رمز المكالمة المجاني؟',
-  'أريد التحدث مع فريق الدعم الآن',
-]
+type ChatbotAction = {
+  label: string
+  href: string
+  external?: boolean
+}
+
+type QuickReplyConfig = {
+  id: string
+  label: string
+  response: string
+  actions?: ChatbotAction[]
+  keywords?: string[]
+}
 
 type ChatMessage = {
   id: string
+  author: 'user' | 'bot'
   body: string
   timestamp: Date
+  actions?: ChatbotAction[]
 }
+
+const BOT_RESPONSE_DELAY = 260
+const FALLBACK_RESPONSE = 'شكرًا على رسالتك! سيعاودك الفريق خلال دقائق قليلة.'
+
+const QUICK_REPLIES: QuickReplyConfig[] = [
+  {
+    id: 'book-session',
+    label: 'أرغب في حجز جلسة استشارية',
+    response: 'رائع! لحجز جلستك الاستشارية اختاري الوقت المناسب عبر صفحة الحجز، وسنرسل لكِ التفاصيل فورًا.',
+    actions: [
+      { label: 'انتقال إلى الحجز', href: '/booking' },
+    ],
+    keywords: ['حجز', 'جلسة', 'استشارية', 'موعد'],
+  },
+  {
+    id: 'pick-course',
+    label: 'أحتاج مساعدة في اختيار دورة مناسبة',
+    response: 'اطّلعي على صفحة الموارد للاطلاع على كل الدورات والفرق بينها. إذا رغبتِ في توصية شخصية فراسلينا وسنقترح عليك الأنسب.',
+    actions: [
+      { label: 'تصفّح الموارد', href: '/products' },
+    ],
+    keywords: ['دورة', 'كورس', 'موارد', 'اختيار'],
+  },
+  {
+    id: 'free-call-code',
+    label: 'كيف أستخدم رمز المكالمة المجاني؟',
+    response: 'لدخول رمز المكالمة المجانية، انتقلي إلى صفحة التأكيد واكتبي الكود ثم تابعي اختيار الموعد المناسب لكِ.',
+    actions: [
+      { label: 'تأكيد الكود الآن', href: '/redeem' },
+    ],
+    keywords: ['رمز', 'كود', 'مكالمة', 'مجاني'],
+  },
+  {
+    id: 'contact-support',
+    label: 'أريد التحدث مع فريق الدعم الآن',
+    response: 'يسرّنا مساعدتك مباشرة. بإمكانك فتح دردشة واتساب فورية أو زيارة صفحة الدعم لإرسال طلب متابعة.',
+    actions: [
+      { label: 'دردشة واتساب', href: 'https://wa.me/21629852313', external: true },
+      { label: 'صفحة الدعم والنماذج', href: '/chat' },
+    ],
+    keywords: ['دعم', 'واتساب', 'تحدث', 'support'],
+  },
+]
 
 export default function ChatbotWidget() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const threadRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
@@ -49,26 +103,48 @@ export default function ChatbotWidget() {
     }
   }, [open])
 
+  useEffect(() => {
+    if (!threadRef.current) return
+    threadRef.current.scrollTop = threadRef.current.scrollHeight
+  }, [messages])
+
+  const pushUserMessage = (body: string) => {
+    const message = makeUserMessage(body)
+    setMessages((prev) => [...prev, message])
+  }
+
+  const pushBotMessage = (body: string, actions?: ChatbotAction[]) => {
+    const message = makeBotMessage(body, actions)
+    setMessages((prev) => [...prev, message])
+  }
+
+  const scheduleBotResponse = (reply: QuickReplyConfig | null) => {
+    const responseBody = reply?.response ?? FALLBACK_RESPONSE
+    const responseActions = reply?.actions
+    setTimeout(() => {
+      pushBotMessage(responseBody, responseActions)
+    }, BOT_RESPONSE_DELAY)
+  }
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const form = event.currentTarget
     const data = new FormData(form)
-    const body = (data.get('message') as string | null)?.trim()
+    const body = normalizeText((data.get('message') as string | null) ?? '')
     if (!body) return
-    setMessages((prev) => [
-      ...prev,
-      { id: createId(), body, timestamp: new Date() },
-    ])
+
+    pushUserMessage(body)
+    scheduleBotResponse(findQuickReply(body))
+
     form.reset()
     if (textareaRef.current) textareaRef.current.focus()
   }
 
-  const handleQuickReply = (text: string) => {
+  const handleQuickReply = (reply: QuickReplyConfig) => {
     setOpen(true)
-    setMessages((prev) => [
-      ...prev,
-      { id: createId(), body: text, timestamp: new Date() },
-    ])
+    pushUserMessage(reply.label)
+    scheduleBotResponse(reply)
+
     requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.focus()
@@ -116,15 +192,46 @@ export default function ChatbotWidget() {
             </header>
 
             <div className="chatbot-body">
-              <div className="chatbot-thread" aria-live="polite">
+              <div className="chatbot-thread" aria-live="polite" ref={threadRef}>
                 {messages.length === 0 ? (
                   <p className="chatbot-placeholder">
                     ابدئي بمشاركة ما يشغلك الآن، أو اختاري من الاقتراحات السريعة أدناه.
                   </p>
                 ) : (
                   messages.map((message) => (
-                    <div key={message.id} className="chatbot-message">
-                      <p>{message.body}</p>
+                    <div
+                      key={message.id}
+                      className={`chatbot-message${message.author === 'user' ? ' from-user' : ' from-bot'}`}
+                    >
+                      <p className="chatbot-message-body">{message.body}</p>
+                      {message.actions?.length ? (
+                        <div className="chatbot-message-actions">
+                          {message.actions.map((action) =>
+                            action.external ? (
+                              <a
+                                key={`${message.id}-${action.href}`}
+                                href={action.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="chatbot-message-action"
+                                onClick={() => setOpen(false)}
+                              >
+                                {action.label}
+                              </a>
+                            ) : (
+                              <Link
+                                key={`${message.id}-${action.href}`}
+                                href={action.href}
+                                prefetch={false}
+                                className="chatbot-message-action"
+                                onClick={() => setOpen(false)}
+                              >
+                                {action.label}
+                              </Link>
+                            ),
+                          )}
+                        </div>
+                      ) : null}
                       <span className="chatbot-time">
                         {message.timestamp.toLocaleTimeString('ar-TN', { hour: '2-digit', minute: '2-digit' })}
                       </span>
@@ -136,12 +243,12 @@ export default function ChatbotWidget() {
               <div className="chatbot-quick">
                 {QUICK_REPLIES.map((reply) => (
                   <button
-                    key={reply}
+                    key={reply.id}
                     type="button"
                     className="chatbot-chip"
                     onClick={() => handleQuickReply(reply)}
                   >
-                    {reply}
+                    {reply.label}
                   </button>
                 ))}
               </div>
@@ -166,6 +273,54 @@ export default function ChatbotWidget() {
       </AnimatePresence>
     </div>
   )
+}
+
+function normalizeText(value: string): string {
+  return value.replace(/\s+/g, ' ').trim()
+}
+
+function findQuickReply(text: string): QuickReplyConfig | null {
+  const normalized = normalizeText(text)
+  if (!normalized) return null
+
+  for (const reply of QUICK_REPLIES) {
+    if (normalizeText(reply.label) === normalized) {
+      return reply
+    }
+  }
+
+  const lowered = normalized.toLowerCase()
+
+  for (const reply of QUICK_REPLIES) {
+    if (!reply.keywords?.length) continue
+    const match = reply.keywords.some((keyword) => {
+      const normalizedKeyword = normalizeText(keyword)
+      if (!normalizedKeyword) return false
+      return normalized.includes(normalizedKeyword) || lowered.includes(normalizedKeyword.toLowerCase())
+    })
+    if (match) return reply
+  }
+
+  return null
+}
+
+function makeUserMessage(body: string): ChatMessage {
+  return {
+    id: createId(),
+    author: 'user',
+    body,
+    timestamp: new Date(),
+  }
+}
+
+function makeBotMessage(body: string, actions?: ChatbotAction[]): ChatMessage {
+  return {
+    id: createId(),
+    author: 'bot',
+    body,
+    actions,
+    timestamp: new Date(),
+  }
 }
 
 function createId() {

@@ -179,9 +179,10 @@ export default function AdminProductsManager() {
                       value={form.title || ''}
                       onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                     />
-                    <input
-                      className="input"
+                    <textarea
+                      className="input textarea md:col-span-3"
                       placeholder="الوصف"
+                      rows={4}
                       value={form.description || ''}
                       onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                     />
@@ -191,9 +192,10 @@ export default function AdminProductsManager() {
                       value={form.slug || ''}
                       onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
                     />
-                    <input
-                      className="input"
+                    <textarea
+                      className="input textarea md:col-span-3"
                       placeholder="مقتطف (اختياري)"
+                      rows={3}
                       value={form.snippet || ''}
                       onChange={(e) => setForm((f) => ({ ...f, snippet: e.target.value }))}
                     />
@@ -244,7 +246,7 @@ export default function AdminProductsManager() {
                               <option value="فيديو">فيديو</option>
                             </select>
                             <textarea
-                              className="input"
+                              className="input textarea"
                               rows={3}
                               value={product.description}
                               onChange={(e) =>
@@ -253,8 +255,9 @@ export default function AdminProductsManager() {
                                 )
                               }
                             />
-                            <input
-                              className="input"
+                            <textarea
+                              className="input textarea"
+                              rows={3}
                               value={product.snippet || ''}
                               placeholder="مقتطف (اختياري)"
                               onChange={(e) =>

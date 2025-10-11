@@ -88,15 +88,13 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl 
           <Link
             href={bookingUrl}
             className="btn btn-primary mobile-menu-btn"
-            target="_blank"
-            rel="noopener noreferrer"
             onClick={onClose}
           >
             <CalendarDaysIcon className="mobile-menu-btn-icon" aria-hidden />
             <span>احجزي جلسة</span>
           </Link>
           <Link href="/products" className="btn mobile-menu-btn secondary" onClick={onClose}>
-            المتجر الرقمي
+            المكتبة الرقمية
           </Link>
         </div>
 
