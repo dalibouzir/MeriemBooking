@@ -22,6 +22,7 @@ const CTA_ITEMS = [
   'ملفات رقمية مجانية لكل مرحلة من الأمومة',
   'مجتمع حيّ يشارك انتصاراته الصغيرة يوميًا',
 ]
+
 const SESSION_FAQ_ITEMS = [
   {
     id: 'session-details',
@@ -31,8 +32,8 @@ const SESSION_FAQ_ITEMS = [
         <div className="landing-session-card landing-session-card-single">
           <p className="landing-session-label">ما تفاصيل جلسة الإرشاد نحو الاتزان؟</p>
           <p>
-            جلسة فردية للإرشاد نحو الاتزان، هادئة وعميقة مدّتها ساعة كاملة. أهيئ لك خلالها مساحة آمنة لتفهمي مشاعرك، وتستعيدي توازنك الداخلي بخطوات واضحة
-            ومدروسة ترافق يومك بعد المكالمة.
+            جلسة فردية للإرشاد نحو الاتزان، هادئة وعميقة مدّتها ساعة كاملة. أهيئ لك خلالها مساحة آمنة لتفهمي مشاعرك،
+            وتستعيدي توازنك الداخلي بخطوات واضحة ومدروسة ترافق يومك بعد المكالمة.
           </p>
         </div>
       </div>
@@ -91,7 +92,10 @@ const SESSION_FAQ_ITEMS = [
       <div className="landing-session-faq">
         <div className="landing-session-card landing-session-note-card" role="note">
           <p className="landing-session-label">ملاحظة مهمة</p>
-          <p>تُجرى الجلسة في إطار من السرّية التامة واحترام الخصوصية، وفي أجواء خالية من الأحكام واللوم ومن أي شكل من أشكال جلد الذات.</p>
+          <p>
+            تُجرى الجلسة في إطار من السرّية التامة واحترام الخصوصية، وفي أجواء خالية من الأحكام واللوم ومن أي شكل من
+            أشكال جلد الذات.
+          </p>
         </div>
       </div>
     ),
@@ -133,7 +137,7 @@ const FAQ_SNIPPET = [
     id: 'sessions',
     title: 'ما الفرق بين الجلسة المجانية والمدفوعة؟',
     content:
-      'المجانية مخصّصة لتقييم الوضع الحالي وتقديم خطة أولية. الجلسة المدفوعة أعمق وتشمل متابعة أسبوعية وملف ملخّص بالتوصيات.',
+      'المجانية مخصّصة لتقييم الوضع الحالي وتقديم خطة أولية. الجلسة المدفوعة أعمق وتشمل متابعة أسبوعية وملفًا ملخّصًا بالتوصيات.',
   },
 ]
 
@@ -167,31 +171,38 @@ type LandingDisplay = {
   dateLabel?: string
 }
 
-const FALLBACK_SHOWCASE: LandingDisplay = {
-  id: 'showcase-fallback',
-  title: 'ملف العودة للسكينة',
-  description: 'ملف عملي يعيد ترتيب يوم الأم ويمنحك خطوات صغيرة تخلق سلامًا داخل البيت.',
-  summary: 'خطّة مختصرة تساعدك على تهدئة فوضى اليوم وإعادة وصل العائلة بالطمأنينة.',
-  cover:
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4peUdkcJz7xez1x9Gw-6Hnnlturg2SNLHVg&s',
-  meta: 'كتاب PDF · 12 صفحة',
-  href: PRODUCTS_ROUTE,
-  badge: 'مفضل',
-  format: 'كتاب PDF',
-  duration: '12 صفحة عملية',
-  typeLabel: 'كتاب',
-  reviews: 184,
-  dateLabel: 'ربيع 2024',
-}
+// const FALLBACK_SHOWCASE: LandingDisplay = {
+//   id: 'showcase-fallback',
+//   title: 'ملف العودة للسكينة',
+//   description: 'ملف عملي يعيد ترتيب يوم الأم ويمنحك خطوات صغيرة تخلق سلامًا داخل البيت.',
+//   summary: 'خطّة مختصرة تساعدك على تهدئة فوضى اليوم وإعادة وصل العائلة بالطمأنينة.',
+//   cover:
+//     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4peUdkcJz7xez1x9Gw-6Hnnlturg2SNLHVg&s',
+//   meta: 'كتاب PDF · 12 صفحة',
+//   href: PRODUCTS_ROUTE,
+//   badge: 'مفضل',
+//   format: 'كتاب PDF',
+//   duration: '12 صفحة عملية',
+//   typeLabel: 'كتاب',
+//   reviews: 184,
+//   dateLabel: 'ربيع 2024',
+// }
 
 const FALLBACK_FEATURES: LandingDisplay[] = [
   {
     id: 'feature-1',
-    title: 'دليلك لتستعيدي هدوءك و توازنك كأمّ',
+    title: 'دليلك لتستعيدي هدوءك وتوازنك كأمّ',
     description:
-      'ربيع الأول 1447 هـ\n\nيضع هذا الكتيّب بين يديك استراتيجيات عملية تمكّنك من:\n.إدارة مشاعرك بوعي وهدوء\n.استعادة أنوثتك واتصالك بذاتك الحقيقية\n.رسم حدود واضحة تحافظ على طاقتك وعلاقاتك الصحية',
+      'ربيع الأول 1447 هـ\n\n' +
+      'يضع هذا الكتيّب بين يديك استراتيجيات عملية تمكّنك من:\n' +
+      '- إدارة مشاعرك بوعي وهدوء\n' +
+      '- استعادة أنوثتك واتصالك بذاتك الحقيقية\n' +
+      '- رسم حدود واضحة تحافظ على طاقتك وعلاقاتك الصحية',
     summary:
-      'يضع هذا الكتيّب بين يديك استراتيجيات عملية تمكّنك من:\n.إدارة مشاعرك بوعي وهدوء\n.استعادة أنوثتك واتصالك بذاتك الحقيقية\n.رسم حدود واضحة تحافظ على طاقتك وعلاقاتك الصحية',
+      'يضع هذا الكتيّب بين يديك استراتيجيات عملية تمكّنك من:\n' +
+      '- إدارة مشاعرك بوعي وهدوء\n' +
+      '- استعادة أنوثتك واتصالك بذاتك الحقيقية\n' +
+      '- رسم حدود واضحة تحافظ على طاقتك وعلاقاتك الصحية',
     cover:
       'https://i.ibb.co/RhpnYWV/Enis-cyberpunk-ottoman-sultan-in-a-cyberpunk-city-8-K-hyperreali-e7506c88-2574-487c-838e-5bb8618dd1c.png',
     meta: 'كتاب PDF · 10 صفحات مركّزة',
@@ -206,8 +217,8 @@ const FALLBACK_FEATURES: LandingDisplay[] = [
   {
     id: 'feature-2',
     title: 'حوار أم وابنتها',
-    description: 'نموذج جاهز لفتح مساحة حديث آمنة داخل البيت.',
-    summary: 'سلسلة أسئلة خفيفة تفتح الطريق لحوار دافئ وخالٍ من الأحكام.',
+    description: 'نموذج عملي يساعدك على فتح مساحة حديث آمنة داخل البيت مع ابنتك.',
+    summary: 'سلسلة أسئلة خفيفة تفتح الطريق لحوار دافئ وخالٍ من الأحكام بين الأم وابنتها.',
     cover:
       'https://i.ibb.co/SrNRC0b/Erkan-Erdil-angry-soviet-officer-shouting-his-soldiers8k-octane-7b802966-9d4e-4c6e-ac37-d4f751419081.png',
     meta: 'جلسة تطبيقية',
@@ -222,8 +233,8 @@ const FALLBACK_FEATURES: LandingDisplay[] = [
   {
     id: 'feature-3',
     title: 'إعادة وصل الزوجين',
-    description: 'خطوات قصيرة للحفاظ على وئام العلاقة وسط الضغوط اليومية.',
-    summary: 'محفّز عملي يساعدكما على إعادة ضبط النوايا وفتح مساحة ودّ متجددة.',
+    description: 'خطوات عملية قصيرة تساعد على الحفاظ على وئام العلاقة وسط الضغوط اليومية.',
+    summary: 'محفّز عملي يساعدكما على إعادة ضبط النوايا وفتح مساحة ودّ متجددة بين الزوجين.',
     cover:
       'https://i.ibb.co/YjzSzjk/Erkan-Erdil-very-technical-and-detailed-blueprint-of-wolf-carve-bd937607-6a4f-4525-b4f2-b78207e64662.png',
     meta: 'كتاب PDF',
@@ -238,8 +249,8 @@ const FALLBACK_FEATURES: LandingDisplay[] = [
   {
     id: 'feature-4',
     title: 'جلسة تهدئة مسائية',
-    description: 'تأمل صوتي يساعدك على تهدئة التوتر قبل النوم.',
-    summary: 'مرافقة صوتية لطيفة تُنزل جسدك تدريجيًا من ضجيج اليوم إلى نوم مطمئن.',
+    description: 'تأمّل صوتي يساعدك على تهدئة التوتر قبل النوم والنزول تدريجيًا من ضجيج اليوم إلى سكينة الليل.',
+    summary: 'مرافقة صوتية لطيفة تُهيئ جسدك وعقلك لنوم أعمق وأكثر طمأنينة.',
     cover:
       'https://i.ibb.co/VLfJ41h/MR-ROBOT-two-cyberpunk-cowboys-dueling-6ae4203d-3539-4033-a9d9-80d747ac6498.png',
     meta: 'جلسة صوتية',
@@ -255,10 +266,13 @@ const FALLBACK_FEATURES: LandingDisplay[] = [
 
 function mapResourceToDisplay(resource: ProductResource): LandingDisplay {
   const dateLabel = resource.createdAt
-    ? new Intl.DateTimeFormat('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' }).format(
-        new Date(resource.createdAt),
-      )
+    ? new Intl.DateTimeFormat('en-CA', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(new Date(resource.createdAt))
     : undefined
+
   return {
     id: resource.id,
     title: resource.title,
@@ -354,6 +368,11 @@ export default function HomePage() {
       <main className="landing-root" role="main">
         <section className="landing-hero" aria-labelledby="landing-hero-title">
           <div className="landing-hero-box">
+            <div className="landing-hero-identity">
+              <span className="landing-hero-kicker">
+                مساحتك للسكينة والأنوثة والاتزان العاطفي Fittrah Moms
+              </span>
+            </div>
             <div className="landing-hero-display">
               <div className="landing-hero-art">
                 <Image
@@ -368,15 +387,10 @@ export default function HomePage() {
               </div>
             </div>
             <div className="landing-hero-info">
-              <div className="landing-hero-identity">
-                <span className="landing-hero-kicker">
-                  مساحتك للسكينة والأنوثة والاتزان العاطفي Fittrah Moms
-                </span>
-              </div>
               <div className="landing-hero-intro" aria-label="مقدمة Fittrah Moms">
                 <h1 id="landing-hero-title" className="landing-hero-headline">
-                 منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقات صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا؛ فحين تتّزن المرأة ينعكس نورها على
-                أسرتها، ويمتد أثرها إلى الجيل القادم كلّه.
+                  منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقات صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا؛
+                  فحين تتّزن المرأة ينعكس نورها على أسرتها، ويمتد أثرها إلى الجيل القادم كلّه.
                 </h1>
               </div>
               <div className="landing-hero-actions">
@@ -402,21 +416,24 @@ export default function HomePage() {
             </div>
             <div className="landing-bio-body">
               <h2 id="landing-bio-title">من أنا؟</h2>
+              <p>أنا مريم بوزير، أمّ لطفلتين، تونسية أتنقّل بين تونس وفرنسا.</p>
               <p>
-                أنا مريم بوزير، أمّ لطفلتين، تونسية أتنقّل بين تونس وفرنسا.
+                هاجرتُ إلى فرنسا لاستكمال دراستي العليا في مجال صناعة الأدوية، لكنّ الأمومة كانت نقطة التحوّل الكبرى
+                في حياتي؛ مرحلة حملت الكثير من الإرهاق، وتكرار الأمراض، وضباب المشاعر، وفقدان الاتصال بالذات، والتراجع
+                عن الأهداف.
               </p>
               <p>
-                هاجرتُ إلى فرنسا لاستكمال دراستي العليا في مجال صناعة الأدوية، لكنّ الأمومة كانت نقطة التحوّل الكبرى في حياتي؛ مرحلة حملت الكثير من الإرهاق،
-                وتكرار الأمراض، وضباب المشاعر، وفقدان الاتصال بالذات، والتراجع عن الأهداف.
+                هذا المنعطف دفعني للبحث بعمق عن جذور التعب النفسي والعضوي. درستُ المشاعر لمدة ثلاث سنوات، وتعمّقت في فهم
+                كيف يقف خلف كل ألم — نفسي أو عضوي — شعور لم يُفهم بعد ولم يُسمَع صوته.
               </p>
               <p>
-                هذا المنعطف دفعني للبحث بعمق عن جذور التعب النفسي والعضوي. درستُ المشاعر لمدة ثلاث سنوات، وتعمّقت في فهم كيف يقف خلف كل ألم — نفسي أو عضوي — شعور لم يُفهم بعد ولم يُسمَع صوته.
-              </p>
-              <p>
-                إلى جانب خلفيتي العلمية، تابعتُ دبلومًا في الإرشاد الأسري والعلاقات، وبدأتُ أوّلًا ممارسة ما تعلّمته داخل أسرتي، ثم تحوّل ما عشته من تغيير إلى رسالة أعيشها كل يوم:
+                إلى جانب خلفيتي العلمية، تابعتُ دبلومًا في الإرشاد الأسري والعلاقات، وبدأتُ أوّلًا ممارسة ما تعلّمته داخل
+                أسرتي، ثم تحوّل ما عشته من تغيير إلى رسالة أعيشها كل يوم:
               </p>
               <blockquote className="landing-bio-quote-card" aria-label="رسالة مريم بوزير">
-                <p>“دعم النساء نحو الاتزان، وإرشادهن شعوريًا، وبالأخصّ مرافقة الأمهات لاستعادة حياتهن بوعي وطمأنينة.”</p>
+                <p>
+                  “دعم النساء نحو الاتزان، وإرشادهن شعوريًا، وبالأخصّ مرافقة الأمهات لاستعادة حياتهن بوعي وطمأنينة.”
+                </p>
               </blockquote>
             </div>
           </div>
@@ -498,9 +515,7 @@ export default function HomePage() {
           <div className="landing-cta-body">
             <div className="landing-cta-copy">
               <h2 id="landing-cta-title">ابدئي بخطوة صغيرة تُحدِث أثرًا كبيرًا</h2>
-              <p>
-                حمّلي ملفًا مجانيًا، احصلي على رمز المكالمة، ثم استبدليه لاختيار موعدك مع مريم بوزير في مساحة تسمعك بصدق.
-              </p>
+              <p>حمّلي ملفًا مجانيًا، احصلي على رمز المكالمة، ثم استبدليه لاختيار موعدك مع مريم بوزير في مساحة تسمعك بصدق.</p>
             </div>
             <ul className="landing-cta-list">
               {CTA_ITEMS.map((item, index) => (
@@ -576,7 +591,6 @@ export default function HomePage() {
           </div>
         </footer>
       </main>
-
     </>
   )
 }

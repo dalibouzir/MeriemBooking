@@ -1208,7 +1208,7 @@ body.assistant-view .chatbot-widget{
 }
 .landing-hero-kicker{
   font-size:clamp(1.15rem, 2.6vw, 1.5rem);
-  font-weight:800;
+  font-weight:700;
   padding:0.35rem 1rem;
   border-radius:999px;
   background:linear-gradient(135deg, hsl(var(--primary-700)), hsl(var(--secondary)));
