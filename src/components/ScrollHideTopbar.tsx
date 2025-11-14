@@ -20,7 +20,7 @@ const NAV_LINKS: NavLink[] = [
   { href: '/products', label: 'المكتبة' },
   { href: '/assistant', label: 'مساعد الذكاء الاصطناعي' },
   { href: '/session', label: 'حجز الجلسة' },
-  { href: '/download', label: 'تنزيلاتي' },
+  { href: '/train-program', label: 'بـرنـامـج تـدريـبـي' },
 ]
 
 const BOOKING_URL = '/session'
@@ -112,12 +112,7 @@ export default function ScrollHideTopbar() {
     [isActive],
   )
 
-  const handleMenuToggle = () =>
-    setMenuOpen((prev) => {
-      const next = !prev
-      if (!prev) window.dispatchEvent(new Event(THEME_SWITCHER_CLOSE_EVENT))
-      return next
-    })
+  const handleMenuToggle = () => setMenuOpen((prev) => !prev)
   const closeMenu = () => setMenuOpen(false)
   const handleThemePanel = (open: boolean) => {
     if (open) setMenuOpen(false)

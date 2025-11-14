@@ -30,7 +30,6 @@ const SESSION_FAQ_ITEMS = [
     content: (
       <div className="landing-session-faq">
         <div className="landing-session-card landing-session-card-single">
-          <p className="landing-session-label">ما تفاصيل جلسة الإرشاد نحو الاتزان؟</p>
           <p>
             جلسة فردية للإرشاد نحو الاتزان، هادئة وعميقة مدّتها ساعة كاملة. أهيئ لك خلالها مساحة آمنة لتفهمي مشاعرك،
             وتستعيدي توازنك الداخلي بخطوات واضحة ومدروسة ترافق يومك بعد المكالمة.
@@ -45,7 +44,6 @@ const SESSION_FAQ_ITEMS = [
     content: (
       <div className="landing-session-faq">
         <div className="landing-session-card">
-          <p className="landing-session-label">لمن تناسب هذه الجلسة؟</p>
           <ul className="landing-session-list">
             <li>
               <strong>يعاني من مشكلات في العلاقات تؤثّر على استقراره وحياته اليومية</strong>
@@ -532,6 +530,9 @@ export default function HomePage() {
               <Link href={PRODUCTS_ROUTE} className="landing-btn landing-btn-secondary">
                 تصفّحي المكتبة الآن
               </Link>
+              <Link href="/train-program" className="landing-btn landing-btn-ghost">
+                بـرنـامـج تـدريـبـي
+              </Link>
             </div>
           </div>
         </section>
@@ -562,7 +563,7 @@ export default function HomePage() {
                 <Link href="/">الرئيسية</Link>
                 <Link href={PRODUCTS_ROUTE}>المكتبة</Link>
                 <Link href={BOOKING_ROUTE}>استبدال رمز المكالمة</Link>
-                <Link href="/download">تنزيلاتي</Link>
+                <Link href="/train-program">بـرنـامـج تـدريـبـي</Link>
               </div>
               <div className="landing-footer-col">
                 <h3>تواصل</h3>
