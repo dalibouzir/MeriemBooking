@@ -5,13 +5,12 @@ import { redirect } from 'next/navigation'
 import DownloadClient from './DownloadClient'
 
 type SearchParams = Record<string, string | string[] | undefined>
+type PageProps = {
+  // Next 15 currently passes a Promise; keep the type aligned to avoid build errors.
+  searchParams?: Promise<SearchParams>
+}
 
-export default async function Page({
-  searchParams,
-}: {
-  // Next 15 sometimes types this as a Promise; accept and await.
-  searchParams?: Promise<SearchParams> | SearchParams;
-}) {
+export default async function Page({ searchParams }: PageProps) {
   const resolvedParams = (await searchParams) ?? {}
   const product = typeof resolvedParams.product === 'string' ? resolvedParams.product : ''
   if (!product) {
