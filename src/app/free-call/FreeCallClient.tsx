@@ -100,7 +100,7 @@ export default function FreeCallClient({ initialToken = '' }: { initialToken?: s
     <section dir="rtl" className="fc-simple-wrapper">
       <div className="fc-card glass-water polished">
         <Image
-          src="/Meriem.webp"
+          src="/Meriem.jpeg"
           alt="مريم"
           width={120}
           height={120}

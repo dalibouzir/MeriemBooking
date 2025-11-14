@@ -60,7 +60,7 @@ export default function CardProduct({
 
       <div className="product-media">
         <Image
-          src={image || '/Meriem.webp'}
+          src={image || '/Meriem.jpeg'}
           alt={title}
           fill
           sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 280px"

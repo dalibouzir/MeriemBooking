@@ -18,9 +18,10 @@ type MobileMenuProps = {
   links: MobileNavLink[]
   isActive: (href: string) => boolean
   bookingUrl: string
+  assistantUrl: string
 }
 
-export default function MobileMenu({ open, onClose, links, isActive, bookingUrl }: MobileMenuProps) {
+export default function MobileMenu({ open, onClose, links, isActive, bookingUrl, assistantUrl }: MobileMenuProps) {
   const [container, setContainer] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -86,12 +87,19 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl 
 
         <div className="mobile-menu-cta">
           <Link
+            href={assistantUrl}
+            className="btn btn-primary mobile-menu-btn"
+            onClick={onClose}
+          >
+            <span>مساعد الذكاء الاصطناعي</span>
+          </Link>
+          <Link
             href={bookingUrl}
             className="btn btn-primary mobile-menu-btn"
             onClick={onClose}
           >
             <CalendarDaysIcon className="mobile-menu-btn-icon" aria-hidden />
-            <span>استبدلي الرمز</span>
+            <span>حجز الجلسة</span>
           </Link>
           <Link href="/products" className="btn mobile-menu-btn secondary" onClick={onClose}>
             المكتبة الرقمية

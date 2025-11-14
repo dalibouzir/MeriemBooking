@@ -45,7 +45,7 @@ export type ProductResource = {
 export async function mapLibraryItems(rows: LibraryItemRow[]): Promise<ProductResource[]> {
   return Promise.all(
     rows.map(async (item) => {
-      let cover = '/Meriem.webp'
+      let cover = '/Meriem.jpeg'
       if (item.thumbnail_path) {
         const { data } = supabaseClient.storage.from('library').getPublicUrl(item.thumbnail_path)
         if (data?.publicUrl) cover = data.publicUrl
@@ -78,7 +78,7 @@ export function mapLegacyProducts(rows: LegacyProductRow[]): ProductResource[] {
     type: item.type,
     title: item.title,
     description: item.description,
-    cover: item.cover || '/Meriem.webp',
+    cover: item.cover || '/Meriem.jpeg',
     rating: item.rating ?? 5,
     reviews: item.reviews ?? 0,
     slug: item.slug,

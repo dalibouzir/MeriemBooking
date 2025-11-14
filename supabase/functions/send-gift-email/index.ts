@@ -149,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
   const MERIEM_IMG =
     typeof meriemImgUrl === "string" && isValidUrl(meriemImgUrl) && meriemImgUrl
       ? meriemImgUrl
-      : "https://www.fittrahmoms.com/Meriem.webp"
+      : "https://www.fittrahmoms.com/Meriem.jpeg"
 
   const btn = (href: string, label: string, colorA = "#7c3aed", colorB = "#a855f7") => `
     <a href="${href}" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(90deg, ${colorA}, ${colorB});color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:800;font-size:14px;box-shadow:0 12px 24px rgba(124,58,237,.18)" target="_blank" rel="noopener noreferrer">

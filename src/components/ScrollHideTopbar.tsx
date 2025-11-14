@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Bars3Icon, CalendarDaysIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, CalendarDaysIcon, ChatBubbleLeftRightIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import ThemeSwitcher, { THEME_SWITCHER_CLOSE_EVENT } from './ThemeSwitcher'
 import TopbarAuth from './TopbarAuth'
 import MobileMenu from './MobileMenu'
@@ -18,11 +18,13 @@ type NavLink = {
 const NAV_LINKS: NavLink[] = [
   { href: '/', label: 'الرئيسية' },
   { href: '/products', label: 'المكتبة' },
-  { href: '/redeem', label: 'استبدال الرمز' },
+  { href: '/assistant', label: 'مساعد الذكاء الاصطناعي' },
+  { href: '/session', label: 'حجز الجلسة' },
   { href: '/download', label: 'تنزيلاتي' },
 ]
 
-const BOOKING_URL = '/redeem'
+const BOOKING_URL = '/session'
+const ASSISTANT_URL = '/assistant'
 
 export default function ScrollHideTopbar() {
   const [hidden, setHidden] = useState(false)
@@ -127,7 +129,10 @@ export default function ScrollHideTopbar() {
         <div className="brand-col">
           <Link href="/" className="brand" aria-label="الرجوع للصفحة الرئيسية — فطرة الأمهات">
             <Image src="/logo/logo.png" alt="فطرة الأمهات" className="brand-logo" width={48} height={48} priority />
-            <span className="brand-mark">Fittrah Moms</span>
+            <span className="brand-copy">
+              <span className="brand-mark">Fittrah Moms</span>
+              <span className="brand-tagline">مساحتك للسكينة والأنوثة والاتزان العاطفي</span>
+            </span>
           </Link>
           <button
             type="button"
@@ -146,15 +151,22 @@ export default function ScrollHideTopbar() {
 
         <div className="topbar-actions">
           <ThemeSwitcher onOpenChange={handleThemePanel} />
-          <Link href={BOOKING_URL} className="btn btn-nav btn-primary topbar-cta" aria-label="استبدال رمز المكالمة">
+          <Link href={BOOKING_URL} className="btn btn-nav btn-primary topbar-cta" aria-label="حجز الجلسة">
             <CalendarDaysIcon className="topbar-cta-icon" aria-hidden />
-            <span>استبدلي الرمز</span>
+            <span>حجز الجلسة</span>
           </Link>
           <TopbarAuth />
         </div>
       </div>
 
-      <MobileMenu open={menuOpen} onClose={closeMenu} links={NAV_LINKS} isActive={isActive} bookingUrl={BOOKING_URL} />
+      <MobileMenu
+        open={menuOpen}
+        onClose={closeMenu}
+        links={NAV_LINKS}
+        isActive={isActive}
+        bookingUrl={BOOKING_URL}
+        assistantUrl={ASSISTANT_URL}
+      />
     </header>
   )
 }
