@@ -117,7 +117,6 @@ export default function ScrollHideTopbar() {
   const handleThemePanel = (open: boolean) => {
     if (open) setMenuOpen(false)
   }
-
   return (
     <header className={`topbar${hidden ? ' is-hidden' : ''}`}>
       <div className="container topbar-row">

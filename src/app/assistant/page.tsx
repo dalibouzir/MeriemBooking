@@ -2,6 +2,7 @@
 
 import { FormEvent, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import Navbar from '@/components/ScrollHideTopbar'
+import ChatSuggestions from '@/components/ChatSuggestions'
 import { ArrowUpIcon, ChatBubbleLeftRightIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -160,9 +161,10 @@ export default function AssistantPage() {
   }, [adjustInputHeight, inputValue])
 
   const sendMessage = useCallback(
-    async (event?: FormEvent) => {
+    async (event?: FormEvent, overrideText?: string) => {
       if (event) event.preventDefault()
-      const trimmed = inputValue.trim()
+      const sourceText = typeof overrideText === 'string' ? overrideText : inputValue
+      const trimmed = sourceText.trim()
       if (!trimmed || loading) return
 
       const userMessage: ChatMessage = {
@@ -217,6 +219,22 @@ export default function AssistantPage() {
       }
     },
     [inputValue, loading, messages],
+  )
+
+  const handleSelectSuggestion = useCallback(
+    (suggestion: string) => {
+      if (loading) return
+      setInputValue(suggestion)
+      const scheduleSend = () => {
+        void sendMessage(undefined, suggestion)
+      }
+      if (typeof window === 'undefined') {
+        scheduleSend()
+        return
+      }
+      window.requestAnimationFrame(scheduleSend)
+    },
+    [loading, sendMessage],
   )
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -292,6 +310,7 @@ export default function AssistantPage() {
 
           {error && <p className="assistant-error">{error}</p>}
 
+          <ChatSuggestions onSelectSuggestion={handleSelectSuggestion} />
           <form className="assistant-input-row" onSubmit={sendMessage}>
             <div className="assistant-input-wrapper">
               <textarea
