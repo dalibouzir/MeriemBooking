@@ -161,6 +161,7 @@ export default function AssistantPage() {
     adjustInputHeight()
   }, [adjustInputHeight, inputValue])
 
+
   const sendMessage = useCallback(
     async (event?: FormEvent, overrideText?: string) => {
       if (event) event.preventDefault()
@@ -179,6 +180,7 @@ export default function AssistantPage() {
       setMessages(conversation)
       setInputValue('')
       setError(null)
+      setSuggestionsVisible(false)
       setLoading(true)
 
       try {
