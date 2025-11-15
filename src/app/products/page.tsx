@@ -420,14 +420,6 @@ function BookCard({ book, onSelect }: BookCardProps) {
       </div>
       <div className="library-card-actions">
         {downloadButton}
-        <button
-          type="button"
-          className="library-card-bookmark"
-          aria-label="إضافة إلى المفضلة"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <BookmarkIcon className="library-menu-icon" aria-hidden />
-        </button>
       </div>
     </article>
   )

@@ -1204,7 +1204,7 @@ body.assistant-view .chatbot-widget{
 .library-card-actions{
   display:flex;
   align-items:center;
-  justify-content:space-between;
+  justify-content:flex-start;
   gap:10px;
   margin-top:auto;
 }
@@ -1226,22 +1226,6 @@ body.assistant-view .chatbot-widget{
 .library-card-btn:hover{
   transform: translateY(-1px);
   box-shadow: var(--shadow-2);
-}
-.library-card-bookmark{
-  width:40px;
-  height:40px;
-  border-radius:12px;
-  border:1px solid var(--surface-border);
-  background: hsla(var(--glass));
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  color:hsl(var(--text));
-  transition: transform .18s ease, box-shadow .18s ease;
-}
-.library-card-bookmark:hover{
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-1);
 }
 .library-menu-icon{
   width:20px;
@@ -5678,14 +5662,273 @@ html[class*="theme-d"] .product-card .product-btn-download{
 .tag-video{ background:#fff7ed; color:#9a3412; }
 .link{ color: var(--purple-700); text-decoration: underline; }
 
-/* --- Route change progress bar --- */
+/* --- Route change loader overlay --- */
 .route-progress{
-  position: fixed; left: 0; right: 0; top: 0; height: 3px; z-index: 60;
-  background: linear-gradient(90deg, var(--purple-300), var(--purple-600));
-  opacity: 0; transform: translateY(-6px);
-  transition: opacity .15s ease, transform .15s ease;
+  position: fixed; inset: 0; z-index: 120;
+  display:flex; align-items:center; justify-content:center;
+  background: rgba(15,23,42,.72);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
 }
-.route-progress.is-visible{ opacity: 1; transform: translateY(0); }
+.route-progress.is-visible{ opacity: 1; pointer-events: auto; }
+
+.route-progress .loader{
+  --main-size: clamp(5.2em, 7vw, 6.8em);
+  --text-color: #a855f7;
+  --shine-color: rgba(216,180,252,.5);
+  --shadow-color: #581c87;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.1em;
+  overflow: visible;
+  user-select: none;
+  position: relative;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-color);
+  width: clamp(14rem, 32vw, 20rem);
+  padding: 2.2rem 2rem 1.6rem;
+  filter: drop-shadow(0 0 0.08em var(--shine-color));
+}
+
+.route-progress .loader .loader-text{
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 1.4em;
+  font-size: var(--main-size);
+  overflow: hidden;
+}
+
+.route-progress .loader .loader-text .text{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  position: absolute;
+}
+
+.route-progress .loader .loader-text .text:nth-child(1){
+  clip-path: polygon(0% 0%, 11.11% 0%, 11.11% 100%, 0% 100%);
+  font-size: calc(var(--main-size) / 20);
+  margin-left: -2.1em;
+  opacity: 0.55;
+}
+.route-progress .loader .loader-text .text:nth-child(2){
+  clip-path: polygon(11.11% 0%, 22.22% 0%, 22.22% 100%, 11.11% 100%);
+  font-size: calc(var(--main-size) / 16);
+  margin-left: -0.98em;
+  opacity: 0.65;
+}
+.route-progress .loader .loader-text .text:nth-child(3){
+  clip-path: polygon(22.22% 0%, 33.33% 0%, 33.33% 100%, 22.22% 100%);
+  font-size: calc(var(--main-size) / 13);
+  margin-left: -0.33em;
+  opacity: 0.75;
+}
+.route-progress .loader .loader-text .text:nth-child(4){
+  clip-path: polygon(33.33% 0%, 44.44% 0%, 44.44% 100%, 33.33% 100%);
+  font-size: calc(var(--main-size) / 11);
+  margin-left: -0.05em;
+  opacity: 0.85;
+}
+.route-progress .loader .loader-text .text:nth-child(5){
+  clip-path: polygon(44.44% 0%, 55.55% 0%, 55.55% 100%, 44.44% 100%);
+  font-size: calc(var(--main-size) / 10);
+  margin-left: 0;
+  opacity: 1;
+}
+.route-progress .loader .loader-text .text:nth-child(6){
+  clip-path: polygon(55.55% 0%, 66.66% 0%, 66.66% 100%, 55.55% 100%);
+  font-size: calc(var(--main-size) / 11);
+  margin-left: 0.05em;
+  opacity: 0.85;
+}
+.route-progress .loader .loader-text .text:nth-child(7){
+  clip-path: polygon(66.66% 0%, 77.77% 0%, 77.77% 100%, 66.66% 100%);
+  font-size: calc(var(--main-size) / 13);
+  margin-left: 0.33em;
+  opacity: 0.75;
+}
+.route-progress .loader .loader-text .text:nth-child(8){
+  clip-path: polygon(77.77% 0%, 88.88% 0%, 88.88% 100%, 77.77% 100%);
+  font-size: calc(var(--main-size) / 16);
+  margin-left: 0.98em;
+  opacity: 0.65;
+}
+.route-progress .loader .loader-text .text:nth-child(9){
+  clip-path: polygon(88.88% 0%, 100% 0%, 100% 100%, 88.88% 100%);
+  font-size: calc(var(--main-size) / 20);
+  margin-left: 2.1em;
+  opacity: 0.55;
+}
+
+.route-progress .loader .loader-text .text span{
+  animation: scrolling 2s cubic-bezier(0.1, 0.6, 0.9, 0.4) infinite,
+             shadow 2s cubic-bezier(0.1, 0.6, 0.9, 0.4) infinite;
+}
+
+.route-progress .loader .loader-text .text:nth-child(1) span{
+  background: linear-gradient(to right, var(--text-color) 4%, var(--shadow-color) 7%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+}
+.route-progress .loader .loader-text .text:nth-child(2) span{
+  background: linear-gradient(to right, var(--text-color) 9%, var(--shadow-color) 13%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+}
+.route-progress .loader .loader-text .text:nth-child(3) span{
+  background: linear-gradient(to right, var(--text-color) 15%, var(--shadow-color) 18%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+}
+.route-progress .loader .loader-text .text:nth-child(4) span{
+  background: linear-gradient(to right, var(--text-color) 20%, var(--shadow-color) 23%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+}
+.route-progress .loader .loader-text .text:nth-child(5) span{
+  background: linear-gradient(to right, var(--text-color) 25%, var(--shadow-color) 28%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+}
+.route-progress .loader .loader-text .text:nth-child(6) span{
+  background: linear-gradient(to right, var(--shadow-color) 29%, var(--text-color) 32%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+}
+.route-progress .loader .loader-text .text:nth-child(7) span{
+  background: linear-gradient(to right, var(--shadow-color) 34%, var(--text-color) 37%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+}
+.route-progress .loader .loader-text .text:nth-child(8) span{
+  background: linear-gradient(to right, var(--shadow-color) 39%, var(--text-color) 42%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+}
+.route-progress .loader .loader-text .text:nth-child(9) span{
+  background: linear-gradient(to right, var(--shadow-color) 45%, var(--text-color) 48%);
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+}
+
+.route-progress .loader .line{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  height: 0.05em;
+  width: calc(var(--main-size) / 2);
+  margin-top: 0;
+  border-radius: 0.05em;
+}
+
+.route-progress .loader .line::before{
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: var(--text-color);
+  opacity: 0.35;
+}
+
+.route-progress .loader .line::after{
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: var(--text-color);
+  border-radius: 0.05em;
+  transform: translateX(-90%);
+  animation: wobble 2s cubic-bezier(0.5, 0.8, 0.5, 0.2) infinite;
+}
+
+.route-progress .loader .flower{
+  width: clamp(140px, 20vw, 200px);
+  height: clamp(140px, 20vw, 200px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  pointer-events: none;
+  animation: flowerRotate 8s ease infinite;
+}
+
+.route-progress .loader .flower .petal{
+  position: absolute;
+  width: 35px;
+  height: 60px;
+  background: linear-gradient(180deg, #fcdbdf, #fd688d);
+  border-radius: 50%;
+  animation: flowerChangeColor 8s linear infinite;
+}
+
+.route-progress .loader .flower .petal1{ transform: rotate(0deg) translateY(-50%); animation-delay: 0.1s; }
+.route-progress .loader .flower .petal2{ transform: rotate(45deg) translateY(-50%); animation-delay: 0.2s; }
+.route-progress .loader .flower .petal3{ transform: rotate(90deg) translateY(-50%); animation-delay: 0.3s; }
+.route-progress .loader .flower .petal4{ transform: rotate(135deg) translateY(-50%); animation-delay: 0.4s; }
+.route-progress .loader .flower .petal5{ transform: rotate(180deg) translateY(-50%); animation-delay: 0.5s; }
+.route-progress .loader .flower .petal6{ transform: rotate(225deg) translateY(-50%); animation-delay: 0.6s; }
+.route-progress .loader .flower .petal7{ transform: rotate(270deg) translateY(-50%); animation-delay: 0.7s; }
+.route-progress .loader .flower .petal8{ transform: rotate(315deg) translateY(-50%); animation-delay: 0.8s; }
+
+.route-progress .loader .flower .center{
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background-color: #f1d2d2;
+  border-radius: 50%;
+}
+
+@keyframes wobble{
+  0% { transform: translateX(-90%); }
+  50% { transform: translateX(90%); }
+  100% { transform: translateX(-90%); }
+}
+
+@keyframes scrolling{
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes shadow{
+  0% { background-position: -98% 0; }
+  100% { background-position: 102% 0; }
+}
+
+@keyframes flowerChangeColor{
+  0% { background: linear-gradient(180deg, #fcdbdf, #fd688d); }
+  25% { background: linear-gradient(180deg, #fcd2e3, #fa6094); }
+  50% { background: linear-gradient(180deg, #fabefc, #c34ec7); }
+  75% { background: linear-gradient(180deg, #f7d6d6, #fd6a6a); }
+  100% { background: linear-gradient(180deg, #fcd3fc, #e844f7); }
+}
+
+@keyframes flowerRotate{
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.35) rotate(360deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
 
 /* --- Free Call page styles --- */
 .fc-wrapper { text-align: center; }
