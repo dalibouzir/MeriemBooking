@@ -15,7 +15,7 @@ import {
 
 const BOOKING_ROUTE = '/redeem'
 const PRODUCTS_ROUTE = '/products'
-const HERO_IMAGE = '/Hero.jpeg'
+const HERO_IMAGE = '/Meriem.png'
 
 const CTA_ITEMS = [
   'حمّلي ملفًا مجانيًا لتحصلي على رمز المكالمة الأولى',
@@ -150,7 +150,7 @@ const SOCIAL_LINKS: SocialLink[] = [
   { href: 'https://linktr.ee/meriembouzir', label: 'لينك تري', icon: '🌿', variant: 'linktree' },
   { href: 'https://www.instagram.com/fittrah.moms', label: 'إنستغرام', icon: '📸' },
   { href: 'https://www.youtube.com/@fittrahmoms', label: 'يوتيوب', icon: '▶️' },
-  { href: 'https://wa.me/21629852313', label: 'واتساب', icon: '💬' },
+  { href: 'https://wa.me/33665286368', label: 'واتساب (+33 6 65 28 63 68)', icon: '💬' },
 ]
 
 type LandingDisplay = {

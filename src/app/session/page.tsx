@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-const BOOKING_URL = 'https://calendly.com/meriembouzir/30min'
+const WHATSAPP_URL = 'https://wa.me/33665286368'
 
 const SESSION_AUDIENCE = [
   'يعاني من مشكلات في العلاقات تؤثّر على استقراره وحياته اليومية (علاقات مرهِقة، صعوبات زوجية، توتر عائلي…)',
@@ -26,8 +26,8 @@ export default function SessionPage() {
             جلسة هادئة وعميقة مدّتها ساعة، مخصّصة لكل من يحتاج مساحة آمنة يفهم فيها مشاعره، ويستعيد توازنه الداخلي بخطوات واضحة ومدروسة.
           </h1>
           <div className="session-hero-actions">
-            <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
-              احجزي جلستك
+            <Link href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
+              تواصلي عبر واتساب
             </Link>
             <p className="session-hero-note">جلسات سرّية، فردية، ومخصّصة لك تمامًا.</p>
           </div>
@@ -73,8 +73,8 @@ export default function SessionPage() {
       </section>
 
       <div className="session-cta">
-        <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
-          احجزي جلستك
+        <Link href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
+          تواصلي عبر واتساب
         </Link>
       </div>
     </main>

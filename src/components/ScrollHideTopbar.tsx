@@ -126,9 +126,16 @@ export default function ScrollHideTopbar() {
             <Image src="/logo/logo.png" alt="فطرة الأمهات" className="brand-logo" width={48} height={48} priority />
             <span className="brand-copy">
               <span className="brand-mark">Fittrah Moms</span>
-              <span className="brand-tagline">مساحتك للسكينة والأنوثة والاتزان العاطفي</span>
             </span>
           </Link>
+        </div>
+
+        <nav className="topbar-nav" aria-label="التنقل الرئيسي">
+          {navItems}
+        </nav>
+
+        <div className="topbar-actions">
+          <ThemeSwitcher compact onOpenChange={handleThemePanel} />
           <button
             type="button"
             className="topbar-menu-toggle"
@@ -138,18 +145,6 @@ export default function ScrollHideTopbar() {
           >
             {menuOpen ? <XMarkIcon className="topbar-menu-icon" /> : <Bars3Icon className="topbar-menu-icon" />}
           </button>
-        </div>
-
-        <nav className="topbar-nav" aria-label="التنقل الرئيسي">
-          {navItems}
-        </nav>
-
-        <div className="topbar-actions">
-          <ThemeSwitcher onOpenChange={handleThemePanel} />
-          <Link href={BOOKING_URL} className="btn btn-nav btn-primary topbar-cta" aria-label="حجز الجلسة">
-            <CalendarDaysIcon className="topbar-cta-icon" aria-hidden />
-            <span>حجز الجلسة</span>
-          </Link>
           <TopbarAuth />
         </div>
       </div>

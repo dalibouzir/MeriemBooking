@@ -13,20 +13,20 @@ export type LibraryItemRow = {
 
 export type LegacyProductRow = {
   id: string
-  type: 'كتاب' | 'فيديو'
-  title: string
-  description: string
-  cover: string | null
-  rating: number | null
-  reviews: number | null
-  slug: string
-  snippet: string | null
-  created_at?: string
+  type?: string | null
+  title?: string | null
+  description?: string | null
+  cover?: string | null
+  rating?: number | null
+  reviews?: number | null
+  slug?: string | null
+  snippet?: string | null
+  created_at?: string | null
 }
 
 export type ProductResource = {
   id: string
-  type: 'كتاب' | 'فيديو'
+  type: 'كتاب' | 'فيديو' | 'دورة' | 'منتج'
   title: string
   description: string
   cover: string
@@ -75,18 +75,18 @@ export async function mapLibraryItems(rows: LibraryItemRow[]): Promise<ProductRe
 export function mapLegacyProducts(rows: LegacyProductRow[]): ProductResource[] {
   return rows.map((item) => ({
     id: item.id,
-    type: item.type,
-    title: item.title,
-    description: item.description,
+    type: ((item.type as ProductResource['type']) ?? 'كتاب'),
+    title: item.title?.trim() || 'ملف بلا عنوان',
+    description: item.description?.trim() || 'ملف عملي يحتوي على خطوات تطبيقية جاهزة للتنزيل.',
     cover: item.cover || '/Meriem.jpeg',
     rating: item.rating ?? 5,
     reviews: item.reviews ?? 0,
-    slug: item.slug,
-    snippet: item.snippet ?? createSnippet(item.description),
-    format: item.type === 'فيديو' ? 'فيديو تعليمي' : 'كتاب PDF',
-    duration: item.type === 'فيديو' ? '25 دقيقة' : '10 صفحات مركّزة',
+    slug: item.slug ?? item.id,
+    snippet: item.snippet ?? (item.description ? createSnippet(item.description) : undefined),
+    format: item.type === 'فيديو' ? 'جلسة تطبيقية' : 'كتاب PDF',
+    duration: item.type === 'فيديو' ? '25 دقيقة' : '12 صفحة عملية',
     badge: item.snippet ? 'لمحة سريعة' : undefined,
-    createdAt: item.created_at,
+    createdAt: item.created_at ?? undefined,
   }))
 }
 
