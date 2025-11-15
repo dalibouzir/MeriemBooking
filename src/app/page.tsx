@@ -386,10 +386,8 @@ export default function HomePage() {
             </div>
             <div className="landing-hero-info">
               <div className="landing-hero-intro" aria-label="مقدمة Fittrah Moms">
-                <h1 id="landing-hero-title" className="landing-hero-headline">
-                  منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقات صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا؛
-                  فحين تتّزن المرأة ينعكس نورها على أسرتها، ويمتد أثرها إلى الجيل القادم كلّه.
-                </h1>
+                <h1 id="landing-hero-title" className="landing-hero-headline" dir="rtl">
+منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقاتٍ صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا؛ فحين تتّزن المرأة ينعكس نورها على أسرتها، ويمتدّ أثرها إلى الجيل القادم كلّه.</h1>
               </div>
               <div className="landing-hero-actions">
                 <button type="button" className="landing-btn landing-btn-primary" onClick={handleScrollToFeatured}>

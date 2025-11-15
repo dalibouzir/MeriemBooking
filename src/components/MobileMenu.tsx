@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import { XMarkIcon, CalendarDaysIcon } from '@heroicons/react/24/outline'
 import useLockBodyScroll from '@/hooks/useLockBodyScroll'
-import ThemeSwitcher from './ThemeSwitcher'
 import TopbarAuth from './TopbarAuth'
 
 export type MobileNavLink = {
@@ -75,10 +74,6 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl,
             <XMarkIcon className="mobile-menu-close-icon" />
           </button>
           <span className="mobile-menu-title">القائمة</span>
-        </div>
-
-        <div className="mobile-menu-theme">
-          <ThemeSwitcher compact onSelect={onClose} />
         </div>
 
         <nav className="mobile-menu-nav" aria-label="روابط الجوال">

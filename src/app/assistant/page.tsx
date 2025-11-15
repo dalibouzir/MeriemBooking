@@ -58,6 +58,7 @@ export default function AssistantPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(0)
   const [showSuggestion, setShowSuggestion] = useState(true)
+  const [suggestionsVisible, setSuggestionsVisible] = useState(true)
   const [isInputFocused, setIsInputFocused] = useState(false)
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
@@ -224,6 +225,7 @@ export default function AssistantPage() {
   const handleSelectSuggestion = useCallback(
     (suggestion: string) => {
       if (loading) return
+      setSuggestionsVisible(false)
       setInputValue(suggestion)
       const scheduleSend = () => {
         void sendMessage(undefined, suggestion)
@@ -310,7 +312,7 @@ export default function AssistantPage() {
 
           {error && <p className="assistant-error">{error}</p>}
 
-          <ChatSuggestions onSelectSuggestion={handleSelectSuggestion} />
+          {suggestionsVisible && <ChatSuggestions onSelectSuggestion={handleSelectSuggestion} />}
           <form className="assistant-input-row" onSubmit={sendMessage}>
             <div className="assistant-input-wrapper">
               <textarea
