@@ -175,13 +175,8 @@ export default function ProductsPage() {
       <section aria-labelledby="library-shelf-title">
         <div className="library-section-head">
           <div>
-            <p className="library-hero-subtitle">مكتبة فطرة</p>
-            <h2 id="library-shelf-title">رف رقمي لكل الأدلة والملفات</h2>
-            <p>تصفّحي التصنيفات بسرعة أو اسحبي الشريط الجانبي لاختيار ما يناسب رحلتك أو عمر طفلك.</p>
+            <h1 className="library-hero-title">مكتبة فطرة</h1>
           </div>
-          <Link href={CTA_ROUTE} className="library-section-cta">
-            شاهدي جميع الملفات
-          </Link>
         </div>
 
         <nav className="library-filter-tabs" aria-label="تصنيفات المكتبة">

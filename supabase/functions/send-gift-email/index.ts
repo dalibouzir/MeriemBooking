@@ -12,6 +12,7 @@ const ENV_FROM = getEnv("EMAIL_FROM")?.trim()
 // Fallback is your verified domain
 const FROM = ENV_FROM && ENV_FROM.length > 0 ? ENV_FROM : "Fittrah Moms <noreply@fittrahmoms.com>"
 const RESEND_ENDPOINT = "https://api.resend.com/emails"
+const CALENDLY_BOOKING_URL = "https://calendly.com/meriembouzir/30min?month=2025-12"
 
 // ------------ utils ------------
 const json = (data: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
@@ -40,13 +41,9 @@ const isValidUrl = (s: string) => {
 const arabicPlainTextRequested = ({
   name,
   downloadUrl,
-  token,
-  redeemUrl,
 }: {
   name?: string
   downloadUrl: string
-  token: string
-  redeemUrl: string
 }) => {
   const greet = name && name.trim().length > 0 ? name.trim() : "عزيزتي الأم"
   return [
@@ -73,10 +70,8 @@ const arabicPlainTextRequested = ({
     "مريم بوزير ",
     "",
     "— — —",
-    "🎁 كود المكالمة المجانية:",
-    token,
-    "احجزي الموعد عبر الرابط:",
-    redeemUrl,
+    "احجزي مكالمتك المجانية مباشرة عبر Calendly:",
+    CALENDLY_BOOKING_URL,
   ].join("\n")
 }
 
@@ -143,29 +138,23 @@ const handler = async (req: Request): Promise<Response> => {
 
   const ensuredEmail = email as string
   const ensuredDownloadUrl = downloadUrl as string
-  const ensuredToken = token as string
-  const ensuredRedeemUrl = redeemUrl as string
 
   const MERIEM_IMG =
     typeof meriemImgUrl === "string" && isValidUrl(meriemImgUrl) && meriemImgUrl
       ? meriemImgUrl
       : "https://www.fittrahmoms.com/Meriem.jpeg"
 
-  const btn = (href: string, label: string, colorA = "#7c3aed", colorB = "#a855f7") => `
+  const btn = (
+    href: string,
+    label: string,
+    colorA = "#7c3aed",
+    colorB = "#a855f7",
+    icon = "🔗",
+  ) => `
     <a href="${href}" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(90deg, ${colorA}, ${colorB});color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:800;font-size:14px;box-shadow:0 12px 24px rgba(124,58,237,.18)" target="_blank" rel="noopener noreferrer">
-      <span style="font-size:18px">🔗</span>
+      ${icon ? `<span style="font-size:18px">${icon}</span>` : ""}
       <span>${label}</span>
     </a>
-  `
-
-  const infoRow = (icon: string, label: string, value: string) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:#faf5ff;border:1px solid #e9d5ff;margin-top:10px">
-      <div style="font-size:22px">${icon}</div>
-      <div style="display:grid;gap:2px">
-        <span style="font-size:12px;color:#6b7280">${label}</span>
-        <span style="font-size:16px;font-weight:700;color:#5b21b6">${value}</span>
-      </div>
-    </div>
   `
 
   const html = `
@@ -236,11 +225,14 @@ const handler = async (req: Request): Promise<Response> => {
 
         <p style="margin:0;font-size:15px;color:#111111">مع محبّتي،<br/>مريم بوزير</p>
 
-        <!-- Redeem code block (preserved) -->
-        ${infoRow('🎁', 'كود مكالمتك المجانية — صالح 30 يوم:', ensuredToken)}
-        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:12px">
-          ${btn(ensuredRedeemUrl, "احجزي مكالمتك المجانية", "#0f766e", "#14b8a6")}
-        </div>
+          <div style="padding:20px;border-radius:18px;background:linear-gradient(180deg,rgba(236,72,153,0.04),#ffffff);border:1px solid #f3e8ff;display:grid;gap:12px">
+            <p style="margin:0;font-weight:700;color:#6d28d9">
+              احجزي مكالمتك المجانية مباشرة عبر Calendly وسيصلك تأكيد الموعد فوراً.
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:12px">
+              ${btn(CALENDLY_BOOKING_URL, "احجزي مكالمتك المجانية", "#a855f7", "#ec4899", "")}
+            </div>
+          </div>
       </div>
 
       <div style="padding:16px 24px;background:linear-gradient(135deg,#ede9fe,#f7f5ff);border-top:1px solid #e6defd;text-align:center;color:#4c1d95;font-size:12px;font-weight:600">
@@ -250,7 +242,7 @@ const handler = async (req: Request): Promise<Response> => {
   </div>
   `.trim()
 
-  const text = arabicPlainTextRequested({ name, downloadUrl: ensuredDownloadUrl, token: ensuredToken, redeemUrl: ensuredRedeemUrl })
+  const text = arabicPlainTextRequested({ name, downloadUrl: ensuredDownloadUrl })
 
   // Build body for Resend
   const body: Record<string, unknown> = {

@@ -39,7 +39,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   const productMissing = useMemo(() => !product, [product])
   const countryCodeOptions = useMemo(
     () =>
-      COUNTRY_DIAL_CODES.map((entry) => {
+      COUNTRY_DIAL_CODES.filter((entry) => entry.country !== 'Israel').map((entry) => {
         const flag = isoToFlag(entry.iso)
         const label = `${flag ? `${flag} ` : ''}${entry.country} (${entry.code})`
         return {
@@ -143,7 +143,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         ) : (
           <p className="dl-sub">
             الرجاء إدخال معلوماتك أدناه. فور الإرسال ستصلك رسالة تأكيد تحتوي على:
-            <br />- 🔗 رابط مباشر لتحميل المنتج<br />- 🎁 كود مكالمة مجانية صالح لمدة 30 يوم
+            <br />- 🔗 رابط مباشر لتحميل المنتج
           </p>
         )}
 
