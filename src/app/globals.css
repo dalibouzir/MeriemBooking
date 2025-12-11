@@ -1574,6 +1574,18 @@ body.assistant-view .chatbot-widget{
   height:100%;
   object-fit:cover;
 }
+
+@media (max-width: 900px){
+  .library-sheet-panel{
+    max-height:88vh;
+    overflow-y:auto;
+  }
+
+  .library-sheet-cover{
+    aspect-ratio:16 / 9;
+    max-height:220px;
+  }
+}
 .library-sheet-benefits{
   list-style:none;
   margin:0;

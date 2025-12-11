@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { COUNTRY_DIAL_CODES } from '@/data/countryDialCodes'
 
 type RequestDownloadResponse = {
@@ -33,7 +33,10 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   const [error, setError] = useState<string | null>(null)
 
   const product = initialProduct
+  const searchParams = useSearchParams()
   const hpRef = useRef<HTMLInputElement | null>(null)
+  const snippet = searchParams?.get('snippet') || ''
+  const snippetLines = snippet ? snippet.split(/\r?\n/) : []
 
   const isValidEmail = (s: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
   const productMissing = useMemo(() => !product, [product])
@@ -147,8 +150,18 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           </p>
         )}
 
-        <form id="dl-form" onSubmit={onSubmit} className="dl-form" noValidate>
-          <input type="hidden" name="product" value={product} />
+          <form id="dl-form" onSubmit={onSubmit} className="dl-form" noValidate>
+            <input type="hidden" name="product" value={product} />
+            {!productMissing && snippetLines.length > 0 && (
+              <div className="dl-snippet">
+                <p className="dl-snippet-label">مقتطف عن الملف</p>
+                {snippetLines.map((line, index) => (
+                  <p key={`snippet-line-${index}`} className="dl-snippet-text">
+                    {line}
+                  </p>
+                ))}
+              </div>
+            )}
           {/* Honeypot */}
           <input ref={hpRef} name="website" tabIndex={-1} autoComplete="off" className="dl-hp" />
 
@@ -287,6 +300,28 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           .dl-phone-group {
             grid-template-columns: 120px minmax(0, 1fr);
           }
+        }
+
+        .dl-snippet {
+          background: hsla(var(--accent) / 0.12);
+          border: 1px solid hsla(var(--accent) / 0.4);
+          border-radius: 16px;
+          padding: 12px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          font-size: 0.95rem;
+        }
+
+        .dl-snippet-label {
+          font-weight: 700;
+          color: hsl(var(--accent));
+        }
+
+        .dl-snippet-text {
+          margin: 0;
+          color: hsl(var(--text));
+          line-height: 1.4;
         }
       `}</style>
       </div>

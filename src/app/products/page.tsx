@@ -3,14 +3,12 @@
 import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { AnimatePresence, motion } from 'motion/react'
 import {
   BookmarkIcon,
   ClockIcon,
   DocumentTextIcon,
   UserGroupIcon,
   ArrowDownTrayIcon,
-  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import Accordion from '@/components/ui/Accordion'
 import ChatbotWidget from '@/components/ChatbotWidget'
@@ -115,8 +113,6 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<BookCategory>('الكل')
-  const [selectedBook, setSelectedBook] = useState<ShelfBook | null>(null)
-
   useEffect(() => {
     let cancelled = false
     const fetchProducts = async () => {
@@ -147,28 +143,12 @@ export default function ProductsPage() {
     }
   }, [])
 
-  useEffect(() => {
-    if (typeof document === 'undefined') return
-    if (selectedBook) document.body.classList.add('sheet-open')
-    else document.body.classList.remove('sheet-open')
-    return () => document.body.classList.remove('sheet-open')
-  }, [selectedBook])
-
   const normalizedResources = useMemo(() => resources.map(normalizeResource), [resources])
 
   const filteredBooks = useMemo(() => {
     if (activeCategory === 'الكل') return normalizedResources
     return normalizedResources.filter((book) => book.tags.includes(activeCategory))
   }, [activeCategory, normalizedResources])
-
-  const handleCardSelect = (book: ShelfBook) => {
-    if (typeof window === 'undefined') return
-    if (window.matchMedia('(max-width: 900px)').matches) {
-      setSelectedBook(book)
-    }
-  }
-
-  const handleCloseSheet = () => setSelectedBook(null)
 
   return (
     <main className="library-page" dir="rtl">
@@ -219,7 +199,7 @@ export default function ProductsPage() {
             ) : (
               <div className="library-grid" role="list">
                 {filteredBooks.map((book) => (
-                  <BookCard key={book.id} book={book} onSelect={handleCardSelect} />
+                  <BookCard key={book.id} book={book} />
                 ))}
               </div>
             )}
@@ -293,61 +273,6 @@ export default function ProductsPage() {
         <Link href={CTA_ROUTE}>ابدئي الآن</Link>
       </div>
 
-      <AnimatePresence>
-        {selectedBook ? (
-          <motion.div
-            className="library-sheet-root"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleCloseSheet}
-          >
-            <motion.div
-              className="library-sheet-panel"
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.33, 1, 0.68, 1] }}
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="library-sheet-header">
-                <div>
-                  <h3 className="library-card-title">{selectedBook.title}</h3>
-                  <p className="library-card-desc">{selectedBook.description}</p>
-                </div>
-                <button type="button" className="library-sheet-close" onClick={handleCloseSheet} aria-label="إغلاق">
-                  <XMarkIcon className="library-menu-icon" aria-hidden />
-                </button>
-              </div>
-
-              <div className="library-sheet-cover">
-                <Image
-                  src={selectedBook.cover}
-                  alt="غلاف الملف المختار"
-                  fill
-                  sizes="(max-width: 768px) 90vw, 520px"
-                />
-                {selectedBook.badge ? <span className="library-card-badge">{selectedBook.badge}</span> : null}
-              </div>
-
-              <ul className="library-sheet-benefits">
-                {selectedBook.benefits.map((benefit, index) => (
-                  <li key={`${selectedBook.id}-sheet-${index}`}>{benefit}</li>
-                ))}
-              </ul>
-
-              <div className="library-sheet-actions">
-                <SmartLink href={selectedBook.ctaHref} className="primary">
-                  تحميل PDF / فتح الملف
-                </SmartLink>
-                <Link href={CTA_ROUTE} className="secondary">
-                  إضافة إلى المفضلة
-                </Link>
-              </div>
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
     </main>
   )
 }
@@ -376,10 +301,9 @@ function SmartLink({ href, className = '', children, onClick }: SmartLinkProps) 
 
 type BookCardProps = {
   book: ShelfBook
-  onSelect: (book: ShelfBook) => void
 }
 
-function BookCard({ book, onSelect }: BookCardProps) {
+function BookCard({ book }: BookCardProps) {
   const handleCoverClick = (event: MouseEvent<HTMLAnchorElement>) => {
     event.stopPropagation()
   }
@@ -392,7 +316,7 @@ function BookCard({ book, onSelect }: BookCardProps) {
   )
 
   return (
-    <article className="library-card" role="listitem" onClick={() => onSelect(book)}>
+    <article className="library-card" role="listitem">
       <SmartLink href={book.ctaHref} className="library-card-cover-link" onClick={handleCoverClick}>
         <div className="library-card-cover">
           <Image src={book.cover} alt={book.title} fill sizes="(max-width: 680px) 80vw, 300px" />
@@ -430,11 +354,9 @@ function normalizeResource(resource: ProductResource): ShelfBook {
   const duration = resource.duration || (isBook ? '12 صفحة' : '20 دقيقة')
   const tags = deriveTags(isBook)
   const benefits = buildBenefits(safeResource)
-  const ctaHref = resource.downloadUrl
-    ? resource.downloadUrl
-    : resource.slug
-      ? `/download?product=${resource.slug}`
-      : `/download?product=${resource.id}`
+  const downloadQueryBase = resource.slug ? `/download?product=${resource.slug}` : `/download?product=${resource.id}`
+  const snippetParam = resource.snippet ? `&snippet=${encodeURIComponent(resource.snippet)}` : ''
+  const ctaHref = resource.downloadUrl ? resource.downloadUrl : `${downloadQueryBase}${snippetParam}`
   const audience = isBook ? 'كتاب' : 'جلسة فيديو'
   const ctaLabel = isBook ? 'تحميل فوري' : 'تشغيل الآن'
 
