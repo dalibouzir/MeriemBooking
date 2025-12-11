@@ -196,6 +196,7 @@ export default function ProductsPage() {
             </button>
           ))}
         </nav>
+        <p className="library-grid-hint">اسحبي لرؤية المزيد من الملفات على الهاتف.</p>
 
         {error ? (
           <div className="library-error" role="alert">
