@@ -13,7 +13,7 @@ import {
   type ProductResource,
 } from '@/utils/products'
 
-const BOOKING_ROUTE = '/redeem'
+const CALENDLY_URL = 'https://calendly.com/meriembouzir/30min?month=2025-12'
 const PRODUCTS_ROUTE = '/products'
 const HERO_IMAGE = '/Meriem.png'
 
@@ -108,7 +108,7 @@ const SESSION_FAQ_ITEMS = [
             <p className="landing-session-label">الحجز</p>
             <p className="landing-session-cta-copy">جلسات سرّية، فردية، ومخصّصة لك تمامًا.</p>
           </div>
-          <Link href={BOOKING_ROUTE} className="landing-btn landing-btn-primary">
+          <Link href={CALENDLY_URL} className="landing-btn landing-btn-primary" target="_blank" rel="noopener noreferrer">
             احجزي جلستك
           </Link>
         </div>
@@ -393,9 +393,14 @@ export default function HomePage() {
                 <button type="button" className="landing-btn landing-btn-primary" onClick={handleScrollToFeatured}>
                   استكشفي الملفات
                 </button>
-                <Link href={BOOKING_ROUTE} className="landing-btn landing-btn-secondary">
-                  استبدلي رمز المكالمة
-                </Link>
+              <Link
+                href={CALENDLY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="landing-btn landing-btn-secondary"
+              >
+                احجزي مكالمتك المجانية
+              </Link>
               </div>
             </div>
           </div>
@@ -494,8 +499,13 @@ export default function HomePage() {
                           <Link href={PRODUCTS_ROUTE} className="landing-file-panel-btn">
                             استكشفي الملفات
                           </Link>
-                          <Link href={BOOKING_ROUTE} className="landing-file-panel-btn landing-file-panel-btn-secondary">
-                            استبدلي رمز المكالمة
+                          <Link
+                            href={CALENDLY_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="landing-file-panel-btn landing-file-panel-btn-secondary"
+                          >
+                            احجزي مكالمتك المجانية
                           </Link>
                         </div>
                       </div>
@@ -522,8 +532,13 @@ export default function HomePage() {
               ))}
             </ul>
             <div className="landing-cta-actions">
-              <Link href={BOOKING_ROUTE} className="landing-btn landing-btn-primary">
-                استبدلي رمز المكالمة
+              <Link
+                href={CALENDLY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="landing-btn landing-btn-primary"
+              >
+                احجزي مكالمتك المجانية
               </Link>
               <Link href={PRODUCTS_ROUTE} className="landing-btn landing-btn-secondary">
                 تصفّحي المكتبة الآن
@@ -560,7 +575,9 @@ export default function HomePage() {
                 <h3>روابط سريعة</h3>
                 <Link href="/">الرئيسية</Link>
                 <Link href={PRODUCTS_ROUTE}>المكتبة</Link>
-                <Link href={BOOKING_ROUTE}>استبدال رمز المكالمة</Link>
+                <Link href={CALENDLY_URL} target="_blank" rel="noopener noreferrer">
+                  احجزي مكالمتك المجانية
+                </Link>
                 <Link href="/train-program">بـرنـامـج تـدريـبـي</Link>
               </div>
               <div className="landing-footer-col">
@@ -574,7 +591,9 @@ export default function HomePage() {
               </div>
               <div className="landing-footer-col">
                 <h3>الحجوزات</h3>
-                <Link href={BOOKING_ROUTE}>استبدال رمز المكالمة</Link>
+                <Link href={CALENDLY_URL} target="_blank" rel="noopener noreferrer">
+                  احجزي مكالمتك المجانية
+                </Link>
                 <Link href={PRODUCTS_ROUTE}>الحصول على رمز جديد</Link>
               </div>
               <div className="landing-footer-col">
