@@ -13,7 +13,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@supabase/supabase-js": "^2.56.0",
     "motion": "^12.23.12",
-    "next": "^15.5.0",
+    "next": "15.5.7",
     "next-auth": "^4.24.11",
     "react": "^19.1.1",
     "react-calendar": "^6.0.0",
