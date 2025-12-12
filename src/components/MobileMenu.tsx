@@ -45,9 +45,14 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl,
 
   useLockBodyScroll(open)
 
+  const filteredLinks = useMemo(
+    () => links.filter((item) => item.href !== bookingUrl && item.href !== assistantUrl),
+    [links, bookingUrl, assistantUrl],
+  )
+
   const navItems = useMemo(
     () =>
-      links.map((item) => (
+      filteredLinks.map((item) => (
         <Link
           key={item.href}
           href={item.href}
@@ -60,7 +65,7 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl,
           {item.label}
         </Link>
       )),
-    [links, isActive, onClose],
+    [filteredLinks, isActive, onClose],
   )
 
   if (!container) return null
