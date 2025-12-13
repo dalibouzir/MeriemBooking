@@ -115,6 +115,44 @@ const FAQ_ITEMS = [
 ]
 
 const CTA_ROUTE = '/download'
+const CLICK_ID_KEY = 'fm_click_id'
+
+function getOrCreateClickId() {
+  if (typeof window === 'undefined') return ''
+  try {
+    const existing = window.sessionStorage.getItem(CLICK_ID_KEY)
+    if (existing) return existing
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2)
+    window.sessionStorage.setItem(CLICK_ID_KEY, id)
+    return id
+  } catch {
+    return ''
+  }
+}
+
+function trackDownloadClick(product: string, source: string) {
+  if (typeof window === 'undefined') return
+  const clickId = getOrCreateClickId()
+  if (!clickId) return
+  const payload = {
+    clickId,
+    product,
+    source,
+    referrer: document?.referrer || '',
+    event: 'click' as const,
+  }
+  const body = JSON.stringify(payload)
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon('/api/metrics/download-click', new Blob([body], { type: 'application/json' }))
+  } else {
+    fetch('/api/metrics/download-click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => {})
+  }
+}
 
 export default function ProductsPage() {
   const [resources, setResources] = useState<ProductResource[]>([])
@@ -406,19 +444,26 @@ type SmartLinkProps = {
   className?: string
   children: ReactNode
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void
+  trackProductId?: string
 }
 
-function SmartLink({ href, className = '', children, onClick }: SmartLinkProps) {
+function SmartLink({ href, className = '', children, onClick, trackProductId }: SmartLinkProps) {
   const external = /^https?:\/\//i.test(href)
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (trackProductId && href.startsWith('/download')) {
+      trackDownloadClick(trackProductId, 'products-page')
+    }
+    onClick?.(event)
+  }
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className} onClick={onClick}>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className} onClick={handleClick}>
         {children}
       </a>
     )
   }
   return (
-    <Link href={href} className={className} onClick={onClick}>
+    <Link href={href} className={className} onClick={handleClick}>
       {children}
     </Link>
   )
@@ -435,7 +480,12 @@ function BookCard({ book, index }: BookCardProps) {
   }
 
   const downloadButton = (
-    <SmartLink href={book.ctaHref} className="library-card-btn" onClick={(event) => event.stopPropagation()}>
+    <SmartLink
+      href={book.ctaHref}
+      className="library-card-btn"
+      onClick={(event) => event.stopPropagation()}
+      trackProductId={book.id}
+    >
       <ArrowDownTrayIcon className="library-menu-icon" aria-hidden />
       <span>{book.ctaLabel}</span>
     </SmartLink>

@@ -18,6 +18,7 @@ const SUCCESS_CALL_URL = (process.env.NEXT_PUBLIC_SUCCESS_CALL_BOOKING_URL || 'h
 const SUCCESS_SUPPORT_TEXT = (process.env.NEXT_PUBLIC_SUCCESS_SUPPORT_TEXT || 'اطمئني، أرسلنا لك كل التفاصيل عبر الإيميل والواتساب. إذا لم تصلك الرسالة خلال دقائق راسلينا على واتساب.').trim()
 const SUCCESS_CTA_LABEL = (process.env.NEXT_PUBLIC_SUCCESS_CTA_LABEL || 'احجز مكالمتك المجانية الآن').trim()
 const DEFAULT_COUNTRY_CODE = '+33'
+const CLICK_ID_KEY = 'fm_click_id'
 
 const isoToFlag = (iso?: string): string => {
   if (!iso) return ''
@@ -31,6 +32,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [clickId, setClickId] = useState<string>('')
 
   const product = initialProduct
   const searchParams = useSearchParams()
@@ -58,6 +60,22 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
     setMessage(null)
     setError(null)
   }, [product])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const existing = window.sessionStorage.getItem(CLICK_ID_KEY)
+      if (existing) {
+        setClickId(existing)
+        return
+      }
+      const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2)
+      window.sessionStorage.setItem(CLICK_ID_KEY, id)
+      setClickId(id)
+    } catch {
+      setClickId('')
+    }
+  }, [])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -123,6 +141,27 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       params.set('callCode', `code=${token}`)
       if (SUCCESS_SUPPORT_TEXT) params.set('supportText', SUCCESS_SUPPORT_TEXT)
       if (SUCCESS_CTA_LABEL) params.set('ctaLabel', SUCCESS_CTA_LABEL)
+
+      // Fire conversion for click tracking (best-effort)
+      if (clickId) {
+        const payload = {
+          clickId,
+          product,
+          source: 'download-form',
+          event: 'submit' as const,
+        }
+        const body = JSON.stringify(payload)
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/metrics/download-click', new Blob([body], { type: 'application/json' }))
+        } else {
+          fetch('/api/metrics/download-click', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+            keepalive: true,
+          }).catch(() => {})
+        }
+      }
 
       const successUrl = `/success?${params.toString()}`
       router.push(successUrl)

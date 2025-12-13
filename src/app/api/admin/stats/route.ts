@@ -10,28 +10,66 @@ export async function GET() {
   if (!isAdmin(session?.user?.email)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getSupabaseAdmin()
 
-  // Reservations per day (last 30)
-  const { data: resv, error: rErr } = await supabase.rpc('stats_reservations_last30')
-  // Downloads per day (last 30)
-  const { data: dls, error: dErr } = await supabase.rpc('stats_downloads_last30')
-  // Tokens summary
-  const { error: tErr } = await supabase
-    .from('call_tokens')
-    .select('is_used', { count: 'exact', head: false })
-    .limit(1)
-  // Supabase returns rows, but we only need counts; run two lightweight counts
-  let total = 0, redeemed = 0
-  if (!tErr) {
-    const { count: cTotal } = await supabase.from('call_tokens').select('*', { count: 'exact', head: true })
-    const { count: cUsed } = await supabase.from('call_tokens').select('*', { count: 'exact', head: true }).eq('is_used', true)
-    total = cTotal || 0
-    redeemed = cUsed || 0
-  }
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
-  // If RPCs don’t exist, fallback with empty
+  const [dlRes, clickRes] = await Promise.all([
+    supabase
+      .from('download_requests')
+      .select('created_at', { count: 'exact', head: false })
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(5000),
+    supabase
+      .from('download_clicks')
+      .select('created_at, meta', { count: 'exact', head: false })
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(5000),
+  ])
+
+  const downloads = aggregateByDay(dlRes.data || [])
+  const clicks = aggregateClicksByDay(clickRes.data || [])
+
   return NextResponse.json({
-    reservations: rErr ? [] : resv || [],
-    downloads: dErr ? [] : dls || [],
-    tokens: { total, redeemed, unredeemed: Math.max(0, total - redeemed) },
+    downloads,
+    clicks,
   })
+}
+
+type WithCreatedAt = { created_at: string }
+function aggregateByDay(rows: WithCreatedAt[]) {
+  const map = new Map<string, number>()
+  for (const row of rows) {
+    const day = normalizeDay(row.created_at)
+    if (!day) continue
+    map.set(day, (map.get(day) || 0) + 1)
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([day, count]) => ({ day, count }))
+}
+
+type ClickRow = { created_at: string; meta?: { event?: string } | null }
+function aggregateClicksByDay(rows: ClickRow[]) {
+  const map = new Map<string, number>()
+  for (const row of rows) {
+    const event = (row.meta as any)?.event || 'click'
+    if (event !== 'click') continue
+    const day = normalizeDay(row.created_at)
+    if (!day) continue
+    map.set(day, (map.get(day) || 0) + 1)
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([day, count]) => ({ day, count }))
+}
+
+function normalizeDay(dateStr?: string) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return ''
+  const year = d.getUTCFullYear()
+  const month = `${d.getUTCMonth() + 1}`.padStart(2, '0')
+  const day = `${d.getUTCDate()}`.padStart(2, '0')
+  return `${year}-${month}-${day}`
 }

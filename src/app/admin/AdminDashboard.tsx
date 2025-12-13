@@ -933,15 +933,38 @@ type PlotLayout = { title?: string; margin?: { t?: number; r?: number; l?: numbe
 type PlotConfig = { displayModeBar?: boolean; responsive?: boolean }
 interface PlotlyStatic { react: (id: string, data: PlotData[], layout?: PlotLayout, config?: PlotConfig) => void }
 declare global { interface Window { Plotly?: PlotlyStatic } }
+type StatsDownloadRow = DownloadRow & { totalCount: number }
+type RangeKey = '7' | '30' | 'all'
+
+function formatPhoneDisplay(raw?: string | null) {
+  const trimmed = (raw || '').trim()
+  if (!trimmed) return '-'
+  const digits = trimmed.replace(/\D+/g, '')
+  if (!digits) return trimmed
+
+  const looksIntl = trimmed.startsWith('+') || trimmed.startsWith('00')
+  if (looksIntl) {
+    let normalized = trimmed.replace(/\s+/g, '')
+    if (normalized.startsWith('00')) normalized = `+${normalized.slice(2)}`
+    normalized = normalized.replace(/[^\d+]/g, '')
+    const match = normalized.match(/^\+?(\d{1,3})(\d{4,})$/)
+    if (match) return `+${match[1]} ${match[2]}`
+    return normalized.startsWith('+') ? normalized : `+${digits}`
+  }
+
+  // Local number without country code: show digits plainly (group for readability when long)
+  return digits.length > 5 ? `${digits.slice(0, 3)} ${digits.slice(3)}` : digits
+}
 
 function StatsTab() {
   const [data, setData] = useState<{
-    reservations: { day: string; count: number }[]
     downloads: { day: string; count: number }[]
-  }>({ reservations: [], downloads: [] })
-  const [tokenSummary, setTokenSummary] = useState<{ total: number; redeemed: number; unredeemed: number }>({ total: 0, redeemed: 0, unredeemed: 0 })
+    clicks: { day: string; count: number }[]
+  }>({ downloads: [], clicks: [] })
   const [loading, setLoading] = useState(false)
-  const [reqs, setReqs] = useState<DownloadRow[]>([])
+  const [range, setRange] = useState<RangeKey>('all')
+  const [rawRows, setRawRows] = useState<DownloadRow[]>([])
+  const [reqs, setReqs] = useState<StatsDownloadRow[]>([])
 
   useEffect(() => {
     ;(async () => {
@@ -950,10 +973,9 @@ function StatsTab() {
       const j = await r.json(); setLoading(false)
       if (r.ok) {
         setData({
-          reservations: j.reservations || [],
           downloads: j.downloads || [],
+          clicks: j.clicks || [],
         })
-        if (j.tokens) setTokenSummary(j.tokens)
       }
     })()
   }, [])
@@ -964,25 +986,54 @@ function StatsTab() {
       const j = await r.json()
       if (r.ok) {
         const rows = (j.rows || []) as DownloadRow[]
-        // Keep only the latest row per email (API returns newest first)
-        const seen = new Set<string>()
-        const uniq: typeof rows = []
-        for (const row of rows) {
-          const key = (row.email || '').trim().toLowerCase()
-          if (!key) continue
-          if (seen.has(key)) continue
-          seen.add(key)
-          uniq.push(row)
-        }
-        setReqs(uniq)
+        setRawRows(rows)
       }
     })()
   }, [])
 
   useEffect(() => {
-    if (!data.reservations.length && !data.downloads.length) return
-    ensurePlotly().then(() => { renderPlots(data, tokenSummary) })
-  }, [data, tokenSummary])
+    if (!rawRows.length) {
+      setReqs([])
+      return
+    }
+
+    const now = Date.now()
+    const cutoffMs = range === 'all' ? null : range === '7' ? 7 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000
+    const filtered = cutoffMs
+      ? rawRows.filter((row) => {
+          const ts = Date.parse(row.created_at)
+          return Number.isFinite(ts) ? now - ts <= cutoffMs : true
+        })
+      : rawRows
+
+    // All-time totals by email (regardless of filter)
+    const countsAll = rawRows.reduce<Record<string, number>>((map, row) => {
+      const key = (row.email || '').trim().toLowerCase()
+      if (!key) return map
+      map[key] = (map[key] || 0) + 1
+      return map
+    }, {})
+
+    // Filtered list for the selected window
+    const counts = filtered.reduce<Record<string, number>>((map, row) => {
+      const key = (row.email || '').trim().toLowerCase()
+      if (!key) return map
+      map[key] = (map[key] || 0) + 1
+      return map
+    }, {})
+
+    // Show the latest four records (already sorted desc), annotated with total requests per email within the range.
+    const recent = filtered.slice(0, 4).map((row) => {
+      const key = (row.email || '').trim().toLowerCase()
+      return { ...row, totalCount: countsAll[key] || counts[key] || 1 }
+    })
+    setReqs(recent)
+  }, [range, rawRows])
+
+  useEffect(() => {
+    if (!data.downloads.length && !data.clicks.length) return
+    ensurePlotly().then(() => { renderDownloadsPlot(data) })
+  }, [data])
 
   function ensurePlotly(): Promise<PlotlyStatic> {
     if (window.Plotly) return Promise.resolve(window.Plotly)
@@ -996,40 +1047,25 @@ function StatsTab() {
     })
   }
 
-  function renderPlots(
+  function renderDownloadsPlot(
     d: {
-      reservations: { day: string; count: number }[]
       downloads: { day: string; count: number }[]
+      clicks: { day: string; count: number }[]
     },
-    tokens: { total: number; redeemed: number; unredeemed: number }
   ) {
     const P = window.Plotly
     if (!P) return
-    const daysR = d.reservations.map((x) => x.day)
-    const valsR = d.reservations.map((x) => x.count)
-    P.react(
-      'chart-resv',
-      [{ type: 'scatter', mode: 'lines+markers', x: daysR, y: valsR, line: { color: '#7c3aed', width: 3 }, marker: { size: 8, color: '#7c3aed' } }],
-      { title: 'الحجوزات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' },
-      { displayModeBar: false, responsive: true }
-    )
-
     const daysD = d.downloads.map((x) => x.day)
     const valsD = d.downloads.map((x) => x.count)
+    const daysC = d.clicks.map((x) => x.day)
+    const valsC = d.clicks.map((x) => x.count)
     P.react(
       'chart-dl',
-      [{ type: 'scatter', mode: 'lines+markers', x: daysD, y: valsD, line: { color: '#22c55e', width: 3 }, marker: { size: 8, color: '#22c55e' } }],
-      { title: 'التنزيلات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' },
-      { displayModeBar: false, responsive: true }
-    )
-
-    const total = Math.max(1, tokens.total)
-    const redeemed = Math.min(total, Math.max(0, tokens.redeemed))
-    const unredeemed = Math.max(0, total - redeemed)
-    P.react(
-      'chart-tokens',
-      [{ type: 'pie', values: [redeemed, unredeemed], labels: ['مستبدل', 'غير مستبدل'], hole: 0.5, marker: { colors: ['#7c3aed', '#d8b4fe'] } }],
-      { title: 'استبدال الرموز', margin: { t: 40, r: 10, l: 10, b: 10 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' },
+      [
+        { type: 'scatter', mode: 'lines+markers', name: 'تنزيلات ناجحة', x: daysD, y: valsD, line: { color: '#22c55e', width: 3 }, marker: { size: 8, color: '#22c55e' } },
+        { type: 'scatter', mode: 'lines+markers', name: 'نقرات تحميل', x: daysC, y: valsC, line: { color: '#3b82f6', width: 3 }, marker: { size: 8, color: '#3b82f6' } },
+      ],
+      { title: 'النقرات مقابل التنزيلات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' },
       { displayModeBar: false, responsive: true }
     )
   }
@@ -1037,15 +1073,33 @@ function StatsTab() {
   return (
     <div>
       <div className="admin-charts-row">
-      {loading ? <div className="text-sm text-gray-600">جارٍ التحميل…</div> : null}
-      <div className="card p-3 admin-chart"><div id="chart-resv" style={{height: 220}} /></div>
-      <div className="card p-3 admin-chart"><div id="chart-dl" style={{height: 220}} /></div>
-      <div className="card p-3 admin-chart"><div id="chart-tokens" style={{height: 220}} /></div>
+        {loading ? <div className="text-sm text-gray-600">جارٍ التحميل…</div> : null}
+        <div className="card p-3 admin-chart" style={{ width: '100%' }}>
+          <div id="chart-dl" style={{ height: 260 }} />
+        </div>
       </div>
 
       {/* Download requests table */}
       <div className="card p-3" style={{ marginTop: 12 }}>
-        <div className="font-semibold mb-2">طلبات التنزيل (آخر {reqs.length} سجل)</div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2">
+          <div className="font-semibold">طلبات التنزيل (آخر 4 سجل)</div>
+          <div className="flex gap-2 flex-wrap">
+            {([
+              { key: '7', label: 'آخر 7 أيام' },
+              { key: '30', label: 'آخر 30 يومًا' },
+              { key: 'all', label: 'كل الوقت' },
+            ] as { key: RangeKey; label: string }[]).map((opt) => (
+              <button
+                key={opt.key}
+                className={`admin-pill ${range === opt.key ? 'is-active' : ''}`}
+                onClick={() => setRange(opt.key)}
+                type="button"
+              >
+                <span className="pill-label">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="table text-sm">
             <thead>
@@ -1055,11 +1109,12 @@ function StatsTab() {
                 <th className="p-2 text-right">البريد</th>
                 <th className="p-2 text-right">المنتج</th>
                 <th className="p-2 text-right">الهاتف</th>
+                <th className="p-2 text-right">إجمالي الطلبات</th>
               </tr>
             </thead>
             <tbody>
               {reqs.length === 0 ? (
-                <tr><td className="p-2" colSpan={5}>لا توجد بيانات</td></tr>
+                <tr><td className="p-2" colSpan={6}>لا توجد بيانات</td></tr>
               ) : (
                 reqs.map(r => (
                   <tr key={r.id}>
@@ -1067,7 +1122,8 @@ function StatsTab() {
                     <td className="p-2" data-th="الاسم">{[r.first_name, r.last_name].filter(Boolean).join(' ').trim() || r.name}</td>
                     <td className="p-2" data-th="البريد">{r.email}</td>
                     <td className="p-2" data-th="المنتج">{r.product_slug}</td>
-                    <td className="p-2" data-th="الهاتف">{r.phone || '-'}</td>
+                    <td className="p-2" data-th="الهاتف">{formatPhoneDisplay(r.phone)}</td>
+                    <td className="p-2" data-th="إجمالي الطلبات">{r.totalCount}</td>
                   </tr>
                 ))
               )}
