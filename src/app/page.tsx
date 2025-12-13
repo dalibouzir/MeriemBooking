@@ -401,7 +401,7 @@ export default function HomePage() {
             <div className="aurora-blob aurora-blob-1 w-[400px] h-[400px] top-1/2 right-1/3 animate-pulse-glow" />
           </div>
 
-          <div className="relative z-10 container mx-auto px-6 py-16 lg:py-24">
+          <div className="relative z-10 container mx-auto px-6 py-16 lg:py-24 landing-hero-shell">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 pt-10">
               <div className="relative flex-shrink-0 animate-fade-up mt-10 lg:mt-6 order-1 lg:order-2" style={{ animationDelay: '0.2s' }}>
               <div className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-[420px] lg:h-[420px] xl:w-[480px] xl:h-[480px] mx-auto">
