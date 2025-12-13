@@ -15,8 +15,9 @@ const ENV_DEFAULT_CALL_URL = (process.env.NEXT_PUBLIC_SUCCESS_CALL_BOOKING_URL |
 const ENV_DEFAULT_SUPPORT_TEXT = (process.env.NEXT_PUBLIC_SUCCESS_SUPPORT_TEXT || '').trim()
 const ENV_DEFAULT_CTA_LABEL = (process.env.NEXT_PUBLIC_SUCCESS_CTA_LABEL || '').trim()
 const DEFAULT_FALLBACK_VIDEO_URL =
-  'https://www.youtube-nocookie.com/embed/zBJDNj477Zg?si=dGAt5QysJ6hmUbTI&start=1'
+  'https://www.youtube.com/embed/W36-FC8d2ww?si=3NJyrIPuCaGgWI-3'
 const VIDEO_PROGRESS_KEY = 'success-video-progress'
+const RESUME_THRESHOLD_SECONDS = 3
 
 const DEFAULTS: Record<Locale, {
   banner: string
@@ -70,22 +71,9 @@ export default function SuccessClient() {
 
   const videoInfo = useMemo<VideoInfo>(() => parseVideoUrl(videoUrl), [videoUrl])
 
-  const [resumeStart, setResumeStart] = useState(() => {
-    if (typeof window === 'undefined' || !videoInfo.embedUrl) return 0
-    try {
-      const stored = window.sessionStorage.getItem(VIDEO_PROGRESS_KEY)
-      if (!stored) return 0
-      const parsed = JSON.parse(stored)
-      if (parsed?.url === videoInfo.embedUrl && typeof parsed.time === 'number') {
-        return Math.max(0, Math.floor(parsed.time))
-      }
-    } catch {
-      return 0
-    }
-    return 0
-  })
+  const [resumeStart, setResumeStart] = useState(0)
   const [isBannerVisible, setBannerVisible] = useState(true)
-  const [isPlaying, setPlaying] = useState(() => Boolean(videoInfo.embedUrl))
+  const [isPlaying, setPlaying] = useState(true)
   const [origin, setOrigin] = useState('')
 
   const handlePlay = () => {
@@ -96,7 +84,7 @@ export default function SuccessClient() {
   const embedSrc = useMemo(() => {
     if (!videoInfo.embedUrl) return ''
     const url = new URL(videoInfo.embedUrl)
-    if (resumeStart > 0) {
+    if (resumeStart >= RESUME_THRESHOLD_SECONDS) {
       url.searchParams.set('start', `${Math.floor(resumeStart)}`)
     }
     url.searchParams.set('autoplay', '1')
@@ -111,12 +99,6 @@ export default function SuccessClient() {
     }
     return url.toString()
   }, [origin, resumeStart, videoInfo.embedUrl, videoInfo.provider])
-
-  useEffect(() => {
-    if (videoInfo.embedUrl) {
-      setPlaying(true)
-    }
-  }, [videoInfo.embedUrl])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -167,7 +149,8 @@ export default function SuccessClient() {
       }
       const parsed = JSON.parse(stored)
       const time = parsed?.url === videoInfo.embedUrl ? Number(parsed.time) : 0
-      setResumeStart(Number.isFinite(time) ? Math.max(0, Math.floor(time)) : 0)
+      const normalized = Number.isFinite(time) ? Math.max(0, Math.floor(time)) : 0
+      setResumeStart(normalized >= RESUME_THRESHOLD_SECONDS ? normalized : 0)
     } catch {
       setResumeStart(0)
     }
@@ -193,7 +176,7 @@ export default function SuccessClient() {
     let cancelled = false
 
     const saveProgress = (seconds: number) => {
-      if (!videoInfo.embedUrl || Number.isNaN(seconds)) return
+      if (!videoInfo.embedUrl || Number.isNaN(seconds) || seconds < RESUME_THRESHOLD_SECONDS) return
       try {
         w.sessionStorage.setItem(
           VIDEO_PROGRESS_KEY,
