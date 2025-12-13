@@ -5,9 +5,16 @@ import '../styles/globals.css'
 import './globals.css'
 import type { ReactNode } from 'react'
 import type { Metadata, Viewport } from 'next'
+import { Tajawal } from 'next/font/google'
 import Providers from './providers'
 import SiteBackgroundClient from './SiteBackgroundClient'
 import ScrollHideTopbar from '@/components/ScrollHideTopbar'
+
+const tajawal = Tajawal({
+  subsets: ['arabic', 'latin'],
+  weight: ['300', '400', '500', '700', '800'],
+  display: 'swap',
+})
 export const metadata: Metadata = {
   title: 'Fittrah Moms',
   icons: {
@@ -26,7 +33,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html dir="rtl" lang="ar" className="theme-l1">
+    <html dir="rtl" lang="ar" className={`theme-l1 ${tajawal.className}`}>
       <body>
         <SiteBackgroundClient>
           <Providers>

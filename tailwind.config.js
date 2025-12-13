@@ -26,6 +26,7 @@ module.exports = {
         },
         secondary: 'hsl(var(--secondary) / <alpha-value>)',
         accent: 'hsl(var(--accent) / <alpha-value>)',
+        'primary-glow': 'hsl(var(--primary-glow) / <alpha-value>)',
         glass: 'hsla(var(--glass))',
       },
       boxShadow: {

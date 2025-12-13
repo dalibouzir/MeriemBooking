@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Accordion from '@/components/ui/Accordion'
+import heroImage from '@/assets/hero-image.png'
 import { supabaseClient } from '@/lib/supabase'
 import {
   mapLibraryItems,
@@ -12,10 +13,10 @@ import {
   type LegacyProductRow,
   type ProductResource,
 } from '@/utils/products'
+import { useRevealOnScroll } from '@/utils/reveal'
 
 const CALENDLY_URL = 'https://calendly.com/meriembouzir/30min?month=2025-12'
 const PRODUCTS_ROUTE = '/products'
-const HERO_IMAGE = '/Meriem.png'
 
 const CTA_ITEMS = [
   'حمّلي ملفًا مجانيًا لتحصلي على رمز المكالمة الأولى',
@@ -356,57 +357,134 @@ export default function HomePage() {
 
   const featuredDisplay = featuredItems.length ? featuredItems.map(mapResourceToDisplay) : FALLBACK_FEATURES
 
+  const landingRootRef = useRef<HTMLElement | null>(null)
+
+  useRevealOnScroll(landingRootRef, [featuredDisplay.length])
+
   const handleScrollToFeatured = useCallback(() => {
-    const el = document.getElementById('landing-hot')
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const el = document.getElementById('featured') ?? document.getElementById('landing-hot')
+    if (el) {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      el.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' })
+    }
+  }, [])
+
+  const [leftFaqItems, rightFaqItems] = useMemo(() => {
+    const left: typeof FAQ_SNIPPET = []
+    const right: typeof FAQ_SNIPPET = []
+    FAQ_SNIPPET.forEach((item, idx) => {
+      if (idx % 2 === 0) left.push(item)
+      else right.push(item)
+    })
+    return [left, right]
   }, [])
 
   return (
-    <>
-      <main className="landing-root" role="main">
-        <section className="landing-hero" aria-labelledby="landing-hero-title">
-          <div className="landing-hero-box">
-            <div className="landing-hero-identity">
-              <span className="landing-hero-kicker">
-                مساحتك للسكينة والأنوثة والاتزان العاطفي Fittrah Moms
-              </span>
-            </div>
-            <div className="landing-hero-display">
-              <div className="landing-hero-art">
-                <Image
-                  src={HERO_IMAGE}
-                  alt="مريم بوزير"
-                  fill
-                  sizes="(max-width: 768px) 80vw, (max-width: 1280px) 420px, 520px"
-                  className="landing-hero-image"
-                  priority
-                  unoptimized={!shouldOptimizeImage(HERO_IMAGE)}
-                />
+        <>
+          <main className="landing-root" role="main" ref={landingRootRef}>
+            <section
+          className="relative min-h-[75vh] lg:min-h-[85vh] overflow-hidden hero-gradient-bg reveal"
+          dir="rtl"
+          aria-labelledby="landing-hero-title"
+          data-reveal="up"
+        >
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="aurora-blob aurora-blob-1 w-[600px] h-[600px] -top-40 -right-40 animate-aurora-float" />
+            <div
+              className="aurora-blob aurora-blob-2 w-[500px] h-[500px] top-1/3 -left-32 animate-aurora-float"
+              style={{ animationDelay: '-2s' }}
+            />
+            <div
+              className="aurora-blob aurora-blob-3 w-[700px] h-[700px] -bottom-40 right-1/4 animate-aurora-float"
+              style={{ animationDelay: '-4s' }}
+            />
+            <div className="aurora-blob aurora-blob-1 w-[400px] h-[400px] top-1/2 right-1/3 animate-pulse-glow" />
+          </div>
+
+          <div className="relative z-10 container mx-auto px-6 py-16 lg:py-24">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 pt-10">
+              <div className="relative flex-shrink-0 animate-fade-up mt-10 lg:mt-6 order-1 lg:order-2" style={{ animationDelay: '0.2s' }}>
+              <div className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-[420px] lg:h-[420px] xl:w-[480px] xl:h-[480px] mx-auto">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 via-accent/20 to-primary-glow/30 blur-2xl animate-pulse-glow" />
+                  <div className="absolute -inset-3 rounded-full border border-primary/30 shadow-[0_0_28px_rgba(139,92,246,0.2)] animate-float-gentle" />
+                  <div className="absolute -inset-6 rounded-full border border-primary/20 shadow-[0_0_22px_rgba(139,92,246,0.14)]" />
+                  <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl ring-1 ring-primary/30 animate-float-gentle">
+                    <Image
+                      src={heroImage}
+                      alt="مريم بوزير"
+                      fill
+                      sizes="(max-width: 768px) 90vw, (max-width: 1280px) 420px, 520px"
+                      className="object-cover"
+                      priority
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="landing-hero-info">
-              <div className="landing-hero-intro" aria-label="مقدمة Fittrah Moms">
-                <h1 id="landing-hero-title" className="landing-hero-headline" dir="rtl">
-منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقاتٍ صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا؛ فحين تتّزن المرأة ينعكس نورها على أسرتها، ويمتدّ أثرها إلى الجيل القادم كلّه.</h1>
-              </div>
-              <div className="landing-hero-actions">
-                <button type="button" className="landing-btn landing-btn-primary" onClick={handleScrollToFeatured}>
-                  استكشفي الملفات
-                </button>
-              <Link
-                href={CALENDLY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="landing-btn landing-btn-secondary"
-              >
-                احجزي مكالمتك المجانية
-              </Link>
+
+              <div className="flex-1 text-center lg:text-right max-w-2xl order-2 lg:order-1">
+                <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
+                  <div className="flex flex-col items-center lg:items-end gap-2" dir="ltr" style={{ textAlign: 'left' }}>
+                    <h1 id="landing-hero-title" className="button hero-title-button" data-text="Fittrah Moms">
+                      <span className="actual-text">&nbsp;Fittrah Moms&nbsp;</span>
+                      <span aria-hidden="true" className="hover-text">
+                        &nbsp;Fittrah Moms&nbsp;
+                      </span>
+                    </h1>
+                    <span className="hero-scratch" aria-hidden="true" />
+                  </div>
+                </div>
+
+                <div className="animate-fade-up mt-6 mb-6" style={{ animationDelay: '0.2s' }}>
+                  <span className="inline-flex items-center justify-center lg:justify-end px-6 py-3 text-base sm:text-lg font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
+                    مساحتك للسكينة والأنوثة والاتزان العاطفي
+                  </span>
+                </div>
+
+                <p
+                  className="hero-description text-3xl sm:text-4xl lg:text-5xl font-semibold leading-relaxed text-text/90 mb-10 animate-fade-up"
+                  style={{ animationDelay: '0.3s' }}
+                >
+                  منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقاتٍ صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا؛
+                  فحين تتّزن المرأة ينعكس نورها على أسرتها، ويمتدّ أثرها إلى الجيل القادم كلّه.
+                </p>
+
+                <div
+                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-6 animate-fade-up"
+                  style={{ animationDelay: '0.4s' }}
+                >
+                  <button type="button" className="btn-hero-primary" onClick={handleScrollToFeatured}>
+                    استكشفي الملفات
+                  </button>
+                  <Link
+                    href={CALENDLY_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-hero-secondary"
+                  >
+                    احجزي مكالمتك المجانية
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
+
+          <div className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="absolute bottom-0 w-full h-full">
+              <path
+                d="M0,60 C300,120 600,0 900,60 C1050,90 1150,80 1200,60 L1200,120 L0,120 Z"
+                fill="hsl(var(--background))"
+                className="opacity-50"
+              />
+              <path
+                d="M0,80 C200,40 400,100 600,80 C800,60 1000,100 1200,80 L1200,120 L0,120 Z"
+                fill="hsl(var(--background))"
+              />
+            </svg>
+          </div>
         </section>
 
-        <section className="landing-section landing-bio" aria-labelledby="landing-bio-title">
+        <section className="landing-section landing-bio reveal" data-reveal="left" aria-labelledby="landing-bio-title">
           <div className="landing-bio-card">
             <div className="landing-bio-figure">
               <Image src="/Meriem.jpeg" alt="مريم بوزير" width={176} height={176} className="landing-bio-avatar" />
@@ -441,7 +519,7 @@ export default function HomePage() {
         </section>
 
         {/* Featured (أبرز الملفات المجانية) */}
-        <section className="landing-section landing-hot" id="landing-hot" aria-labelledby="landing-hot-title">
+        <section className="landing-section landing-hot reveal" data-reveal="right" id="featured" aria-labelledby="landing-hot-title">
           <header className="landing-section-head">
             <div>
               <p className="landing-section-kicker">الأحدث</p>
@@ -465,8 +543,14 @@ export default function HomePage() {
                 </p>
               ) : null}
               <div className="landing-files-grid" role="list">
-                {featuredDisplay.map((item) => (
-                  <article key={item.id} className="landing-file-card" role="listitem" tabIndex={0}>
+                {featuredDisplay.map((item, index) => (
+                  <article
+                    key={item.id}
+                    className="landing-file-card reveal"
+                    role="listitem"
+                    tabIndex={0}
+                    data-reveal={index % 2 === 0 ? 'left' : 'right'}
+                  >
                     <div className="landing-file-media">
                       <Image
                         src={item.cover}
@@ -517,8 +601,8 @@ export default function HomePage() {
           )}
         </section>
 
-        <section className="landing-cta" aria-labelledby="landing-cta-title">
-          <div className="landing-cta-body">
+        <section className="landing-cta reveal" data-reveal="up" aria-labelledby="landing-cta-title">
+          <div className="landing-cta-body reveal" data-reveal="up">
             <div className="landing-cta-copy">
               <h2 id="landing-cta-title">ابدئي بخطوة صغيرة تُحدِث أثرًا كبيرًا</h2>
               <p>حمّلي ملفًا مجانيًا، احصلي على رمز المكالمة، ثم استبدليه لاختيار موعدك مع مريم بوزير في مساحة تسمعك بصدق.</p>
@@ -551,7 +635,7 @@ export default function HomePage() {
         </section>
 
         {/* FAQ */}
-        <section className="landing-faq" aria-labelledby="landing-faq-title">
+        <section className="landing-faq reveal" data-reveal="up" aria-labelledby="landing-faq-title">
           <header className="landing-section-head">
             <div>
               <p className="landing-section-kicker">أسئلة شائعة</p>
@@ -561,11 +645,18 @@ export default function HomePage() {
               نجاوب عن أكثر الأسئلة التي تصلنا حول التحميل وإعادة الوصول للملفات والجلسة التعريفية.
             </p>
           </header>
-          <Accordion items={FAQ_SNIPPET} defaultOpenIds={[FAQ_SNIPPET[0].id]} />
+          <div className="landing-faq-columns reveal" data-reveal="up">
+            <div className="landing-faq-column">
+              <Accordion items={leftFaqItems} defaultOpenIds={leftFaqItems.length ? [leftFaqItems[0].id] : []} />
+            </div>
+            <div className="landing-faq-column">
+              <Accordion items={rightFaqItems} />
+            </div>
+          </div>
         </section>
 
         {/* Footer */}
-        <footer className="landing-footer">
+        <footer className="landing-footer reveal" data-reveal="up">
           <div className="landing-footer-grid">
             <div className="landing-footer-main">
               ملفات، جلسات، ومساحات دعم تذكّرك بأنك لست وحدك في رحلة الأمومة. كل ما نشاركه مجاني وجاهز للتنزيل الفوري.

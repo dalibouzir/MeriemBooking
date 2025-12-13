@@ -25,6 +25,7 @@ const NAV_LINKS: NavLink[] = [
 
 const BOOKING_URL = '/session'
 const ASSISTANT_URL = '/assistant'
+const TOPBAR_LOGO_SRC = '/logo/logo.png'
 
 export default function ScrollHideTopbar() {
   const [hidden, setHidden] = useState(false)
@@ -122,7 +123,7 @@ export default function ScrollHideTopbar() {
       <div className="container topbar-row">
         <div className="brand-col">
           <Link href="/" className="brand" aria-label="الرجوع للصفحة الرئيسية — فطرة الأمهات">
-            <Image src="/logo/logo.png" alt="فطرة الأمهات" className="brand-logo" width={48} height={48} priority />
+            <Image src={TOPBAR_LOGO_SRC} alt="فطرة الأمهات" className="brand-logo" width={48} height={48} priority />
             <span className="brand-copy">
               <span className="brand-mark">Fittrah Moms</span>
             </span>

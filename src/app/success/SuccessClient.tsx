@@ -1,7 +1,6 @@
 'use client'
 
-import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 type Locale = 'ar' | 'en'
@@ -15,6 +14,9 @@ const ENV_DEFAULT_VIDEO_URL = (process.env.NEXT_PUBLIC_SUCCESS_VIDEO_URL || '').
 const ENV_DEFAULT_CALL_URL = (process.env.NEXT_PUBLIC_SUCCESS_CALL_BOOKING_URL || '').trim()
 const ENV_DEFAULT_SUPPORT_TEXT = (process.env.NEXT_PUBLIC_SUCCESS_SUPPORT_TEXT || '').trim()
 const ENV_DEFAULT_CTA_LABEL = (process.env.NEXT_PUBLIC_SUCCESS_CTA_LABEL || '').trim()
+const DEFAULT_FALLBACK_VIDEO_URL =
+  'https://www.youtube-nocookie.com/embed/zBJDNj477Zg?si=dGAt5QysJ6hmUbTI&start=1'
+const VIDEO_PROGRESS_KEY = 'success-video-progress'
 
 const DEFAULTS: Record<Locale, {
   banner: string
@@ -51,7 +53,7 @@ export default function SuccessClient() {
 
   const customerName = searchParams.get('customerName')?.trim() || ''
   const videoUrlParam = searchParams.get('videoUrl')?.trim() || ''
-  const videoUrl = videoUrlParam || ENV_DEFAULT_VIDEO_URL || ''
+  const videoUrl = videoUrlParam || ENV_DEFAULT_VIDEO_URL || DEFAULT_FALLBACK_VIDEO_URL
   const callBookingUrl = searchParams.get('callBookingUrl')?.trim() || ENV_DEFAULT_CALL_URL || ''
   const supportText = searchParams.get('supportText')?.trim() || ENV_DEFAULT_SUPPORT_TEXT || defaults.support
   const ctaLabel = searchParams.get('ctaLabel')?.trim() || ENV_DEFAULT_CTA_LABEL || defaults.ctaLabel
@@ -68,8 +70,23 @@ export default function SuccessClient() {
 
   const videoInfo = useMemo<VideoInfo>(() => parseVideoUrl(videoUrl), [videoUrl])
 
+  const [resumeStart, setResumeStart] = useState(() => {
+    if (typeof window === 'undefined' || !videoInfo.embedUrl) return 0
+    try {
+      const stored = window.sessionStorage.getItem(VIDEO_PROGRESS_KEY)
+      if (!stored) return 0
+      const parsed = JSON.parse(stored)
+      if (parsed?.url === videoInfo.embedUrl && typeof parsed.time === 'number') {
+        return Math.max(0, Math.floor(parsed.time))
+      }
+    } catch {
+      return 0
+    }
+    return 0
+  })
   const [isBannerVisible, setBannerVisible] = useState(true)
-  const [isPlaying, setPlaying] = useState(false)
+  const [isPlaying, setPlaying] = useState(() => Boolean(videoInfo.embedUrl))
+  const [origin, setOrigin] = useState('')
 
   const handlePlay = () => {
     if (!videoInfo.embedUrl) return
@@ -78,14 +95,220 @@ export default function SuccessClient() {
 
   const embedSrc = useMemo(() => {
     if (!videoInfo.embedUrl) return ''
-    const separator = videoInfo.embedUrl.includes('?') ? '&' : '?'
-    return `${videoInfo.embedUrl}${separator}autoplay=1&mute=0&rel=0`
+    const url = new URL(videoInfo.embedUrl)
+    if (resumeStart > 0) {
+      url.searchParams.set('start', `${Math.floor(resumeStart)}`)
+    }
+    url.searchParams.set('autoplay', '1')
+    url.searchParams.set('mute', '0')
+    url.searchParams.set('rel', '0')
+    url.searchParams.set('playsinline', '1')
+    if (videoInfo.provider === 'youtube') {
+      if (origin) {
+        url.searchParams.set('origin', origin)
+      }
+      url.searchParams.set('enablejsapi', '1')
+    }
+    return url.toString()
+  }, [origin, resumeStart, videoInfo.embedUrl, videoInfo.provider])
+
+  useEffect(() => {
+    if (videoInfo.embedUrl) {
+      setPlaying(true)
+    }
   }, [videoInfo.embedUrl])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    setOrigin(window.location.origin)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const elements = Array.from(
+      document.querySelectorAll<HTMLElement>('.success-shell .appear-on-scroll')
+    )
+    if (!elements.length) return
+
+    const revealAll = () => elements.forEach((el) => el.classList.add('is-visible'))
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      revealAll()
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible')
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.2, rootMargin: '0px 0px -10% 0px' }
+    )
+
+    elements.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!videoInfo.embedUrl) {
+      setResumeStart(0)
+      return
+    }
+    try {
+      const stored = window.sessionStorage.getItem(VIDEO_PROGRESS_KEY)
+      if (!stored) {
+        setResumeStart(0)
+        return
+      }
+      const parsed = JSON.parse(stored)
+      const time = parsed?.url === videoInfo.embedUrl ? Number(parsed.time) : 0
+      setResumeStart(Number.isFinite(time) ? Math.max(0, Math.floor(time)) : 0)
+    } catch {
+      setResumeStart(0)
+    }
+  }, [videoInfo.embedUrl])
+
+  useEffect(() => {
+    if (
+      typeof window === 'undefined' ||
+      videoInfo.provider !== 'youtube' ||
+      !videoInfo.embedUrl ||
+      !document.getElementById('success-video-player')
+    ) {
+      return
+    }
+
+    const w = window as typeof window & {
+      YT?: any
+      onYouTubeIframeAPIReady?: () => void
+    }
+
+    let player: any = null
+    let interval: ReturnType<typeof setInterval> | null = null
+    let cancelled = false
+
+    const saveProgress = (seconds: number) => {
+      if (!videoInfo.embedUrl || Number.isNaN(seconds)) return
+      try {
+        w.sessionStorage.setItem(
+          VIDEO_PROGRESS_KEY,
+          JSON.stringify({ url: videoInfo.embedUrl, time: Math.max(0, Math.floor(seconds)) })
+        )
+      } catch {
+        /* ignore storage write issues */
+      }
+    }
+
+    const stopTracking = () => {
+      if (interval) {
+        clearInterval(interval)
+        interval = null
+      }
+    }
+
+    const startTracking = () => {
+      if (interval || !player?.getCurrentTime) return
+      interval = setInterval(() => {
+        const current = player?.getCurrentTime?.()
+        if (typeof current === 'number') {
+          saveProgress(current)
+        }
+      }, 1500)
+    }
+
+    const handleReady = (event: any) => {
+      if (resumeStart > 1 && event?.target?.seekTo) {
+        event.target.seekTo(resumeStart, true)
+      }
+      event?.target?.playVideo?.()
+      startTracking()
+    }
+
+    const captureProgress = (_evt?: Event) => {
+      const current = player?.getCurrentTime?.()
+      if (typeof current === 'number') {
+        saveProgress(current)
+      }
+    }
+
+    const handleStateChange = (event: any) => {
+      if (!w.YT || !event) return
+      const state = event.data
+      if (state === w.YT.PlayerState.PLAYING) {
+        startTracking()
+      }
+      if (state === w.YT.PlayerState.PAUSED) {
+        const current = event.target?.getCurrentTime?.()
+        if (typeof current === 'number') saveProgress(current)
+        stopTracking()
+      }
+      if (state === w.YT.PlayerState.ENDED) {
+        saveProgress(0)
+        stopTracking()
+      }
+    }
+
+    const setupPlayer = () => {
+      if (cancelled) return
+      if (player) return
+      if (!w.YT?.Player) return
+      player = new w.YT.Player('success-video-player', {
+        events: {
+          onReady: handleReady,
+          onStateChange: handleStateChange,
+        },
+      })
+    }
+
+    if (w.YT?.Player) {
+      setupPlayer()
+    } else {
+      const previousReady = w.onYouTubeIframeAPIReady
+      w.onYouTubeIframeAPIReady = () => {
+        previousReady?.()
+        setupPlayer()
+      }
+
+      const existingScript = document.querySelector('script[src="https://www.youtube.com/iframe_api"]')
+      if (!existingScript) {
+        const tag = document.createElement('script')
+        tag.src = 'https://www.youtube.com/iframe_api'
+        tag.async = true
+        document.body.appendChild(tag)
+      }
+    }
+
+    document.addEventListener('visibilitychange', captureProgress, { passive: true })
+    w.addEventListener('pagehide', captureProgress)
+
+    return () => {
+      cancelled = true
+      document.removeEventListener('visibilitychange', captureProgress)
+      w.removeEventListener('pagehide', captureProgress)
+      if (player?.destroy) {
+        const current = player?.getCurrentTime?.()
+        if (typeof current === 'number') {
+          saveProgress(current)
+        }
+        player.destroy()
+      }
+      stopTracking()
+    }
+  }, [resumeStart, videoInfo.embedUrl, videoInfo.provider])
 
   return (
     <main className={`success-shell ${locale}`} dir={dir} lang={locale}>
       {isBannerVisible && (
-        <div className="success-banner" role="status">
+        <div
+          className="success-banner appear-on-scroll"
+          style={{ '--delay': '0.05s' } as CSSProperties}
+          role="status"
+        >
           <div className="banner-text">{bannerMessage}</div>
           <button
             type="button"
@@ -98,12 +321,21 @@ export default function SuccessClient() {
         </div>
       )}
 
-      <section className="success-card glass-water polished" aria-labelledby="success-heading">
-        <div className="video-teaser">
-          <p className="video-prompt-text">{defaults.videoPrompt}</p>
-        </div>
+      <section
+        className="success-card glass-water polished appear-on-scroll"
+        style={{ '--delay': '0.08s' } as CSSProperties}
+        aria-labelledby="success-heading"
+      >
+        <header className="success-header appear-on-scroll" style={{ '--delay': '0.12s' } as CSSProperties}>
+          <h1 id="success-heading" className="success-heading-text">
+            {defaults.videoPrompt}
+          </h1>
+          <p className="success-heading-note">
+            {defaults.watchHint}
+          </p>
+        </header>
 
-        <div className="cta-block">
+        <div className="cta-block appear-on-scroll" style={{ '--delay': '0.18s' } as CSSProperties}>
           <button
             type="button"
             className="cta-booking"
@@ -122,13 +354,15 @@ export default function SuccessClient() {
           </p>
         </div>
 
-        <div className="video-block">
+        <div className="video-block appear-on-scroll" style={{ '--delay': '0.24s' } as CSSProperties}>
           {isPlaying && videoInfo.embedUrl ? (
             <div className="video-embed" role="region" aria-label={locale === 'ar' ? 'مشغل الفيديو' : 'Video player'}>
               <iframe
+                id="success-video-player"
                 src={embedSrc}
                 title={locale === 'ar' ? 'تشغيل الفيديو' : 'Play video'}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               />
             </div>
@@ -158,7 +392,7 @@ export default function SuccessClient() {
           )}
         </div>
 
-        <footer className="success-footer">
+        <footer className="success-footer appear-on-scroll" style={{ '--delay': '0.3s' } as CSSProperties}>
           <p>{supportText}</p>
         </footer>
       </section>
@@ -240,7 +474,7 @@ export default function SuccessClient() {
         }
 
         .success-card {
-          width: min(960px, 100%);
+          width: min(1100px, 100%);
           background: hsla(var(--glass-strong));
           border: 1px solid var(--surface-border);
           border-radius: clamp(var(--r-md), 5vw, var(--r-xl));
@@ -254,37 +488,38 @@ export default function SuccessClient() {
         }
 
         .success-header {
+          width: 100%;
+          max-width: min(1080px, 100%);
+          margin: 0 auto;
           text-align: center;
           display: grid;
-          gap: var(--sp-3);
+          gap: var(--sp-2);
+          padding: 0 clamp(0.75rem, 3vw, 1.5rem);
         }
 
-        .success-header h1 {
-          font-size: clamp(1.8rem, 3vw, 2.4rem);
-          font-weight: 800;
+        .success-heading-text {
+          margin: 0 auto;
+          font-size: clamp(2.1rem, 5vw, 3.1rem);
+          font-weight: 900;
           color: hsl(var(--text));
-          text-shadow: 1px 1px 2px hsl(var(--text-subtle) / 0.25);
+          text-shadow: 1px 1px 2px hsl(var(--text-subtle) / 0.18);
+          line-height: 1.2;
+          letter-spacing: 0.25px;
+          max-width: min(1080px, 100%);
+        }
+
+        .success-heading-note {
+          margin: 0 auto;
+          font-size: clamp(1rem, 2.9vw, 1.2rem);
+          font-weight: 600;
+          color: hsl(var(--text-dim));
+          line-height: 1.5;
+          max-width: min(900px, 100%);
         }
 
         .video-block {
           display: grid;
           gap: var(--sp-3);
-        }
-
-        .video-teaser {
-          text-align: center;
-          padding-inline: clamp(0.5rem, 2vw, 1rem);
-        }
-
-        .video-prompt-text {
-          font-size: clamp(1.2rem, 3vw, 1.65rem);
-          font-weight: 800;
-          color: hsl(var(--text));
-          text-shadow: 0 10px 25px hsla(var(--text-subtle) / 0.45);
-          margin: 0 auto 0.65rem;
-          line-height: 1.25;
-          max-width: min(620px, 100%);
-          text-align: center;
         }
 
         .video-teaser-cta {
@@ -528,8 +763,42 @@ export default function SuccessClient() {
             gap: 2.5rem;
           }
         }
+
+        @media (max-width: 640px) {
+          .success-card {
+            width: 100%;
+            padding: clamp(1.5rem, 5vw, 2.1rem);
+            gap: clamp(1.5rem, 4vw, 2rem);
+          }
+
+          .video-embed,
+          .video-poster {
+            min-height: 240px;
+            aspect-ratio: 16 / 9;
+          }
+        }
       `}</style>
       <style jsx>{`
+        :global(.appear-on-scroll){
+          opacity:0;
+          transform: translateY(22px);
+          transition: opacity .45s ease, transform .45s ease;
+        }
+        :global(.appear-on-scroll.is-visible){
+          opacity:1;
+          transform: translateY(0);
+          animation: fade-up 0.85s ease forwards;
+          animation-delay: var(--delay, 0s);
+        }
+        @media (prefers-reduced-motion: reduce){
+          :global(.appear-on-scroll),
+          :global(.appear-on-scroll.is-visible){
+            opacity:1;
+            transform:none;
+            animation:none !important;
+          }
+        }
+
         :global(.success-shell) {
           background:
             radial-gradient(58% 50% at 80% 6%, hsl(var(--accent) / 0.28), transparent 74%),
@@ -553,9 +822,9 @@ export default function SuccessClient() {
           box-shadow: var(--shadow-2);
         }
 
-        :global(.success-header h1) {
+        :global(.success-heading-text) {
           color: hsl(var(--text));
-          text-shadow: 1px 1px 2px hsl(var(--text-subtle) / 0.25);
+          text-shadow: 1px 1px 2px hsl(var(--text-subtle) / 0.18);
         }
 
         :global(.success-banner) {
@@ -622,25 +891,51 @@ function parseVideoUrl(raw: string): VideoInfo {
   try {
     const url = new URL(raw)
     const host = url.hostname.replace(/^www\./, '')
+    const pathSegments = url.pathname.split('/').filter(Boolean)
+    const isYouTubeHost = host === 'youtube-nocookie.com' || host === 'youtu.be' || host.endsWith('youtube.com')
 
-    if (host === 'youtu.be') {
-      const videoId = url.pathname.slice(1)
-      if (videoId) {
-        return { embedUrl: `https://www.youtube.com/embed/${videoId}`, provider: 'youtube' }
+    const applyTimeParams = (target: URL) => {
+      const start = url.searchParams.get('start') || url.searchParams.get('t')
+      if (start) {
+        const startDigits = start.match(/\d+/g)?.join('')
+        if (startDigits) {
+          target.searchParams.set('start', startDigits)
+        }
+      }
+      const siParam = url.searchParams.get('si')
+      if (siParam) {
+        target.searchParams.set('si', siParam)
       }
     }
 
-    if (host.endsWith('youtube.com')) {
-      const params = url.searchParams
-      const id = params.get('v') || params.get('vi')
-      if (id) {
-        return { embedUrl: `https://www.youtube.com/embed/${id}`, provider: 'youtube' }
+    if (isYouTubeHost) {
+      const embedIndex = pathSegments.findIndex((part) => part === 'embed')
+      if (embedIndex > -1 && pathSegments[embedIndex + 1]) {
+        const embedUrl = new URL(`https://www.youtube-nocookie.com/embed/${pathSegments[embedIndex + 1]}`)
+        applyTimeParams(embedUrl)
+        return { embedUrl: embedUrl.toString(), provider: 'youtube' }
       }
-      const pathname = url.pathname.split('/')
-      const embedIndex = pathname.findIndex((part) => part === 'embed')
-      if (embedIndex > -1 && pathname[embedIndex + 1]) {
-        return { embedUrl: `https://www.youtube.com/embed/${pathname[embedIndex + 1]}`, provider: 'youtube' }
+
+      let videoId = ''
+
+      if (host === 'youtu.be') {
+        videoId = pathSegments[0] || ''
+      } else {
+        const params = url.searchParams
+        videoId = params.get('v') || params.get('vi') || ''
+
+        if (!videoId && pathSegments.length > 0) {
+          videoId = pathSegments[pathSegments.length - 1]
+        }
       }
+
+      if (videoId) {
+        const embedUrl = new URL(`https://www.youtube-nocookie.com/embed/${videoId}`)
+        applyTimeParams(embedUrl)
+        return { embedUrl: embedUrl.toString(), provider: 'youtube' }
+      }
+
+      return { embedUrl: null, provider: 'youtube' }
     }
 
     if (host === 'drive.google.com') {

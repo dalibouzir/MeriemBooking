@@ -1,6 +1,14 @@
 'use client'
 
-import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type ReactNode,
+} from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -113,6 +121,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<BookCategory>('الكل')
+  const [activeCardIndex, setActiveCardIndex] = useState(0)
+  const gridRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     let cancelled = false
     const fetchProducts = async () => {
@@ -150,14 +160,102 @@ export default function ProductsPage() {
     return normalizedResources.filter((book) => book.tags.includes(activeCategory))
   }, [activeCategory, normalizedResources])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const elements = Array.from(
+      document.querySelectorAll<HTMLElement>('.library-page .appear-on-scroll')
+    )
+    if (!elements.length) return
+
+    const revealAll = () => elements.forEach((el) => el.classList.add('is-visible'))
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      revealAll()
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible')
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.2, rootMargin: '0px 0px -10% 0px' }
+    )
+
+    elements.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [filteredBooks.length, activeCategory])
+
+  useEffect(() => {
+    setActiveCardIndex(0)
+    const container = gridRef.current
+    if (container) {
+      container.scrollTo({ left: 0, behavior: 'smooth' })
+    }
+  }, [activeCategory, filteredBooks.length])
+
+  useEffect(() => {
+    const container = gridRef.current
+    if (!container) return
+
+    const updateActiveCard = () => {
+      const items = Array.from(container.children) as HTMLElement[]
+      if (!items.length) return
+      const containerRect = container.getBoundingClientRect()
+      const containerCenter = containerRect.left + containerRect.width / 2
+      let nextIndex = 0
+      let smallestDelta = Number.POSITIVE_INFINITY
+
+      items.forEach((item, index) => {
+        const itemRect = item.getBoundingClientRect()
+        const itemCenter = itemRect.left + itemRect.width / 2
+        const delta = Math.abs(itemCenter - containerCenter)
+        if (delta < smallestDelta) {
+          smallestDelta = delta
+          nextIndex = index
+        }
+      })
+
+      setActiveCardIndex(nextIndex)
+    }
+
+    let frame = 0
+    const onScroll = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(() => {
+        updateActiveCard()
+        frame = 0
+      })
+    }
+
+    container.addEventListener('scroll', onScroll, { passive: true })
+    updateActiveCard()
+
+    return () => {
+      container.removeEventListener('scroll', onScroll)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
+  }, [filteredBooks.length])
+
+  const scrollToCard = (index: number) => {
+    const container = gridRef.current
+    if (!container) return
+    const target = container.children[index] as HTMLElement | undefined
+    if (!target) return
+    target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    setActiveCardIndex(index)
+  }
+
   return (
     <main className="library-page" dir="rtl">
       <section aria-labelledby="library-shelf-title">
-        <div className="library-section-head">
-          <div>
-            <h1 className="library-hero-title">مكتبة فطرة</h1>
-          </div>
-        </div>
+        <h1 id="library-shelf-title" className="library-hero-title">
+          مكتبة فطرة
+        </h1>
 
         <nav className="library-filter-tabs" aria-label="تصنيفات المكتبة">
           {CATEGORY_TABS.map((tab) => (
@@ -197,26 +295,49 @@ export default function ProductsPage() {
                 لتظهر هنا فورًا.
               </p>
             ) : (
-              <div className="library-grid" role="list">
-                {filteredBooks.map((book) => (
-                  <BookCard key={book.id} book={book} />
-                ))}
-              </div>
+              <>
+                <div className="library-grid appear-on-scroll" role="list" ref={gridRef} style={{ '--delay': '0.08s' } as CSSProperties}>
+                  {filteredBooks.map((book, index) => (
+                    <BookCard key={book.id} book={book} index={index} />
+                  ))}
+                </div>
+                {filteredBooks.length > 1 ? (
+                  <div className="library-grid-dots appear-on-scroll" aria-label="تصفح المكتبة" style={{ '--delay': '0.12s' } as CSSProperties}>
+                    {filteredBooks.map((book, index) => (
+                      <button
+                        key={book.id}
+                        type="button"
+                        className={`library-grid-dot${index === activeCardIndex ? ' is-active' : ''}`}
+                        aria-label={`الانتقال إلى ${book.title}`}
+                        aria-pressed={index === activeCardIndex}
+                        onClick={() => scrollToCard(index)}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </>
             )}
           </>
         )}
       </section>
 
       <section id="library-workflow" className="library-flow" aria-labelledby="library-flow-title">
-        <div className="library-section-head">
+        <div className="library-section-head appear-on-scroll" style={{ '--delay': '0.14s' } as CSSProperties}>
           <div>
             <h2 id="library-flow-title">كيف تعمل التنزيلات؟</h2>
             <p>ثلاث خطوات متتالية تنتهي بملف مطبوع وجلسة تعريفية مجانية.</p>
           </div>
         </div>
+        <p className="library-flow-hint appear-on-scroll" style={{ '--delay': '0.16s' } as CSSProperties}>
+          اسحبي لليمين واليسار لاستعراض الخطوات
+        </p>
         <div className="library-flow-steps">
           {FLOW_STEPS.map((step, index) => (
-            <article key={step.id} className="library-flow-step">
+            <article
+              key={step.id}
+              className="library-flow-step appear-on-scroll"
+              style={{ '--delay': `${0.16 + index * 0.05}s` } as CSSProperties}
+            >
               <span className="library-flow-step-number">{index + 1}</span>
               <h3>{step.title}</h3>
               <p>{step.detail}</p>
@@ -236,8 +357,8 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      <section aria-labelledby="library-why-title">
-        <div className="library-section-head">
+      <section aria-labelledby="library-why-title" className="library-why-area">
+        <div className="library-section-head appear-on-scroll" style={{ '--delay': '0.18s' } as CSSProperties}>
           <div>
             <h2 id="library-why-title">لماذا سميناها مكتبة؟</h2>
             <p>لأنها ليست مجرد صفحة منتج واحد، بل رفوف متجددة لأدلة ودورات مصغرة.</p>
@@ -245,7 +366,11 @@ export default function ProductsPage() {
         </div>
         <div className="library-why">
           {WHY_POINTS.map((card) => (
-            <article key={card.id} className="library-why-card">
+            <article
+              key={card.id}
+              className="library-why-card appear-on-scroll"
+              style={{ '--delay': '0.22s' } as CSSProperties}
+            >
               <span className="library-why-icon" aria-hidden>
                 {card.icon}
               </span>
@@ -257,7 +382,7 @@ export default function ProductsPage() {
       </section>
 
       <section className="library-faq" aria-labelledby="library-faq-title">
-        <div className="library-section-head">
+        <div className="library-section-head appear-on-scroll" style={{ '--delay': '0.26s' } as CSSProperties}>
           <div>
             <h2 id="library-faq-title">أسئلة مختصرة</h2>
             <p>كل الإجابات في بطاقة واحدة قابلة للطي حتى على الهاتف.</p>
@@ -301,9 +426,10 @@ function SmartLink({ href, className = '', children, onClick }: SmartLinkProps) 
 
 type BookCardProps = {
   book: ShelfBook
+  index: number
 }
 
-function BookCard({ book }: BookCardProps) {
+function BookCard({ book, index }: BookCardProps) {
   const handleCoverClick = (event: MouseEvent<HTMLAnchorElement>) => {
     event.stopPropagation()
   }
@@ -316,7 +442,11 @@ function BookCard({ book }: BookCardProps) {
   )
 
   return (
-    <article className="library-card" role="listitem">
+    <article
+      className="library-card appear-on-scroll"
+      role="listitem"
+      style={{ '--delay': `${index * 80}ms` } as CSSProperties}
+    >
       <SmartLink href={book.ctaHref} className="library-card-cover-link" onClick={handleCoverClick}>
         <div className="library-card-cover">
           <Image src={book.cover} alt={book.title} fill sizes="(max-width: 680px) 80vw, 300px" />
