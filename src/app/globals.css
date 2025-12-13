@@ -7551,4 +7551,182 @@ html[class*="theme-d"] .product-card .product-btn-download{
   }
 }
 
+.reviews-3d{
+  position:relative;
+  margin:clamp(2.25rem, 5vw, 4.75rem) auto;
+  padding:clamp(3rem, 6vw, 4.75rem) clamp(1.5rem, 5vw, 3rem) clamp(5rem, 8vw, 7rem);
+  background:
+    radial-gradient(circle at 20% 18%, hsla(var(--primary) / 0.12), transparent 40%),
+    radial-gradient(circle at 82% 12%, hsla(var(--accent) / 0.1), transparent 38%),
+    linear-gradient(135deg, hsla(var(--surface) / 0.95), hsla(var(--surface-muted) / 0.88));
+  border:1px solid var(--surface-border);
+  border-radius:32px;
+  box-shadow:0 36px 90px hsla(var(--primary) / 0.18);
+  color:hsl(var(--text));
+  overflow:hidden;
+}
+.reviews-3d::after{
+  content:'';
+  position:absolute;
+  inset:-20% 10% auto;
+  height:50%;
+  background:radial-gradient(circle, hsla(var(--primary) / 0.2), transparent 60%);
+  opacity:0.45;
+  filter:blur(60px);
+  pointer-events:none;
+}
+.reviews-3d .reviews-3d-head{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:0.35rem;
+  margin-bottom:clamp(1.2rem, 3vw, 2rem);
+  text-align:right;
+  z-index:1;
+}
+.reviews-3d .reviews-3d-kicker{
+  margin:0;
+  font-weight:800;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:hsl(var(--primary-700));
+}
+.reviews-3d .reviews-3d-head h2{
+  margin:0;
+  font-size:clamp(1.6rem, 3vw, 2.2rem);
+  color:hsl(var(--text));
+}
+.reviews-3d .reviews-3d-body{
+  position:relative;
+  display:grid;
+  gap:1.25rem;
+  align-items:center;
+  justify-items:center;
+}
+.reviews-3d .reviews-3d-controls{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:0.75rem;
+  width:100%;
+  z-index:2;
+}
+.reviews-3d .reviews-3d-nav{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  border:1px solid hsla(var(--primary) / 0.35);
+  background:linear-gradient(145deg, hsla(var(--surface) / 0.88), hsla(var(--surface-muted) / 0.85));
+  color:hsl(var(--primary-700));
+  box-shadow:0 12px 30px hsla(var(--primary) / 0.18);
+  cursor:pointer;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1rem;
+  font-weight:900;
+}
+.reviews-3d .reviews-3d-nav:hover{
+  transform:translateY(-2px) scale(1.02);
+  box-shadow:0 16px 38px hsla(var(--primary) / 0.24);
+  border-color:hsla(var(--primary) / 0.55);
+}
+.reviews-3d .reviews-3d-nav:focus-visible{
+  outline:2px solid hsl(var(--primary));
+  outline-offset:2px;
+}
+.reviews-3d .reviews3d-wrapper{
+  width:100%;
+  min-height:clamp(340px, 60vw, 560px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  perspective:1600px;
+  z-index:1;
+  transform:translateY(-42px);
+}
+.reviews-3d .reviews3d-inner{
+  --w:clamp(168px, 24vw, 235px);
+  --h:clamp(205px, 32vw, 295px);
+  --translateZ:calc((var(--w) + var(--h)) * 0.7);
+  --rotateX:-15deg;
+  --perspective:1200px;
+  --rotationY:0deg;
+  position:relative;
+  width:var(--w);
+  height:var(--h);
+  transform-style:preserve-3d;
+  transform:perspective(var(--perspective)) rotateX(var(--rotateX)) rotateY(var(--rotationY));
+  user-select:none;
+  touch-action:pan-y;
+  cursor:grab;
+  transition:none;
+  will-change:transform;
+}
+.reviews-3d .reviews3d-inner[data-dragging='true']{
+  cursor:grabbing;
+}
+.reviews-3d .reviews3d-inner:focus-visible{
+  outline:2px solid hsl(var(--primary));
+  outline-offset:6px;
+}
+.reviews-3d .reviews3d-card{
+  position:absolute;
+  inset:0;
+  border:1.5px solid rgba(var(--color-card), 0.58);
+  border-radius:18px;
+  overflow:hidden;
+  transform:rotateY(calc((360deg / var(--quantity)) * var(--index))) translateZ(var(--translateZ)) scale(0.7);
+  box-shadow:0 22px 60px rgba(0,0,0,0.16), 0 12px 30px rgba(var(--color-card), 0.24);
+  backdrop-filter:blur(10px);
+  will-change:transform;
+}
+.reviews-3d .reviews3d-surface{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:clamp(1rem, 3vw, 1.5rem);
+  background:#0000 radial-gradient(circle, rgba(var(--color-card), 0.28) 0%, rgba(var(--color-card), 0.65) 70%, rgba(var(--color-card), 0.9) 100%);
+  color:#fdfaff;
+  text-shadow:0 10px 30px rgba(0,0,0,0.35);
+  backdrop-filter:blur(6px) saturate(1.1);
+}
+.reviews-3d .reviews3d-text{
+  margin:0;
+  text-align:center;
+  font-size:clamp(0.9rem, 1.05vw, 1rem);
+  font-weight:800;
+  line-height:1.65;
+  display:-webkit-box;
+  -webkit-line-clamp:10;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.reviews-3d .reviews3d-card:hover .reviews3d-surface{
+  box-shadow:inset 0 0 40px rgba(0,0,0,0.25);
+}
+@media (max-width: 900px){
+  .reviews-3d .reviews-3d-controls{ justify-content:center; }
+  .reviews-3d .reviews3d-inner{ --translateZ:calc((var(--w) + var(--h)) * 0.64); }
+  .reviews-3d .reviews3d-text{ -webkit-line-clamp:9; }
+}
+@media (max-width: 600px){
+  .reviews-3d{
+    padding:clamp(2.25rem, 7vw, 3.5rem) clamp(1rem, 5vw, 1.6rem);
+  }
+  .reviews-3d .reviews3d-inner{
+    --w:clamp(162px, 70vw, 220px);
+    --h:clamp(210px, 62vw, 270px);
+    --translateZ:calc((var(--w) + var(--h)) * 0.58);
+  }
+  .reviews-3d .reviews3d-text{ -webkit-line-clamp:8; font-size:clamp(0.92rem, 4vw, 1rem); }
+}
+@media (prefers-reduced-motion: reduce){
+  .reviews-3d .reviews3d-inner{ transition:none; }
+  .reviews-3d .reviews-3d-nav{ transition:none; }
+}
+
 /* Bricks-style homepage CSS removed (reverted to original) */

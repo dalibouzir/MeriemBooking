@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import Accordion from '@/components/ui/Accordion'
 import heroImage from '@/assets/hero-image.png'
 import { supabaseClient } from '@/lib/supabase'
@@ -18,11 +18,50 @@ import { useRevealOnScroll } from '@/utils/reveal'
 const CALENDLY_URL = 'https://calendly.com/meriembouzir/30min?month=2025-12'
 const PRODUCTS_ROUTE = '/products'
 
-const CTA_ITEMS = [
-  'حمّلي ملفًا مجانيًا لتحصلي على رمز المكالمة الأولى',
-  'ملفات رقمية مجانية لكل مرحلة من الأمومة',
-  'مجتمع حيّ يشارك انتصاراته الصغيرة يوميًا',
+const REVIEWS = [
+  {
+    text: 'Thank youu so much Meriem. Walah mahlek 3ale5r w mashalah 3la 5edmtk. Jsuis tres heureuse enek jit fi tri9i ❤️❤️❤️❤️',
+    color: '142, 249, 252',
+  },
+  {
+    text: 'Mercii encore une fois Maryem, farhana barcha enek mawjouda fedenya❤️',
+    color: '255, 196, 164',
+  },
+  {
+    text: '3arfet kifech Elle anticipe 7ajet eni Mezelt mawselthomch, eni Eli moch bel sehel bech ne9tana3 5ater kol chay 3andi nebni Ken 3al logique w raison w kol youm nzid ne9tana3 akther w nal9a Eli klemerk y7arrakli fel Eli n7es bih reelleement lkol melloul kont n7es b chwya estefzez 5ater l79i9a enti kenet m5obbia w 7fert 3liha w mba3d nerte7 barcha w narja3 netnaffes Mel les profondeurs',
+    color: '255, 186, 240',
+  },
+  {
+    text: 'أهلا أستاذة مريم أريد أن أشكرك كثيرا جدا في أول قبل ما أبدأ الجلسة كنت بفكر كثير وخايفة شوية لكن ما إن بديتها معك حسيت براحة تامة وحسيت بأريحية تامة كأني أتكلم مع صديقتي أو شخص بعرفو من زمان حتى طريقتك في الكلام تخلي الواحد يشعر بشعور ومنعش وطيب جميل ومريح 😘. أما بالنسبة للجلسة حرفيا كل المشاعر التي أشعر بها يااااستطعي معرفتها لدرجة أنه في مشاعر وأشياء أنا ما قلتها وأنت اللهم بارك ذكرتها لي كنت دقيقة في وصف وشرح ومعرفة ما أشعر به حرفيا 💞 واندهشت من الشعور لي أنا فعلا محتاجة أشتغل عليه وما كنت بظن أنه هو أشكرك جدا 💕. كنت بتسمعيني وتعطيني وقت وماتحكمي عليا بالعكس كنت تحسسيني أنك فاهماني وأيضا تردين على أسئلتي وكثير واقعية في كلامك وصادقة أنا حبيتك من أول ثواني 💗. وكمان أعطيتني الحل المناسب لحالتي. أنا أشكرك جدا على وقتك وطيوبتك ولطفك الجميل معي أرجو لك تحقيق ما تريدين في حياتك وأنتي من بين أجمل الناس الذين التقيت بهم 🥰',
+    color: '186, 210, 255',
+  },
+  {
+    text: 'kont Enti sbeb Bech na3ref rou7i, rou7i Eli makontechi na3refha w mechi fibeli na3refha l9itha lyoum w bdit n7ebha kima hia men8ir chourout, bdit net9abbel fi tbi3ti w narja3 lfitrti w e9tana3t Eli enou el ontha 9adra tkoun fe3la ama Kima hia ka ontha moch tkoun mostarjla,t3allemt mennek barcha w kol youm nzid net3allem mennek w Ken nal9a seance m3ak metoufech wellet activite mta3 ra7a Bennesba lili, on dirait sefert brou7i l3alem e5er 3alem fih toma2nina w ra7a metoutousefch.',
+    color: '255, 221, 150',
+  },
+  {
+    text: 'أنا شخص عنده الكثير من الحدود في الانفتاح بالحديث عن مشكلاته، ويحب ويحاول أحلها لوحدي أو أتجاوزها.. - هيك فكرت - حتى حكيت معك يا مريم.. على الرغم إنك بتحطي إيدك بالجرح بالضبط إلا إني بكون سعيدة ومنبهرة كيف توصلي لأصل المشكلة حتى لو عمرها عشرات السنين ومدفونة جواتي.. انتي جدا حدّا كثير يخاطب المشاعر والمنطق مع بعض، بتعاملي بكل موضوعية مع المشكلة ولكن من غير قسوة.. والمهر كما طريقك في وضع الحلول المناسبة لشخصيتي.. من تجربتي انتي حدا عارف وفاهم ودارس وحابب اللي بعمله وهذا شي نادر جدا.. بحب كل مرة بنحكي فيها وبتنجحي كيف تعرفي أصل المشكلة وطريقة حلها ومحاولاتك المستمرة مرة بلطف وحب.. ممتنة الك وسعيدة طول الوقت خلال الجلسات وبعدها 🥰',
+    color: '168, 222, 175',
+  },
+  {
+    text: 'مريم عاونتني إني نتجاوز فترة تعيدت بيها في علاقتي مع راجلي و نحن النساء عامة ديما عنا مشكلة في العلاقات مههه علاقتنا بانسان نحبو أو حبيناه علاقتنا برجالنا علاقتنا بصغارنا و بحموانتنا و ساعات بعائلاتنا... مريم حرفيا ربي بعثها ليا في الفترة هذيكة باش نولي بصيرتي كيفما يقولوا. كنت كلما نحكي معاها و نسالها و تسالني بدأت معايا من أول المشكلة و الي هي إني مريم علمتني نتحكم في أعصابي علمتني وقتاش لازم نتكلم و وقتاش لازم نسكت علمتني شنو لازم أقول و شنو الحاجات الي تتنقش عليها و الحاجات الي ما تستحقش مني حتى ردة فعل بمعنى اخر مريم علمتني \"كيف اختار معاركي!\" مش كل نقاش لازم ندخل فيه و مش كل كلمة لازم نرد عليها مش كل تلميح نافقوا عندوا و مش كل نظرة تستحق منا عرك و معروك الحاصل وليت كل ما وحدة نعرفها تقلّي عندي مشاكل مع راجلي طول نقلهالها عليك بمريم 😁😁 بالحق يعطيك الصحة يا مريموا و ربي يزيدك علم و ينفع بيك جنس حواء و آدم 😍😍😍',
+    color: '255, 180, 180',
+  },
+  {
+    text: 'والله كلمة حق تقال انك علمتني كيفاش نتعامل راجلي',
+    color: '192, 189, 255',
+  },
+  {
+    text: 'ربي يبقي ستروا علينا اجمعين و ربي يرزقك و يعطيك من كل خير',
+    color: '255, 214, 182',
+  },
+  {
+    text: 'Je me sens beaucoup mieux et plus équilibrée depuis que je travaille avec Mariem. Chaque séance m’aide à clarifier mes idées et à avancer avec davantage de confiance. Mariem est toujours à l’écoute : elle prend réellement le temps, toujours plus d’une heure, voire deux, pour m’accompagner. Elle comprend très bien ce que je lui partage, elle analyse avec précision et me renvoie des pistes pertinentes. Grâce à elle, j’ai découvert des aspects de ma personnalité que je n’avais jamais réalisés en 27 ans. J’apprécie aussi sa clarté, sa structure et la cohérence de son approche. Ses idées et son plan d’accompagnement sont toujours bien organisés, ce qui me permet de progresser sereinement. En résumé, Mariem exceptionnelle, professionnelle, bienveillante et très investie dans le suivi de ses clientes ❤️.',
+    color: '160, 228, 255',
+  },
 ]
+
+const REVIEW_AUTO_SPEED = 0.006
 
 const SESSION_FAQ_ITEMS = [
   {
@@ -358,8 +397,153 @@ export default function HomePage() {
   const featuredDisplay = featuredItems.length ? featuredItems.map(mapResourceToDisplay) : FALLBACK_FEATURES
 
   const landingRootRef = useRef<HTMLElement | null>(null)
+  const reviewsInnerRef = useRef<HTMLDivElement | null>(null)
+  const reviewRotationRef = useRef(0)
+  const reviewAutoFrameRef = useRef<number | null>(null)
+  const reviewResumeTimeoutRef = useRef<number | null>(null)
+  const reviewsPrefersReducedMotionRef = useRef(false)
+  const reviewBasePerspectiveRef = useRef('1000px')
+  const reviewBaseRotateXRef = useRef('-15deg')
+  const isDraggingReviewRef = useRef(false)
+  const dragStartXRef = useRef(0)
 
   useRevealOnScroll(landingRootRef, [featuredDisplay.length])
+
+  const applyReviewRotation = useCallback((nextAngle: number) => {
+    const inner = reviewsInnerRef.current
+    if (!inner) return
+    const sanitized = Number.isFinite(nextAngle) ? nextAngle : 0
+    reviewRotationRef.current = sanitized
+    inner.style.setProperty('--rotationY', `${sanitized}deg`)
+    inner.style.transform = `perspective(${reviewBasePerspectiveRef.current}) rotateX(${reviewBaseRotateXRef.current}) rotateY(${sanitized}deg)`
+  }, [])
+
+  const stopReviewAutoRotate = useCallback(() => {
+    if (reviewAutoFrameRef.current) {
+      cancelAnimationFrame(reviewAutoFrameRef.current)
+      reviewAutoFrameRef.current = null
+    }
+  }, [])
+
+  const startReviewAutoRotate = useCallback(() => {
+    if (reviewsPrefersReducedMotionRef.current) return
+    stopReviewAutoRotate()
+    let last = performance.now()
+    const step = (time: number) => {
+      const delta = time - last
+      last = time
+      applyReviewRotation(reviewRotationRef.current + delta * REVIEW_AUTO_SPEED)
+      reviewAutoFrameRef.current = requestAnimationFrame(step)
+    }
+    reviewAutoFrameRef.current = requestAnimationFrame(step)
+  }, [applyReviewRotation, stopReviewAutoRotate])
+
+  const scheduleReviewResume = useCallback(() => {
+    if (reviewsPrefersReducedMotionRef.current) return
+    if (reviewResumeTimeoutRef.current) window.clearTimeout(reviewResumeTimeoutRef.current)
+    reviewResumeTimeoutRef.current = window.setTimeout(() => {
+      startReviewAutoRotate()
+    }, 800)
+  }, [startReviewAutoRotate])
+
+  const rotateReviewsByStep = useCallback(
+    (direction: number) => {
+      stopReviewAutoRotate()
+      applyReviewRotation(reviewRotationRef.current + direction * (360 / REVIEWS.length))
+      scheduleReviewResume()
+    },
+    [applyReviewRotation, scheduleReviewResume, stopReviewAutoRotate]
+  )
+
+  useEffect(() => {
+    const inner = reviewsInnerRef.current
+    if (!inner) return
+
+    const computed = window.getComputedStyle(inner)
+    const perspective = computed.getPropertyValue('--perspective').trim()
+    const rotateX = computed.getPropertyValue('--rotateX').trim()
+    if (perspective) reviewBasePerspectiveRef.current = perspective
+    if (rotateX) reviewBaseRotateXRef.current = rotateX
+
+    applyReviewRotation(reviewRotationRef.current)
+
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    reviewsPrefersReducedMotionRef.current = motionQuery.matches
+    if (!motionQuery.matches) startReviewAutoRotate()
+
+    const handleMotionChange = (event: MediaQueryListEvent) => {
+      reviewsPrefersReducedMotionRef.current = event.matches
+      if (event.matches) {
+        stopReviewAutoRotate()
+      } else {
+        startReviewAutoRotate()
+      }
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      stopReviewAutoRotate()
+      if (reviewResumeTimeoutRef.current) window.clearTimeout(reviewResumeTimeoutRef.current)
+      isDraggingReviewRef.current = true
+      dragStartXRef.current = event.clientX
+      inner.setPointerCapture(event.pointerId)
+      inner.dataset.dragging = 'true'
+    }
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!isDraggingReviewRef.current) return
+      const deltaX = event.clientX - dragStartXRef.current
+      dragStartXRef.current = event.clientX
+      applyReviewRotation(reviewRotationRef.current + deltaX * 0.35)
+    }
+
+    const handlePointerEnd = (event: PointerEvent) => {
+      if (!isDraggingReviewRef.current) return
+      isDraggingReviewRef.current = false
+      if (inner.hasPointerCapture(event.pointerId)) inner.releasePointerCapture(event.pointerId)
+      inner.dataset.dragging = 'false'
+      scheduleReviewResume()
+    }
+
+    const handleMouseEnter = () => {
+      if (!isDraggingReviewRef.current) stopReviewAutoRotate()
+    }
+
+    const handleMouseLeave = () => {
+      if (!isDraggingReviewRef.current) scheduleReviewResume()
+    }
+
+    const handleFocusIn = () => {
+      stopReviewAutoRotate()
+    }
+
+    const handleFocusOut = () => {
+      scheduleReviewResume()
+    }
+
+    motionQuery.addEventListener('change', handleMotionChange)
+    inner.addEventListener('pointerdown', handlePointerDown)
+    inner.addEventListener('pointermove', handlePointerMove)
+    inner.addEventListener('pointerup', handlePointerEnd)
+    inner.addEventListener('pointercancel', handlePointerEnd)
+    inner.addEventListener('mouseenter', handleMouseEnter)
+    inner.addEventListener('mouseleave', handleMouseLeave)
+    inner.addEventListener('focusin', handleFocusIn)
+    inner.addEventListener('focusout', handleFocusOut)
+
+    return () => {
+      stopReviewAutoRotate()
+      if (reviewResumeTimeoutRef.current) window.clearTimeout(reviewResumeTimeoutRef.current)
+      motionQuery.removeEventListener('change', handleMotionChange)
+      inner.removeEventListener('pointerdown', handlePointerDown)
+      inner.removeEventListener('pointermove', handlePointerMove)
+      inner.removeEventListener('pointerup', handlePointerEnd)
+      inner.removeEventListener('pointercancel', handlePointerEnd)
+      inner.removeEventListener('mouseenter', handleMouseEnter)
+      inner.removeEventListener('mouseleave', handleMouseLeave)
+      inner.removeEventListener('focusin', handleFocusIn)
+      inner.removeEventListener('focusout', handleFocusOut)
+    }
+  }, [applyReviewRotation, scheduleReviewResume, startReviewAutoRotate, stopReviewAutoRotate])
 
   const handleScrollToFeatured = useCallback(() => {
     const el = document.getElementById('featured') ?? document.getElementById('landing-hot')
@@ -601,35 +785,64 @@ export default function HomePage() {
           )}
         </section>
 
-        <section className="landing-cta reveal" data-reveal="up" aria-labelledby="landing-cta-title">
-          <div className="landing-cta-body reveal" data-reveal="up">
-            <div className="landing-cta-copy">
-              <h2 id="landing-cta-title">ابدئي بخطوة صغيرة تُحدِث أثرًا كبيرًا</h2>
-              <p>حمّلي ملفًا مجانيًا، احصلي على رمز المكالمة، ثم استبدليه لاختيار موعدك مع مريم بوزير في مساحة تسمعك بصدق.</p>
+        <section
+          id="reviews"
+          className="reviews-3d reveal"
+          dir="rtl"
+          data-reveal="up"
+          aria-labelledby="reviews-title"
+        >
+          <div className="reviews-3d-head">
+            <p className="reviews-3d-kicker">قصص نجاح</p>
+            <div>
+              <h2 id="reviews-title">آراء وتجارب حقيقية</h2>
             </div>
-            <ul className="landing-cta-list">
-              {CTA_ITEMS.map((item, index) => (
-                <li key={`cta-item-${index}`}>
-                  <span aria-hidden className="landing-cta-dot" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="landing-cta-actions">
-              <Link
-                href={CALENDLY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="landing-btn landing-btn-primary"
+          </div>
+
+          <div className="reviews-3d-body">
+            <div className="reviews-3d-controls" aria-label="تحكم دوران المراجعات">
+              <button
+                type="button"
+                className="reviews-3d-nav"
+                onClick={() => rotateReviewsByStep(-1)}
+                onFocus={stopReviewAutoRotate}
+                onBlur={scheduleReviewResume}
+                aria-label="التدوير عكسي لعرض المراجعة السابقة"
               >
-                احجزي مكالمتك المجانية
-              </Link>
-              <Link href={PRODUCTS_ROUTE} className="landing-btn landing-btn-secondary">
-                تصفّحي المكتبة الآن
-              </Link>
-              <Link href="/train-program" className="landing-btn landing-btn-ghost">
-                بـرنـامـج تـدريـبـي
-              </Link>
+                <span aria-hidden>↺</span>
+              </button>
+              <button
+                type="button"
+                className="reviews-3d-nav"
+                onClick={() => rotateReviewsByStep(1)}
+                onFocus={stopReviewAutoRotate}
+                onBlur={scheduleReviewResume}
+                aria-label="التدوير للأمام لعرض المراجعة التالية"
+              >
+                <span aria-hidden>↻</span>
+              </button>
+            </div>
+            <div className="reviews3d-wrapper">
+              <div
+                className="reviews3d-inner"
+                ref={reviewsInnerRef}
+                style={{ '--quantity': REVIEWS.length } as CSSProperties}
+                tabIndex={0}
+                role="group"
+                aria-label="سلايدر ثلاثي الأبعاد يعرض آراء وتجارب النساء"
+              >
+                {REVIEWS.map((review, index) => (
+                  <div
+                    key={`review-${index}`}
+                    className="reviews3d-card"
+                    style={{ '--index': index, '--color-card': review.color } as CSSProperties}
+                  >
+                    <div className="reviews3d-surface">
+                      <p className="reviews3d-text">{review.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
