@@ -20,6 +20,18 @@ const SUCCESS_CTA_LABEL = (process.env.NEXT_PUBLIC_SUCCESS_CTA_LABEL || 'احج�
 const DEFAULT_COUNTRY_CODE = '+33'
 const CLICK_ID_KEY = 'fm_click_id'
 
+const generateId = () =>
+  typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(16).slice(2)
+
+const readCookie = (name: string) => {
+  if (typeof document === 'undefined') return ''
+  const escaped = name.replace(/([.*+?^${}()|[\]\\])/g, '\\$1')
+  const match = document.cookie.match(new RegExp(`(?:^|; )${escaped}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : ''
+}
+
 const isoToFlag = (iso?: string): string => {
   if (!iso) return ''
   return iso
@@ -69,7 +81,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         setClickId(existing)
         return
       }
-      const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2)
+      const id = generateId()
       window.sessionStorage.setItem(CLICK_ID_KEY, id)
       setClickId(id)
     } catch {
@@ -141,6 +153,42 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       params.set('callCode', `code=${token}`)
       if (SUCCESS_SUPPORT_TEXT) params.set('supportText', SUCCESS_SUPPORT_TEXT)
       if (SUCCESS_CTA_LABEL) params.set('ctaLabel', SUCCESS_CTA_LABEL)
+
+      const eventId = generateId()
+      const eventSourceUrl = typeof window !== 'undefined' ? window.location.href : ''
+      const fbp = readCookie('_fbp')
+      const fbc = readCookie('_fbc')
+
+      if (eventId && eventSourceUrl && email) {
+        const leadPayload = {
+          event_id: eventId,
+          event_source_url: eventSourceUrl,
+          email,
+          phone: fullPhone,
+          fbp: fbp || undefined,
+          fbc: fbc || undefined,
+        }
+
+        try {
+          await fetch('/api/meta/lead', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(leadPayload),
+            keepalive: true,
+          })
+        } catch {
+          // best-effort; ignore failures
+        }
+
+        try {
+          const w = window as typeof window & { fbq?: (...args: unknown[]) => void }
+          if (typeof w.fbq === 'function') {
+            w.fbq('track', 'Lead', { content_name: 'free_booklet' }, { eventID: eventId })
+          }
+        } catch {
+          // ignore pixel issues
+        }
+      }
 
       // Fire conversion for click tracking (best-effort)
       if (clickId) {
