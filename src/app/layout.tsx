@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     shortcut: '/logo/logo.png',
     apple: '/logo/logo.png',
   },
+  verification: {
+    other: {
+      'facebook-domain-verification': '0shoddo4oh2njh9bt5ev8lpnem4oz6',
+    },
+  },
 }
 
 // Ensures proper mobile scaling (prevents weird "disappearing" when toggling device mode)
