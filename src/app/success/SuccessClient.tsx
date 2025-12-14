@@ -28,7 +28,7 @@ const DEFAULTS: Record<Locale, {
   support: string
 }> = {
   ar: {
-    banner: 'مبروك! سيصلك الملف وجميع الروابط عبر الإيميل والواتساب خلال دقائق.',
+    banner: 'مبروك! سيصلك الملف وجميع الروابط عبر الإيميل  خلال دقائق.',
     watchCta: 'شغّلي الفيديو',
     watchHint: 'شغّلي الفيديو مع الصوت',
     videoPrompt: 'شاهِدِي هذا الفيديو الآن لتكتشفي كيف تبدئين من اليوم طريقك نحو أهدافك كأمّ',
@@ -62,7 +62,7 @@ export default function SuccessClient() {
   const bannerMessage = useMemo(() => {
     if (!customerName) return defaults.banner
     return locale === 'ar'
-      ? `مبروك يا ${customerName}! سيصلك الملف عبر الإيميل والواتساب خلال دقائق.`
+      ? `مبروك يا ${customerName}! سيصلك الملف عبر الإيميل  خلال دقائق.`
       : `Congrats ${customerName}! Your downloads are on their way via email and WhatsApp.`
   }, [customerName, defaults.banner, locale])
 
