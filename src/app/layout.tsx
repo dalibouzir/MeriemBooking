@@ -6,6 +6,7 @@ import './globals.css'
 import type { ReactNode } from 'react'
 import type { Metadata, Viewport } from 'next'
 import { Tajawal } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import Providers from './providers'
 import SiteBackgroundClient from './SiteBackgroundClient'
 import ScrollHideTopbar from '@/components/ScrollHideTopbar'
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </main>
           </Providers>
         </SiteBackgroundClient>
+        <Analytics />
       </body>
     </html>
   )
