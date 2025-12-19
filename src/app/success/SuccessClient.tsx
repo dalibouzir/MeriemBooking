@@ -482,11 +482,11 @@ export default function SuccessClient() {
 
         .success-heading-text {
           margin: 0 auto;
-          font-size: clamp(2.1rem, 5vw, 3.1rem);
+          font-size: clamp(1rem, 2.5vw, 1.4rem);
           font-weight: 900;
           color: hsl(var(--text));
           text-shadow: 1px 1px 2px hsl(var(--text-subtle) / 0.18);
-          line-height: 1.2;
+          line-height: 1.35;
           letter-spacing: 0.25px;
           max-width: min(1080px, 100%);
         }

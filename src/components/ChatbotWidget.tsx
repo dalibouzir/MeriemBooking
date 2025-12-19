@@ -71,6 +71,14 @@ const QUICK_REPLIES: QuickReplyConfig[] = [
     ],
     keywords: ['دعم', 'واتساب', 'تحدث', 'support'],
   },
+  {
+    id: 'admin-login',
+    label: 'أريد تسجيل الدخول كأدمن',
+    response:
+      'للدخول إلى الحساب الإداري اضغطي زر تسجيل الدخول التالي، وبعد تسجيل الدخول ستظهر لوحة التحكم وزر الخروج في الأعلى.',
+    actions: [{ label: 'تسجيل الدخول', href: '/login' }],
+    keywords: ['dali', 'دالي', 'تسجيل الدخول', 'دخول', 'أدمن', 'لوحة التحكم', 'admin', 'login'],
+  },
 ]
 
 export default function ChatbotWidget() {

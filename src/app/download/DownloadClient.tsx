@@ -19,6 +19,7 @@ const SUCCESS_SUPPORT_TEXT = (process.env.NEXT_PUBLIC_SUCCESS_SUPPORT_TEXT || '�
 const SUCCESS_CTA_LABEL = (process.env.NEXT_PUBLIC_SUCCESS_CTA_LABEL || 'احجز مكالمتك المجانية الآن').trim()
 const DEFAULT_COUNTRY_CODE = '+33'
 const CLICK_ID_KEY = 'fm_click_id'
+const CLICK_SOURCE_KEY = 'fm_click_source'
 
 const generateId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
@@ -45,6 +46,10 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [clickId, setClickId] = useState<string>('')
+  const [clickSource, setClickSource] = useState<string>('')
+  const [countryCode, setCountryCode] = useState<string>(DEFAULT_COUNTRY_CODE)
+  const [phone, setPhone] = useState<string>('')
+  const [phoneError, setPhoneError] = useState<string | null>(null)
 
   const product = initialProduct
   const searchParams = useSearchParams()
@@ -89,6 +94,79 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
     }
   }, [])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const urlSource = (searchParams?.get('source') || searchParams?.get('utm_source') || '').trim()
+      const stored = window.sessionStorage.getItem(CLICK_SOURCE_KEY) || ''
+      const finalSource = urlSource || stored
+      if (urlSource) window.sessionStorage.setItem(CLICK_SOURCE_KEY, urlSource)
+      setClickSource(finalSource)
+    } catch {
+      setClickSource('')
+    }
+  }, [searchParams])
+
+  const PHONE_ALERT = 'يرجى إدخال رقم الهاتف فقط بدون رمز الدولة'
+
+  const validateLocalPhone = (local: string, selectedCode: string): string | null => {
+    const trimmed = local.trim()
+    if (!trimmed) return null
+    // Non-digits
+    if (/[^0-9]/.test(trimmed)) return PHONE_ALERT
+    // Starts with international prefix 00
+    if (trimmed.startsWith('00')) return PHONE_ALERT
+    // Starts with the selected country code digits (user duplicated country code)
+    const codeDigits = (selectedCode || '').replace(/^\+/, '')
+    if (codeDigits && trimmed.startsWith(codeDigits)) return PHONE_ALERT
+    return null
+  }
+
+  const handlePhoneChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const val = e.target.value
+    setPhone(val)
+    setPhoneError(validateLocalPhone(val, countryCode))
+  }
+
+  const handleCountryChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+    const newCode = e.target.value
+    setCountryCode(newCode)
+    // Revalidate against new code
+    setPhoneError(validateLocalPhone(phone, newCode))
+  }
+
+  const handlePhoneBeforeInput: React.FormEventHandler<HTMLInputElement> = (e) => {
+    const ev = e as unknown as InputEvent
+    // Block non-digit characters from being entered
+    const data = (ev as InputEvent).data
+    if (ev.inputType === 'insertText' && data && /\D/.test(data)) {
+      e.preventDefault()
+      setPhoneError(PHONE_ALERT)
+    }
+  }
+
+  const handlePhoneKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+    // Allow control/navigation keys
+    const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End']
+    if (allowed.includes(e.key)) return
+    // Allow digits only
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault()
+      setPhoneError(PHONE_ALERT)
+    }
+  }
+
+  const handlePhonePaste: React.ClipboardEventHandler<HTMLInputElement> = (e) => {
+    const text = e.clipboardData.getData('text')
+    if (/\D/.test(text)) {
+      // Block pasting non-digits
+      e.preventDefault()
+      setPhoneError(PHONE_ALERT)
+      return
+    }
+    // Let it paste, but validation onChange will handle 00 or country code duplication
+  }
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (loading) return
@@ -104,14 +182,23 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       const firstName = String(fd.get('first_name') || '').trim()
       const lastName = String(fd.get('last_name') || '').trim()
       const email = String(fd.get('email') || '').trim()
-      const phoneCode = String(fd.get('country_code') || '').trim() || DEFAULT_COUNTRY_CODE
-      const phone = String(fd.get('phone') || '').trim()
-      const fullPhone = `${phoneCode} ${phone}`.trim()
+      const phoneCode = String(fd.get('country_code') || '').trim() || countryCode || DEFAULT_COUNTRY_CODE
+      const localPhone = (phone || String(fd.get('phone') || '')).trim()
+      // Validate local phone before submit
+      const localError = validateLocalPhone(localPhone, phoneCode)
+      if (localError) {
+        setPhoneError(localError)
+        setLoading(false)
+        return
+      }
+      const fullPhone = `${phoneCode} ${localPhone}`.trim()
+      const countryName = countryCodeOptions.find((option) => option.code === phoneCode)?.country || ''
+      const source = clickSource || (searchParams?.get('source') || searchParams?.get('utm_source') || '').trim() || 'download-form'
 
       if (!firstName) throw new Error('الاسم مطلوب')
       if (!lastName) throw new Error('اللقب مطلوب')
       if (!isValidEmail(email)) throw new Error('البريد الإلكتروني غير صالح')
-      if (!phone) throw new Error('رقم الهاتف مطلوب')
+      if (!localPhone) throw new Error('رقم الهاتف مطلوب')
       if (!product) throw new Error('المنتج غير محدد')
 
       const res = await fetch('/api/request-download', {
@@ -123,6 +210,9 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           email,
           product,
           phone: fullPhone,
+          country: countryName,
+          source,
+          click_id: clickId,
         }),
       })
 
@@ -288,7 +378,8 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
                 name="country_code"
                 required
                 className="dl-input dl-input-code dl-select"
-                defaultValue={DEFAULT_COUNTRY_CODE}
+                value={countryCode}
+                onChange={handleCountryChange}
               >
                 {countryCodeOptions.map((option) => (
                   <option key={`${option.country}-${option.code}`} value={option.code}>
@@ -306,8 +397,20 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
                 className="dl-input dl-input-phone"
                 placeholder="5x xxx xxxx"
                 dir="ltr"
+                value={phone}
+                onChange={handlePhoneChange}
+                onBeforeInput={handlePhoneBeforeInput}
+                onKeyDown={handlePhoneKeyDown}
+                onPaste={handlePhonePaste}
+                aria-invalid={!!phoneError}
+                aria-describedby={phoneError ? 'dl-phone-error' : undefined}
               />
             </div>
+            {phoneError && (
+              <p id="dl-phone-error" className="dl-field-error" role="alert">
+                {PHONE_ALERT}
+              </p>
+            )}
           </div>
 
           <button type="submit" className="dl-btn" disabled={loading || productMissing}>
@@ -370,6 +473,19 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           text-align: left;
           font-weight: 700;
           letter-spacing: 0.02em;
+        }
+        .dl-input[aria-invalid="true"],
+        .dl-input-phone[aria-invalid="true"] {
+          outline: none;
+          border: 1px solid #dc2626;
+          box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+        }
+
+        .dl-field-error {
+          color: #dc2626;
+          margin-top: 6px;
+          font-size: 0.9rem;
+          line-height: 1.4;
         }
 
         .dl-select {

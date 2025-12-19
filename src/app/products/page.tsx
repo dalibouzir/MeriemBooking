@@ -116,6 +116,7 @@ const FAQ_ITEMS = [
 
 const CTA_ROUTE = '/download'
 const CLICK_ID_KEY = 'fm_click_id'
+const CLICK_SOURCE_KEY = 'fm_click_source'
 
 function getOrCreateClickId() {
   if (typeof window === 'undefined') return ''
@@ -134,6 +135,11 @@ function trackDownloadClick(product: string, source: string) {
   if (typeof window === 'undefined') return
   const clickId = getOrCreateClickId()
   if (!clickId) return
+  try {
+    window.sessionStorage.setItem(CLICK_SOURCE_KEY, source)
+  } catch {
+    // storage is best-effort
+  }
   const payload = {
     clickId,
     product,

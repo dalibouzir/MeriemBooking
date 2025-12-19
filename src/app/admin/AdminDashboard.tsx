@@ -2,6 +2,7 @@
 
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import ModalPortal from '@/components/ModalPortal'
+import AnalyticsEnClient from './analytics-en/AnalyticsEnClient'
 
 function Modal({ open, onClose, title, children, footer, centered }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; footer?: React.ReactNode; centered?: boolean }) {
   if (!open) return null
@@ -11,7 +12,7 @@ function Modal({ open, onClose, title, children, footer, centered }: { open: boo
         <div className="modal-card glass-water" onClick={(e) => e.stopPropagation()}>
           <div className="modal-head">
             <h2>{title}</h2>
-            <button className="btn" onClick={onClose}>إغلاق</button>
+            <button className="btn" onClick={onClose}>Close</button>
           </div>
           <div className="modal-body">{children}</div>
           {footer ? <div className="modal-foot">{footer}</div> : null}
@@ -41,25 +42,25 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
   const [tab, setTab] = useState<TabKey>('calendar')
 
   return (
-    <div dir="rtl" className="admin-shell" style={{ maxWidth: 1600, marginInline: 'auto' }}>
+    <div dir="ltr" className="admin-shell" style={{ maxWidth: 1600, marginInline: 'auto' }}>
       {/* Page header (separate glass card) */}
       <header className="admin-header-card glass-water">
         <div className="admin-header-row">
           <div>
-            <h1 className="admin-title">لوحة التحكم — فطرة الأمهات</h1>
-            <div className="admin-sub">مرحبًا يا مريم 🌸</div>
+            <h1 className="admin-title">Admin Dashboard — Fitra Mothers</h1>
+            <div className="admin-sub">Welcome, Meriem 🌸</div>
           </div>
-          <div className="admin-head-tools" role="toolbar" aria-label="إجراءات الرأس">
-            <button className="btn btn-outline">تحديث</button>
+          <div className="admin-head-tools" role="toolbar" aria-label="Header actions">
+            <button className="btn btn-outline">Refresh</button>
           </div>
         </div>
-        <nav aria-label="أقسام لوحة التحكم" className="admin-action" role="tablist">
+        <nav aria-label="Dashboard sections" className="admin-action" role="tablist">
           {([
-            { key: 'calendar', label: '📅 المواعيد (Calendly)' },
-            { key: 'email', label: '✉️ الإرسال الجماعي' },
-            { key: 'whatsapp', label: '💬 واتساب جماعي' },
-            { key: 'products', label: '📚 المنتجات' },
-            { key: 'stats', label: '📈 الإحصائيات' },
+            { key: 'calendar', label: '📅 Appointments (Calendly)' },
+            { key: 'email', label: '✉️ Bulk Email' },
+            { key: 'whatsapp', label: '💬 Bulk WhatsApp' },
+            { key: 'products', label: '📚 Products' },
+            { key: 'stats', label: '📈 Analytics' },
           ] as { key: TabKey; label: string }[]).map((t) => (
             <button
               key={t.key}
@@ -77,10 +78,14 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
       {/* Switchable content only */}
       <main className="admin-content glass-water">
         {tab==='calendar' && <CalendlyInfoTab/>}
-        {tab==='email' && <BulkEmailTab adminEmail={adminEmail}/>}
+        {tab==='email' && <BulkEmailTab adminEmail={adminEmail}/>}        
         {tab==='whatsapp' && <BulkWhatsappTab/>}
         {tab==='products' && <ProductsTab/>}
-        {tab==='stats' && <StatsTab/>}
+        {tab==='stats' && (
+          <div dir="ltr" className="w-full">
+            <AnalyticsEnClient/>
+          </div>
+        )}
       </main>
     </div>
   )
@@ -89,12 +94,12 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
 function CalendlyInfoTab() {
   return (
     <div className="admin-section">
-      <SectionHeader title="إدارة المواعيد عبر Calendly" />
-      <p className="text-sm text-gray-600">تم نقل إنشاء المواعيد وتأكيدها إلى حساب Calendly الخاص بك. افتحي Calendly لإضافة أو تعديل الأوقات المتاحة وسيتم إرسال التذكيرات من هناك مباشرةً.</p>
+      <SectionHeader title="Manage appointments via Calendly" />
+      <p className="text-sm text-gray-600">Scheduling and confirmations now live in your Calendly account. Open Calendly to add or edit available times and reminders will be handled there.</p>
       <div className="section-toolbar" style={{ marginTop: '1.5rem' }}>
-        <a className="btn btn-primary" href="https://calendly.com/meriembouzir/30min" target="_blank" rel="noopener noreferrer">فتح Calendly</a>
+        <a className="btn btn-primary" href="https://calendly.com/meriembouzir/30min" target="_blank" rel="noopener noreferrer">Open Calendly</a>
       </div>
-      <p className="text-xs text-gray-500" style={{ marginTop: '1rem' }}>لم تعد هناك حاجة لإدارة السعة أو Google Calendar من داخل لوحة التحكم — Calendly يتكفّل بكل شيء.</p>
+      <p className="text-xs text-gray-500" style={{ marginTop: '1rem' }}>No need to manage capacity or Google Calendar inside the dashboard — Calendly handles it.</p>
     </div>
   )
 }
@@ -118,9 +123,9 @@ type Recipient = {
 
 async function fetchRecipientAggregates(): Promise<Recipient[]> {
   const downloadsRes = await fetch('/api/admin/download-requests')
-  const downloadsJson = await downloadsRes.json().catch(() => ({ rows: [], error: 'فشل تحميل التنزيلات' } as { rows?: DownloadRow[]; error?: string }))
+  const downloadsJson = await downloadsRes.json().catch(() => ({ rows: [], error: 'Failed to load downloads' } as { rows?: DownloadRow[]; error?: string }))
 
-  if (!downloadsRes.ok) throw new Error(downloadsJson?.error || 'فشل تحميل التنزيلات')
+  if (!downloadsRes.ok) throw new Error(downloadsJson?.error || 'Failed to load downloads')
 
   type RecipientAccumulator = {
     key: string
@@ -173,7 +178,7 @@ async function fetchRecipientAggregates(): Promise<Recipient[]> {
     if (row?.phone) entry.phones.add(row.phone)
     const createdAt = row?.created_at ? Date.parse(row.created_at) : 0
     if (createdAt && createdAt > entry.lastSeen) entry.lastSeen = createdAt
-    entry.details.add(`تنزيل: ${row?.product_slug || 'بدون اسم'}`)
+    entry.details.add(`Download: ${row?.product_slug || 'Untitled'}`)
   }
 
   const aggregated: Recipient[] = Array.from(map.values()).map((entry) => {
@@ -186,14 +191,14 @@ async function fetchRecipientAggregates(): Promise<Recipient[]> {
     const pending = entry.reservationCount - confirmed
     const summaryParts: string[] = []
     if (entry.reservationCount) {
-      let part = `حجوزات: ${entry.reservationCount}`
-      if (confirmed) part += ` (مؤكدة: ${confirmed})`
-      if (pending > 0) part += ` (أخرى: ${pending})`
+      let part = `Bookings: ${entry.reservationCount}`
+      if (confirmed) part += ` (confirmed: ${confirmed})`
+      if (pending > 0) part += ` (other: ${pending})`
       summaryParts.push(part)
     }
-    if (entry.downloadCount) summaryParts.push(`تنزيلات: ${entry.downloadCount}`)
-    if (productSlugs.length) summaryParts.push(`منتجات: ${productSlugs.join(', ')}`)
-    if (phones.length) summaryParts.push(`هاتف: ${phones.join(', ')}`)
+    if (entry.downloadCount) summaryParts.push(`Downloads: ${entry.downloadCount}`)
+    if (productSlugs.length) summaryParts.push(`Products: ${productSlugs.join(', ')}`)
+    if (phones.length) summaryParts.push(`Phone: ${phones.join(', ')}`)
     const summary = summaryParts.join(' • ') || '—'
     const detailsText = details.join(' • ')
     const lastActivityLabel = entry.lastSeen ? new Date(entry.lastSeen).toLocaleString('en-GB') : '—'
@@ -261,7 +266,7 @@ function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
         return next
       })
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'تعذر تحميل البيانات'
+      const message = err instanceof Error ? err.message : 'Failed to load data'
       setError(message)
     } finally {
       setLoading(false)
@@ -314,7 +319,7 @@ function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
   function openGmail() {
     const emails = deferredRecipients.filter((r) => selected[r.emailKey]).map((r) => r.email)
     if (emails.length === 0) {
-      alert('اختاري بريداً واحداً على الأقل')
+      alert('Select at least one email')
       return
     }
     const url = new URL('https://mail.google.com/mail/u/0/')
@@ -330,71 +335,71 @@ function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
 
   return (
     <div>
-      <SectionHeader title="الإرسال الجماعي"/>
+      <SectionHeader title="Bulk email"/>
       <div className="card p-4 space-y-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="text-sm text-gray-700">
-            <div>العناوين المحمّلة: {totalLoaded}</div>
-            <div>المحددة: {selectedCount}</div>
+            <div>Loaded addresses: {totalLoaded}</div>
+            <div>Selected: {selectedCount}</div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button className="btn" onClick={loadRecipients} disabled={loading}>تحديث</button>
-            <button className="btn btn-outline" onClick={() => setPickerOpen(true)} disabled={totalLoaded === 0}>اختيار العناوين</button>
+            <button className="btn" onClick={loadRecipients} disabled={loading}>Refresh</button>
+            <button className="btn btn-outline" onClick={() => setPickerOpen(true)} disabled={totalLoaded === 0}>Choose emails</button>
           </div>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
-          <input className="input" placeholder="الموضوع (اختياري)" value={subject} onChange={(e)=>setSubject(e.target.value)} />
-          <textarea className="input textarea md:col-span-2" rows={4} placeholder="نص البريد (اختياري)" value={body} onChange={(e)=>setBody(e.target.value)} />
+          <input className="input" placeholder="Subject (optional)" value={subject} onChange={(e)=>setSubject(e.target.value)} />
+          <textarea className="input textarea md:col-span-2" rows={4} placeholder="Email body (optional)" value={body} onChange={(e)=>setBody(e.target.value)} />
         </div>
 
         {error && <div className="text-sm text-red-600">{error}</div>}
-        {loading && <div className="text-sm text-gray-600">جارٍ التحميل…</div>}
+        {loading && <div className="text-sm text-gray-600">Loading…</div>}
 
         {selectedCount > 0 ? (
           <div className="text-sm text-gray-700">
-            سيتم إرسال البريد إلى {selectedCount} عنوان عبر حقل BCC في Gmail.
+            The email will be sent to {selectedCount} recipients via BCC in Gmail.
           </div>
         ) : (
-          <div className="text-sm text-gray-600">حددي بريداً واحداً على الأقل قبل الإرسال.</div>
+          <div className="text-sm text-gray-600">Select at least one address before sending.</div>
         )}
 
-        <button className="btn btn-primary" onClick={openGmail} disabled={selectedCount === 0}>فتح Gmail</button>
+        <button className="btn btn-primary" onClick={openGmail} disabled={selectedCount === 0}>Open Gmail</button>
       </div>
 
       <Modal
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
-        title="اختيار العناوين"
+        title="Choose addresses"
         centered
         footer={
           <div className="flex flex-wrap gap-2">
-            <button className="btn btn-primary" onClick={() => { selectAll(); }}>تحديد الكل</button>
-            <button className="btn btn-outline" onClick={() => { clearSelection(); }}>إلغاء الكل</button>
-            <button className="btn" onClick={() => setPickerOpen(false)}>تم</button>
+            <button className="btn btn-primary" onClick={() => { selectAll(); }}>Select all</button>
+            <button className="btn btn-outline" onClick={() => { clearSelection(); }}>Clear all</button>
+            <button className="btn" onClick={() => setPickerOpen(false)}>Done</button>
           </div>
         }
       >
         {totalLoaded === 0 ? (
-          <div className="text-sm text-gray-600">لا توجد عناوين لعرضها.</div>
+          <div className="text-sm text-gray-600">No addresses to display.</div>
         ) : (
           <div style={{ display: 'grid', gap: 12 }}>
             <div className="grid" style={{ gap: 12 }}>
               <input
                 className="input"
-                placeholder="ابحثي عن بريد أو اسم"
+                placeholder="Search by email or name"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <label className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
                 <input type="checkbox" checked={showSelectedOnly} onChange={(e) => setShowSelectedOnly(e.target.checked)} />
-                عرض المحددة فقط
+                Show selected only
               </label>
-              <div className="text-xs text-gray-500">المعروضة الآن: {filteredCount} / {totalLoaded}</div>
+              <div className="text-xs text-gray-500">Showing: {filteredCount} / {totalLoaded}</div>
             </div>
             <div style={{ maxHeight: '55vh', overflowY: 'auto', display: 'grid', gap: 12 }}>
               {filteredCount === 0 ? (
-                <div className="text-sm text-gray-500">لا توجد نتائج مطابقة.</div>
+                <div className="text-sm text-gray-500">No matching results.</div>
               ) : (
                 filteredRecipients.map((item) => (
                   <RecipientListItem key={item.emailKey} item={item} isSelected={!!selected[item.emailKey]} onToggle={toggleRecipient} />
@@ -438,7 +443,7 @@ function BulkWhatsappTab() {
         return next
       })
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'تعذر تحميل البيانات'
+      const message = err instanceof Error ? err.message : 'Failed to load data'
       setError(message)
     } finally {
       setLoading(false)
@@ -488,10 +493,10 @@ function BulkWhatsappTab() {
     if (!assistantInfo) return ''
     const lines: string[] = []
     if (assistantInfo.message) {
-      lines.push('الرسالة:', assistantInfo.message, '')
+      lines.push('Message:', assistantInfo.message, '')
     }
     if (assistantInfo.numbers.length) {
-      lines.push('الأرقام لإدخالها في مجموعة واتساب:', ...assistantInfo.numbers)
+      lines.push('Numbers to paste into a WhatsApp group:', ...assistantInfo.numbers)
     }
     return lines.join('\n')
   }, [assistantInfo])
@@ -504,7 +509,7 @@ function BulkWhatsappTab() {
     } catch (err) {
       console.error(err)
       setAssistantInfo((prev) => (prev ? { ...prev, copy: 'error' } : prev))
-      alert('تعذّر نسخ المحتوى، انسخي يدويًا من القائمة أدناه.')
+      alert('Could not copy, please copy manually from the list below.')
     }
   }, [assistantClipboardText])
 
@@ -514,7 +519,7 @@ function BulkWhatsappTab() {
 
   const copyNumbers = useCallback(async () => {
     if (selectedNumbers.length === 0) {
-      alert('اختاري جهة اتصال واحدة على الأقل برقم هاتف صالح.')
+      alert('Select at least one contact with a valid phone number.')
       return
     }
     try {
@@ -523,13 +528,13 @@ function BulkWhatsappTab() {
       setCopied(true)
     } catch (err) {
       console.error(err)
-      alert('تعذر نسخ الأرقام إلى الحافظة، انسخيها يدويًا من القائمة.')
+      alert('Could not copy numbers to the clipboard, copy them manually from the list.')
     }
   }, [selectedNumbers])
 
   const openWhatsApp = useCallback(() => {
     if (selectedNumbers.length === 0) {
-      alert('اختاري جهات اتصال تحوي رقم واتساب أولاً.')
+      alert('Pick contacts that have a WhatsApp number first.')
       return
     }
     const text = message.trim()
@@ -541,9 +546,9 @@ function BulkWhatsappTab() {
     const formattedNumbers = selectedNumbers.map((num) => `+${num}`)
     const clipboardLines: string[] = []
     if (text) {
-      clipboardLines.push('الرسالة:', text, '')
+      clipboardLines.push('Message:', text, '')
     }
-    clipboardLines.push('الأرقام لإدخالها في مجموعة واتساب:', ...formattedNumbers)
+    clipboardLines.push('Numbers to paste into a WhatsApp group:', ...formattedNumbers)
 
     setAssistantInfo({ numbers: formattedNumbers, message: text, copy: 'pending' })
     setAssistantOpen(true)
@@ -583,17 +588,17 @@ function BulkWhatsappTab() {
 
   return (
     <div>
-      <SectionHeader title="واتساب جماعي" />
+      <SectionHeader title="Bulk WhatsApp" />
       <div className="card p-4 space-y-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="text-sm text-gray-700">
-            <div>ملفات جهات الاتصال: {totalLoaded}</div>
-            <div>جهات مختارة: {selectedContactsCount}</div>
-            <div>أرقام صالحة: {selectedNumbers.length}</div>
+            <div>Contact rows: {totalLoaded}</div>
+            <div>Selected contacts: {selectedContactsCount}</div>
+            <div>Valid numbers: {selectedNumbers.length}</div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button className="btn" onClick={loadRecipients} disabled={loading}>تحديث</button>
-            <button className="btn btn-outline" onClick={() => setPickerOpen(true)} disabled={totalLoaded === 0}>اختيار الأرقام</button>
+            <button className="btn" onClick={loadRecipients} disabled={loading}>Refresh</button>
+            <button className="btn btn-outline" onClick={() => setPickerOpen(true)} disabled={totalLoaded === 0}>Choose numbers</button>
           </div>
         </div>
 
@@ -601,31 +606,31 @@ function BulkWhatsappTab() {
           <textarea
             className="input textarea"
             rows={4}
-            placeholder="رسالة واتساب (اختياري)"
+            placeholder="WhatsApp message (optional)"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
           <label className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
             <input type="checkbox" checked={optInOnly} onChange={(e) => setOptInOnly(e.target.checked)} />
-            عرض جهات الاتصال التي تحتوي على رقم هاتف فقط
+            Show contacts that have a phone number only
           </label>
         </div>
 
         {error && <div className="text-sm text-red-600">{error}</div>}
-        {loading && <div className="text-sm text-gray-600">جارٍ التحميل…</div>}
+        {loading && <div className="text-sm text-gray-600">Loading…</div>}
 
         {selectedNumbers.length > 0 ? (
           <div className="text-sm text-gray-700">
-            سيتم فتح أول محادثة واتساب وسيتم نسخ الرسالة وجميع الأرقام لمساعدتك على إنشاء مجموعة جديدة بسرعة.
+            The first WhatsApp chat will open and we will copy the message plus all numbers to help you start a new group quickly.
           </div>
         ) : (
-          <div className="text-sm text-gray-600">حددي جهات اتصال تحتوي رقم واتساب صالح.</div>
+          <div className="text-sm text-gray-600">Select contacts that have a valid WhatsApp number.</div>
         )}
 
         <div className="flex flex-wrap gap-2">
-          <button className="btn btn-primary" onClick={openWhatsApp} disabled={selectedNumbers.length === 0}>تشغيل مساعد واتساب</button>
+          <button className="btn btn-primary" onClick={openWhatsApp} disabled={selectedNumbers.length === 0}>Launch WhatsApp helper</button>
           <button className="btn btn-outline" onClick={copyNumbers} disabled={selectedNumbers.length === 0}>
-            {copied ? 'تم النسخ ✅' : 'نسخ قائمة الأرقام'}
+            {copied ? 'Copied ✅' : 'Copy number list'}
           </button>
         </div>
       </div>
@@ -633,36 +638,36 @@ function BulkWhatsappTab() {
       <Modal
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
-        title="اختيار جهات الاتصال"
+        title="Choose contacts"
         centered
         footer={
           <div className="flex flex-wrap gap-2">
-            <button className="btn btn-primary" onClick={() => { selectAll(); }}>تحديد الكل</button>
-            <button className="btn btn-outline" onClick={() => { clearSelection(); }}>إلغاء الكل</button>
-            <button className="btn" onClick={() => setPickerOpen(false)}>تم</button>
+            <button className="btn btn-primary" onClick={() => { selectAll(); }}>Select all</button>
+            <button className="btn btn-outline" onClick={() => { clearSelection(); }}>Clear all</button>
+            <button className="btn" onClick={() => setPickerOpen(false)}>Done</button>
           </div>
         }
       >
         {totalLoaded === 0 ? (
-          <div className="text-sm text-gray-600">لا توجد جهات اتصال لعرضها.</div>
+          <div className="text-sm text-gray-600">No contacts to display.</div>
         ) : (
           <div style={{ display: 'grid', gap: 12 }}>
             <div className="grid" style={{ gap: 12 }}>
               <input
                 className="input"
-                placeholder="ابحثي عن بريد، اسم أو رقم"
+                placeholder="Search by email, name or number"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <label className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
                 <input type="checkbox" checked={showSelectedOnly} onChange={(e) => setShowSelectedOnly(e.target.checked)} />
-                عرض المحددة فقط
+                Show selected only
               </label>
-              <div className="text-xs text-gray-500">المعروضة الآن: {filteredCount} / {totalLoaded}</div>
+              <div className="text-xs text-gray-500">Showing: {filteredCount} / {totalLoaded}</div>
             </div>
             <div style={{ maxHeight: '55vh', overflowY: 'auto', display: 'grid', gap: 12 }}>
               {filteredCount === 0 ? (
-                <div className="text-sm text-gray-500">لا توجد نتائج مطابقة.</div>
+                <div className="text-sm text-gray-500">No matching results.</div>
               ) : (
                 filteredRecipients.map((item) => (
                   <WhatsappRecipientItem key={item.emailKey} item={item} isSelected={!!selected[item.emailKey]} onToggle={toggleRecipient} />
@@ -676,40 +681,40 @@ function BulkWhatsappTab() {
       <Modal
         open={assistantOpen}
         onClose={closeAssistant}
-        title="مساعد إنشاء مجموعة واتساب"
+        title="WhatsApp group helper"
         centered
         footer={
           <div className="flex flex-wrap gap-2">
-            <button className="btn btn-primary" onClick={copyAssistantBundle} disabled={!assistantClipboardText}>نسخ المحتوى مرة أخرى</button>
-            <button className="btn" onClick={closeAssistant}>إغلاق</button>
+            <button className="btn btn-primary" onClick={copyAssistantBundle} disabled={!assistantClipboardText}>Copy content again</button>
+            <button className="btn" onClick={closeAssistant}>Close</button>
           </div>
         }
       >
         {assistantInfo ? (
           <div className="grid gap-3 text-sm text-gray-700">
-            <p>1. افتحي واتساب ثم ابدئي إنشاء مجموعة جديدة.</p>
+            <p>1. Open WhatsApp, then start creating a new group.</p>
             <div className="grid gap-2">
-              <div className="text-xs text-gray-500">الأرقام المختارة</div>
+              <div className="text-xs text-gray-500">Selected numbers</div>
               <textarea className="input textarea" rows={Math.min(6, Math.max(3, assistantInfo.numbers.length))} readOnly dir="ltr" value={assistantInfo.numbers.join('\n')} />
             </div>
             {assistantInfo.message ? (
               <div className="grid gap-2">
-                <div className="text-xs text-gray-500">الرسالة الجاهزة</div>
+                <div className="text-xs text-gray-500">Prepared message</div>
                 <textarea className="input textarea" rows={Math.min(6, Math.max(3, Math.ceil(assistantInfo.message.length / 60)))} readOnly value={assistantInfo.message} />
               </div>
             ) : (
-              <div className="text-xs text-gray-500">لم تتم كتابة رسالة، أضيفيها يدويًا داخل واتساب.</div>
+              <div className="text-xs text-gray-500">No message was provided—add it manually inside WhatsApp.</div>
             )}
             {assistantInfo.copy === 'success' ? (
-              <div className="text-xs text-green-600">تم نسخ الأرقام (ومحتوى الرسالة إن وجد) إلى الحافظة.</div>
+              <div className="text-xs text-green-600">Numbers (and the message, if any) were copied to the clipboard.</div>
             ) : assistantInfo.copy === 'error' ? (
-              <div className="text-xs text-red-600">تعذّر النسخ التلقائي، انسخي يدويًا أو اضغطي على زر النسخ أعلاه.</div>
+              <div className="text-xs text-red-600">Automatic copy failed; copy manually or press the copy button again.</div>
             ) : (
-              <div className="text-xs text-gray-500">جارٍ تجهيز النسخة للتسهيل، لحظات…</div>
+              <div className="text-xs text-gray-500">Preparing the clipboard to make this easier—one moment…</div>
             )}
           </div>
         ) : (
-          <div className="text-sm text-gray-600">لا توجد بيانات للعرض.</div>
+          <div className="text-sm text-gray-600">No data to display.</div>
         )}
       </Modal>
     </div>
@@ -744,7 +749,7 @@ const WhatsappRecipientItem = React.memo(({ item, isSelected, onToggle }: Whatsa
       )}
       <div className="text-xs" style={{ color: '#4b5563' }}>{item.summary}</div>
       {item.detailsText && <div className="text-xs" style={{ color: '#6b7280', lineHeight: 1.5 }}>{item.detailsText}</div>}
-      <div className="text-xs text-gray-500">آخر نشاط: {item.lastActivityLabel}</div>
+      <div className="text-xs text-gray-500">Last activity: {item.lastActivityLabel}</div>
     </label>
   )
 })
@@ -776,7 +781,7 @@ const RecipientListItem = React.memo(({ item, isSelected, onToggle }: RecipientL
       {item.names.length > 0 && <div className="text-xs text-gray-600">{item.names.join(' / ')}</div>}
       <div className="text-xs" style={{ color: '#4b5563' }}>{item.summary}</div>
       {item.detailsText && <div className="text-xs" style={{ color: '#6b7280', lineHeight: 1.5 }}>{item.detailsText}</div>}
-      <div className="text-xs text-gray-500">آخر نشاط: {item.lastActivityLabel}</div>
+      <div className="text-xs text-gray-500">Last activity: {item.lastActivityLabel}</div>
     </label>
   )
 })
@@ -801,7 +806,7 @@ function ProductsTab() {
     setLoading(true)
     const r = await fetch('/api/admin/products')
     const j = await r.json(); setLoading(false)
-    if (!r.ok) return alert(j.error || 'فشل التحميل')
+    if (!r.ok) return alert(j.error || 'Failed to load products')
     const rows = (j.products || []) as ProductRow[]
     setItems(rows.map((p) => ({ id: p.id, type: p.type, title: p.title, slug: p.slug, cover: p.cover, description: p.description || undefined, snippet: p.snippet || undefined })))
   }
@@ -811,7 +816,7 @@ function ProductsTab() {
     // Create vs Update
     if (editId) {
       // Update metadata only
-      if (!form.title || !form.description || !form.slug) return alert('أكملي الحقول المطلوبة')
+      if (!form.title || !form.description || !form.slug) return alert('Please complete the required fields')
       setSaving(true)
       const fd = new FormData()
       fd.set('id', editId)
@@ -824,13 +829,13 @@ function ProductsTab() {
       if (form.cover) fd.set('cover', form.cover)
       const r = await fetch('/api/admin/products', { method: 'PATCH', body: fd })
       const j = await r.json(); setSaving(false)
-      if (!r.ok) return alert(j.error || 'فشل التعديل')
+      if (!r.ok) return alert(j.error || 'Update failed')
       setOpen(false); setEditId(null)
       setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null })
       await load()
     } else {
       // Create requires file
-      if (!form.title || !form.description || !form.slug || !form.file) return alert('أكملي الحقول المطلوبة')
+      if (!form.title || !form.description || !form.slug || !form.file) return alert('Please complete the required fields')
       setSaving(true)
       const fd = new FormData()
       fd.set('type', form.type)
@@ -860,277 +865,73 @@ function ProductsTab() {
 
   return (
     <div aria-labelledby="products-title" role="region">
-      <SectionHeader title="المنتجات"/>
+      <SectionHeader title="Products"/>
       <div className="section-toolbar">
         <div className="flex items-center gap-2 flex-wrap">
-          <button className="btn btn-primary" onClick={()=>{ setEditId(null); setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null }); setOpen(true) }}>+ إضافة منتج</button>
+          <button className="btn btn-primary" onClick={()=>{ setEditId(null); setForm({ type: 'كتاب', title: '', description: '', slug: '', snippet: '', file: null, cover: null }); setOpen(true) }}>+ Add product</button>
         </div>
       </div>
-      {/* تحميل المنتج — بطاقة إرشادية */}
+      {/* Product upload — helper card */}
       <div className="card glass-water p-3" style={{ margin: '8px 0 10px' }}>
         <div className="text-sm" style={{ color: '#404252' }}>
-          <strong>تحميل المنتج:</strong> ارفعي ملف المنتج (PDF/MP4) وغلافه، ثم أدخلي العنوان والوصف والـ slug.
-          بعد الحفظ سيظهر المنتج في الصفحة الرئيسية ويمكن تنزيله.
+          <strong>Upload the product:</strong> Upload the product file (PDF/MP4) and its cover, then add the title, description, and slug.
+          After saving, the product appears on the homepage and is downloadable.
         </div>
       </div>
       <div className="overflow-x-auto">
         <table className="table responsive text-sm">
           <thead>
             <tr className="bg-purple-100 text-purple-800">
-              <th className="p-2 text-right">الغلاف</th>
-              <th className="p-2 text-right">العنوان</th>
-              <th className="p-2 text-right">النوع</th>
-              <th className="p-2 text-right">Slug</th>
-              <th className="p-2 text-right">إجراءات</th>
+              <th className="p-2 text-left">Cover</th>
+              <th className="p-2 text-left">Title</th>
+              <th className="p-2 text-left">Type</th>
+              <th className="p-2 text-left">Slug</th>
+              <th className="p-2 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (<tr><td className="p-2" colSpan={5}>جارٍ التحميل…</td></tr>) : items.length === 0 ? (<tr><td className="p-2" colSpan={5}>لا توجد منتجات</td></tr>) : items.map(p => (
-              <tr key={p.id} className="odd:bg-gray-50">
-                <td className="p-2" data-th="Cover"><img src={p.cover} alt="cover" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }} /></td>
-                <td className="p-2" data-th="Title">{p.title}</td>
-                <td className="p-2" data-th="Type">{p.type}</td>
-                <td className="p-2" data-th="Slug">{p.slug}</td>
-                <td className="p-2 actions" data-th="Actions">
-                  <button className="btn" onClick={()=>{ setEditId(p.id); setForm({ type: p.type, title: p.title, description: p.description || '', slug: p.slug, snippet: p.snippet || '', file: null, cover: null }); setOpen(true) }}>تعديل</button>
-                  <button className="btn" disabled={delBusy===p.id} onClick={()=>del(p.id)}>{delBusy===p.id ? '...' : 'حذف'}</button>
-                </td>
-              </tr>
-            ))}
+            {loading ? (<tr><td className="p-2" colSpan={5}>Loading…</td></tr>) : items.length === 0 ? (<tr><td className="p-2" colSpan={5}>No products yet</td></tr>) : items.map((p) => {
+              const typeLabel = p.type === 'فيديو' ? 'Video' : p.type === 'كتاب' ? 'Book' : (p.type || '—')
+              return (
+                <tr key={p.id} className="odd:bg-gray-50">
+                  <td className="p-2" data-th="Cover"><img src={p.cover} alt="cover" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }} /></td>
+                  <td className="p-2" data-th="Title">{p.title}</td>
+                  <td className="p-2" data-th="Type">{typeLabel}</td>
+                  <td className="p-2" data-th="Slug">{p.slug}</td>
+                  <td className="p-2 actions" data-th="Actions">
+                    <button className="btn" onClick={()=>{ setEditId(p.id); setForm({ type: p.type, title: p.title, description: p.description || '', slug: p.slug, snippet: p.snippet || '', file: null, cover: null }); setOpen(true) }}>Edit</button>
+                    <button className="btn" disabled={delBusy===p.id} onClick={()=>del(p.id)}>{delBusy===p.id ? '...' : 'Delete'}</button>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
 
-      <Modal open={open} onClose={()=>{ setOpen(false); setEditId(null) }} title={editId ? 'تعديل منتج' : 'إضافة منتج'} footer={<div className="flex gap-2"><button className="btn btn-primary" disabled={saving} onClick={save}>{saving ? (editId ? 'جارٍ حفظ…' : 'جارٍ…') : (editId ? 'حفظ' : 'إضافة')}</button><button className="btn" onClick={()=>{ setOpen(false); setEditId(null) }}>إلغاء</button></div>}>
+      <Modal open={open} onClose={()=>{ setOpen(false); setEditId(null) }} title={editId ? 'Edit product' : 'Add product'} footer={<div className="flex gap-2"><button className="btn btn-primary" disabled={saving} onClick={save}>{saving ? 'Saving…' : (editId ? 'Save' : 'Add')}</button><button className="btn" onClick={()=>{ setOpen(false); setEditId(null) }}>Cancel</button></div>}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <label className="field"><span className="field-label">النوع</span><select className="input" value={form.type} onChange={(e)=>setForm(f=>({ ...f, type: e.target.value as 'كتاب'|'فيديو' }))}><option value="كتاب">كتاب</option><option value="فيديو">فيديو</option></select></label>
-          <label className="field"><span className="field-label">العنوان</span><input className="input" value={form.title} onChange={(e)=>setForm(f=>({ ...f, title: e.target.value }))} /></label>
-          <label className="field md:col-span-2"><span className="field-label">الوصف</span><textarea className="input textarea" rows={3} value={form.description} onChange={(e)=>setForm(f=>({ ...f, description: e.target.value }))} /></label>
+          <label className="field"><span className="field-label">Type</span><select className="input" value={form.type} onChange={(e)=>setForm(f=>({ ...f, type: e.target.value as 'كتاب'|'فيديو' }))}><option value="كتاب">Book</option><option value="فيديو">Video</option></select></label>
+          <label className="field"><span className="field-label">Title</span><input className="input" value={form.title} onChange={(e)=>setForm(f=>({ ...f, title: e.target.value }))} /></label>
+          <label className="field md:col-span-2"><span className="field-label">Description</span><textarea className="input textarea" rows={3} value={form.description} onChange={(e)=>setForm(f=>({ ...f, description: e.target.value }))} /></label>
           <label className="field"><span className="field-label">Slug</span><input className="input" value={form.slug} onChange={(e)=>setForm(f=>({ ...f, slug: e.target.value }))} /></label>
-          <label className="field md:col-span-2"><span className="field-label">مقتطف</span><textarea className="input textarea" rows={3} value={form.snippet} onChange={(e)=>setForm(f=>({ ...f, snippet: e.target.value }))} /></label>
+          <label className="field md:col-span-2"><span className="field-label">Snippet</span><textarea className="input textarea" rows={3} value={form.snippet} onChange={(e)=>setForm(f=>({ ...f, snippet: e.target.value }))} /></label>
           <label className="field">
             <span className="field-label">
-              ملف المنتج
-              <span className="block text-xs text-gray-500 font-normal">{editId ? 'اختياري، ارفعي ملفًا جديدًا لتحديث PDF أو MP4.' : 'PDF أو MP4 — مطلوب عند الإضافة.'}</span>
+              Product file
+              <span className="block text-xs text-gray-500 font-normal">{editId ? 'Optional — upload a new PDF or MP4 to replace the existing file.' : 'PDF or MP4 — required when adding a product.'}</span>
             </span>
             <input className="input" type="file" onChange={(e)=>setForm(f=>({ ...f, file: e.target.files?.[0] || null }))} />
           </label>
           <label className="field">
             <span className="field-label">
-              صورة الغلاف
-              <span className="block text-xs text-gray-500 font-normal">{editId ? 'اختياري، استخدميه لتحديث الغلاف الحالي.' : 'اختياري، يفضل رفع صورة للغلاف.'}</span>
+              Cover image
+              <span className="block text-xs text-gray-500 font-normal">{editId ? 'Optional — upload to replace the current cover.' : 'Optional but recommended to upload a cover image.'}</span>
             </span>
             <input className="input" type="file" accept="image/*" onChange={(e)=>setForm(f=>({ ...f, cover: e.target.files?.[0] || null }))} />
           </label>
         </div>
       </Modal>
-    </div>
-  )
-}
-
-type PlotData = unknown
-type PlotLayout = { title?: string; margin?: { t?: number; r?: number; l?: number; b?: number }; paper_bgcolor?: string; plot_bgcolor?: string }
-type PlotConfig = { displayModeBar?: boolean; responsive?: boolean }
-interface PlotlyStatic { react: (id: string, data: PlotData[], layout?: PlotLayout, config?: PlotConfig) => void }
-declare global { interface Window { Plotly?: PlotlyStatic } }
-type StatsDownloadRow = DownloadRow & { totalCount: number }
-type RangeKey = '7' | '30' | 'all'
-
-function formatPhoneDisplay(raw?: string | null) {
-  const trimmed = (raw || '').trim()
-  if (!trimmed) return '-'
-  const digits = trimmed.replace(/\D+/g, '')
-  if (!digits) return trimmed
-
-  const looksIntl = trimmed.startsWith('+') || trimmed.startsWith('00')
-  if (looksIntl) {
-    let normalized = trimmed.replace(/\s+/g, '')
-    if (normalized.startsWith('00')) normalized = `+${normalized.slice(2)}`
-    normalized = normalized.replace(/[^\d+]/g, '')
-    const match = normalized.match(/^\+?(\d{1,3})(\d{4,})$/)
-    if (match) return `+${match[1]} ${match[2]}`
-    return normalized.startsWith('+') ? normalized : `+${digits}`
-  }
-
-  // Local number without country code: show digits plainly (group for readability when long)
-  return digits.length > 5 ? `${digits.slice(0, 3)} ${digits.slice(3)}` : digits
-}
-
-function StatsTab() {
-  const [data, setData] = useState<{
-    downloads: { day: string; count: number }[]
-    clicks: { day: string; count: number }[]
-  }>({ downloads: [], clicks: [] })
-  const [loading, setLoading] = useState(false)
-  const [range, setRange] = useState<RangeKey>('all')
-  const [rawRows, setRawRows] = useState<DownloadRow[]>([])
-  const [reqs, setReqs] = useState<StatsDownloadRow[]>([])
-
-  useEffect(() => {
-    ;(async () => {
-      setLoading(true)
-      const r = await fetch('/api/admin/stats')
-      const j = await r.json(); setLoading(false)
-      if (r.ok) {
-        setData({
-          downloads: j.downloads || [],
-          clicks: j.clicks || [],
-        })
-      }
-    })()
-  }, [])
-
-  useEffect(() => {
-    ;(async () => {
-      const r = await fetch('/api/admin/download-requests')
-      const j = await r.json()
-      if (r.ok) {
-        const rows = (j.rows || []) as DownloadRow[]
-        setRawRows(rows)
-      }
-    })()
-  }, [])
-
-  useEffect(() => {
-    if (!rawRows.length) {
-      setReqs([])
-      return
-    }
-
-    const now = Date.now()
-    const cutoffMs = range === 'all' ? null : range === '7' ? 7 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000
-    const filtered = cutoffMs
-      ? rawRows.filter((row) => {
-          const ts = Date.parse(row.created_at)
-          return Number.isFinite(ts) ? now - ts <= cutoffMs : true
-        })
-      : rawRows
-
-    // All-time totals by email (regardless of filter)
-    const countsAll = rawRows.reduce<Record<string, number>>((map, row) => {
-      const key = (row.email || '').trim().toLowerCase()
-      if (!key) return map
-      map[key] = (map[key] || 0) + 1
-      return map
-    }, {})
-
-    // Filtered list for the selected window
-    const counts = filtered.reduce<Record<string, number>>((map, row) => {
-      const key = (row.email || '').trim().toLowerCase()
-      if (!key) return map
-      map[key] = (map[key] || 0) + 1
-      return map
-    }, {})
-
-    // Show the latest four records (already sorted desc), annotated with total requests per email within the range.
-    const recent = filtered.slice(0, 4).map((row) => {
-      const key = (row.email || '').trim().toLowerCase()
-      return { ...row, totalCount: countsAll[key] || counts[key] || 1 }
-    })
-    setReqs(recent)
-  }, [range, rawRows])
-
-  useEffect(() => {
-    if (!data.downloads.length && !data.clicks.length) return
-    ensurePlotly().then(() => { renderDownloadsPlot(data) })
-  }, [data])
-
-  function ensurePlotly(): Promise<PlotlyStatic> {
-    if (window.Plotly) return Promise.resolve(window.Plotly)
-    return new Promise((resolve, reject) => {
-      const s = document.createElement('script')
-      s.src = 'https://cdn.plot.ly/plotly-2.26.0.min.js'
-      s.async = true
-      s.onload = () => resolve(window.Plotly as PlotlyStatic)
-      s.onerror = reject
-      document.head.appendChild(s)
-    })
-  }
-
-  function renderDownloadsPlot(
-    d: {
-      downloads: { day: string; count: number }[]
-      clicks: { day: string; count: number }[]
-    },
-  ) {
-    const P = window.Plotly
-    if (!P) return
-    const daysD = d.downloads.map((x) => x.day)
-    const valsD = d.downloads.map((x) => x.count)
-    const daysC = d.clicks.map((x) => x.day)
-    const valsC = d.clicks.map((x) => x.count)
-    P.react(
-      'chart-dl',
-      [
-        { type: 'scatter', mode: 'lines+markers', name: 'تنزيلات ناجحة', x: daysD, y: valsD, line: { color: '#22c55e', width: 3 }, marker: { size: 8, color: '#22c55e' } },
-        { type: 'scatter', mode: 'lines+markers', name: 'نقرات تحميل', x: daysC, y: valsC, line: { color: '#3b82f6', width: 3 }, marker: { size: 8, color: '#3b82f6' } },
-      ],
-      { title: 'النقرات مقابل التنزيلات (آخر 30 يومًا)', margin: { t: 40, r: 10, l: 10, b: 40 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' },
-      { displayModeBar: false, responsive: true }
-    )
-  }
-
-  return (
-    <div>
-      <div className="admin-charts-row">
-        {loading ? <div className="text-sm text-gray-600">جارٍ التحميل…</div> : null}
-        <div className="card p-3 admin-chart" style={{ width: '100%' }}>
-          <div id="chart-dl" style={{ height: 260 }} />
-        </div>
-      </div>
-
-      {/* Download requests table */}
-      <div className="card p-3" style={{ marginTop: 12 }}>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2">
-          <div className="font-semibold">طلبات التنزيل (آخر 4 سجل)</div>
-          <div className="flex gap-2 flex-wrap">
-            {([
-              { key: '7', label: 'آخر 7 أيام' },
-              { key: '30', label: 'آخر 30 يومًا' },
-              { key: 'all', label: 'كل الوقت' },
-            ] as { key: RangeKey; label: string }[]).map((opt) => (
-              <button
-                key={opt.key}
-                className={`admin-pill ${range === opt.key ? 'is-active' : ''}`}
-                onClick={() => setRange(opt.key)}
-                type="button"
-              >
-                <span className="pill-label">{opt.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="table text-sm">
-            <thead>
-              <tr>
-                <th className="p-2 text-right">التاريخ</th>
-                <th className="p-2 text-right">الاسم</th>
-                <th className="p-2 text-right">البريد</th>
-                <th className="p-2 text-right">المنتج</th>
-                <th className="p-2 text-right">الهاتف</th>
-                <th className="p-2 text-right">إجمالي الطلبات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reqs.length === 0 ? (
-                <tr><td className="p-2" colSpan={6}>لا توجد بيانات</td></tr>
-              ) : (
-                reqs.map(r => (
-                  <tr key={r.id}>
-                    <td className="p-2" data-th="التاريخ">{new Date(r.created_at).toLocaleString('ar-TN')}</td>
-                    <td className="p-2" data-th="الاسم">{[r.first_name, r.last_name].filter(Boolean).join(' ').trim() || r.name}</td>
-                    <td className="p-2" data-th="البريد">{r.email}</td>
-                    <td className="p-2" data-th="المنتج">{r.product_slug}</td>
-                    <td className="p-2" data-th="الهاتف">{formatPhoneDisplay(r.phone)}</td>
-                    <td className="p-2" data-th="إجمالي الطلبات">{r.totalCount}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   )
 }

@@ -42,16 +42,7 @@ export default function TopbarAuth({ variant = 'desktop', onNavigate }: TopbarAu
         >
           تسجيل الخروج
         </button>
-      ) : (
-        <Link
-          href="/login"
-          className={`${buttonClass} btn-primary`}
-          aria-label="تسجيل الدخول"
-          onClick={handleNavigate}
-        >
-          تسجيل الدخول
-        </Link>
-      )}
+      ) : null}
     </div>
   )
 }

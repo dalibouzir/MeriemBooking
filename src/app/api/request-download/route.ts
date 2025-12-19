@@ -15,6 +15,9 @@ type RequestDownloadBody = {
   first_name?: string
   last_name?: string
   phone?: string
+  country?: string
+  source?: string
+  click_id?: string
 }
 
 export async function POST(req: Request) {
@@ -27,6 +30,9 @@ export async function POST(req: Request) {
       email,
       product,
       phone,
+      country,
+      source,
+      click_id,
     } = body || {}
 
     const firstName = (first_name ?? '').trim()
@@ -38,6 +44,21 @@ export async function POST(req: Request) {
     }
 
     const fullName = fallbackName || `${firstName} ${lastName}`.trim()
+    // Basic phone validation: expect format "+<code> <local>" and ensure local has digits only without '+'
+    const phoneStr = (phone ?? '').trim()
+    if (!phoneStr) {
+      return NextResponse.json({ error: 'رقم الهاتف مطلوب' }, { status: 400 })
+    }
+    // Allow: +216 51234567, +33 612345678 etc.
+    const phoneMatch = phoneStr.match(/^\s*(\+\d{1,4})\s+(\d+)\s*$/)
+    if (!phoneMatch) {
+      return NextResponse.json({ error: 'يرجى إدخال رقم الهاتف فقط بدون رمز الدولة' }, { status: 400 })
+    }
+    const formattedPhone = `${phoneMatch[1]} ${phoneMatch[2]}`
+    const countryName = (country ?? '').trim() || null
+    const sourceName = (source ?? '').trim() || 'download-form'
+    const clickId = (click_id ?? '').trim() || null
+    const userAgent = req.headers.get('user-agent') || null
 
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE!
@@ -108,7 +129,11 @@ export async function POST(req: Request) {
       last_name: lastName || null,
       email,
       product_slug: product,
-      phone,
+      phone: formattedPhone,
+      country: countryName,
+      source: sourceName,
+      click_id: clickId,
+      user_agent: userAgent,
     })
     if (e1) throw e1
 
