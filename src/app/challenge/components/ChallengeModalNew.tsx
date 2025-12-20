@@ -60,9 +60,12 @@ export default function ChallengeModalNew() {
       
       const result = await registerChallengeAction(formData)
 
-      if (result.status === 'success') {
+      if (result.status === 'success' || result.status === 'already_registered') {
         setRegistrationResult({
           registrationId: result.registration_id,
+          meetLink: result.meeting_url,
+          startsAt: result.starts_at,
+          durationMinutes: result.duration_minutes,
         })
         setModalState('success')
       } else if (result.status === 'full') {
@@ -71,9 +74,6 @@ export default function ChallengeModalNew() {
           registrationId: result.registration_id,
         })
         setModalState('waitlist')
-      } else if (result.status === 'already_registered') {
-        setErrorMessage('هذا البريد الإلكتروني مسجّل بالفعل في التحدي.')
-        setModalState('error')
       } else {
         setErrorMessage(result.error || 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.')
         setModalState('error')
@@ -236,13 +236,39 @@ export default function ChallengeModalNew() {
                 </div>
 
                 <p className="ch-success-message">
-                  مبارك! تم تسجيلك في التحدي بنجاح. ستصلك رسالة على بريدك الإلكتروني تحتوي على
-                  تفاصيل اللقاء ورابط الانضمام.
+                  مبارك! تم تسجيلك في التحدي بنجاح. احفظي رابط الاجتماع للانضمام في الموعد المحدد.
                 </p>
+
+                {registrationResult?.startsAt && (
+                  <div className="ch-meeting-info">
+                    <div className="ch-meeting-info-item">
+                      <span className="ch-meeting-info-icon">📅</span>
+                      <span className="ch-meeting-info-text">
+                        {new Date(registrationResult.startsAt).toLocaleDateString('ar-u-nu-latn', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <div className="ch-meeting-info-item">
+                      <span className="ch-meeting-info-icon">⏰</span>
+                      <span className="ch-meeting-info-text">
+                        {new Date(registrationResult.startsAt).toLocaleTimeString('ar-u-nu-latn', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
+                        {registrationResult.durationMinutes && ` (${registrationResult.durationMinutes} دقيقة)`}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {registrationResult?.meetLink && (
                   <div className="ch-link-box">
-                    <span className="ch-link-label">رابط الاجتماع:</span>
+                    <span className="ch-link-label">🔗 رابط الاجتماع:</span>
                     <div className="ch-link-input-wrap">
                       <input
                         type="text"
@@ -268,6 +294,15 @@ export default function ChallengeModalNew() {
                         )}
                       </button>
                     </div>
+                    <a 
+                      href={registrationResult.meetLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="ch-btn ch-btn-primary ch-btn-lg ch-btn-full"
+                      style={{ marginTop: '12px', textDecoration: 'none' }}
+                    >
+                      🚀 افتحي رابط الاجتماع
+                    </a>
                   </div>
                 )}
 

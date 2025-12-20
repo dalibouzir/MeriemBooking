@@ -32,6 +32,9 @@ export type RegistrationResult = {
   registration_id?: string
   remaining?: number
   error?: string
+  meeting_url?: string
+  starts_at?: string
+  duration_minutes?: number
 }
 
 export type MeetingDetails = {
@@ -136,6 +139,36 @@ export async function registerChallengeAction(formData: FormData): Promise<Regis
     // The RPC returns a table with status, registration_id, remaining
     const result = Array.isArray(data) ? data[0] : data
     
+    // If success or already_registered, fetch meeting details and send email
+    if (result.status === 'success' || result.status === 'already_registered') {
+      const { data: settings } = await supabase
+        .from('challenge_settings')
+        .select('meeting_url, starts_at, duration_minutes')
+        .limit(1)
+        .single()
+      
+      // Send confirmation email (don't await - fire and forget to not block response)
+      if (result.status === 'success' && settings?.meeting_url) {
+        sendChallengeConfirmationEmail({
+          name,
+          email,
+          meetingUrl: settings.meeting_url,
+          startsAt: settings.starts_at,
+          durationMinutes: settings.duration_minutes,
+          registrationId: result.registration_id,
+        }).catch((err) => console.error('Failed to send confirmation email:', err))
+      }
+      
+      return {
+        status: result.status as 'success' | 'already_registered',
+        registration_id: result.registration_id,
+        remaining: result.remaining,
+        meeting_url: settings?.meeting_url,
+        starts_at: settings?.starts_at,
+        duration_minutes: settings?.duration_minutes,
+      }
+    }
+    
     return {
       status: result.status as 'success' | 'full' | 'already_registered',
       registration_id: result.registration_id,
@@ -144,6 +177,43 @@ export async function registerChallengeAction(formData: FormData): Promise<Regis
   } catch (err) {
     console.error('Registration error:', err)
     return { status: 'error', error: 'حدث خطأ أثناء التسجيل' }
+  }
+}
+
+/**
+ * Send challenge confirmation email via Supabase Edge Function
+ */
+async function sendChallengeConfirmationEmail({
+  name,
+  email,
+  meetingUrl,
+  startsAt,
+  durationMinutes,
+  registrationId,
+}: {
+  name: string
+  email: string
+  meetingUrl: string
+  startsAt: string
+  durationMinutes: number
+  registrationId: string
+}) {
+  const supabase = getSupabaseAdmin()
+  
+  const { error } = await supabase.functions.invoke('send-challenge-email', {
+    body: {
+      name,
+      email,
+      meetingUrl,
+      startsAt,
+      durationMinutes,
+      registrationId,
+    },
+  })
+  
+  if (error) {
+    console.error('Error sending challenge email:', error)
+    throw error
   }
 }
 

@@ -18,8 +18,8 @@ type ModalState = 'closed' | 'form' | 'loading' | 'success' | 'waitlist' | 'erro
 interface RegistrationResult {
   meetLink?: string
   registrationId?: string
-  startTime?: string
-  duration?: number
+  startsAt?: string
+  durationMinutes?: number
 }
 
 // Context type

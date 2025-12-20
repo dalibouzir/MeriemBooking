@@ -11875,6 +11875,34 @@ html[class*="theme-d"] .product-card .product-btn-download{
   color: #dc2626;
 }
 
+/* Meeting Info */
+.ch-meeting-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+  background: hsla(var(--glass-strong));
+  border-radius: 16px;
+  border: 1px solid var(--surface-border);
+}
+
+.ch-meeting-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ch-meeting-info-icon {
+  font-size: 1.3rem;
+}
+
+.ch-meeting-info-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: hsl(var(--text));
+}
+
 /* Link Box */
 .ch-link-box {
   width: 100%;

@@ -1,10 +1,18 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 
 export default function VideoSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  const [showVideo, setShowVideo] = useState(false)
+  // Auto-play by default (like success page)
+  const [isPlaying, setIsPlaying] = useState(true)
+  const [origin, setOrigin] = useState('')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin)
+    }
+  }, [])
 
   useEffect(() => {
     const el = sectionRef.current
@@ -34,8 +42,21 @@ export default function VideoSection() {
   const videoId = 'dQw4w9WgXcQ'
   const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
 
-  const handlePlayClick = () => {
-    setShowVideo(true)
+  const embedSrc = useMemo(() => {
+    const url = new URL(`https://www.youtube.com/embed/${videoId}`)
+    url.searchParams.set('autoplay', '1')
+    url.searchParams.set('mute', '0')
+    url.searchParams.set('rel', '0')
+    url.searchParams.set('playsinline', '1')
+    url.searchParams.set('enablejsapi', '1')
+    if (origin) {
+      url.searchParams.set('origin', origin)
+    }
+    return url.toString()
+  }, [origin, videoId])
+
+  const handlePlay = () => {
+    setIsPlaying(true)
   }
 
   return (
@@ -53,11 +74,20 @@ export default function VideoSection() {
         <div className="ch-video-card">
           <div className="ch-video-card-glow" aria-hidden="true" />
           <div className="ch-video-wrapper">
-            {!showVideo ? (
+            {isPlaying ? (
+              <iframe
+                id="challenge-video-player"
+                src={embedSrc}
+                title="فيديو تعريفي عن التحدي"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            ) : (
               <button 
                 type="button"
                 className="ch-video-thumbnail"
-                onClick={handlePlayClick}
+                onClick={handlePlay}
                 aria-label="تشغيل الفيديو"
               >
                 <img 
@@ -72,14 +102,6 @@ export default function VideoSection() {
                   </svg>
                 </div>
               </button>
-            ) : (
-              <iframe
-                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
-                title="فيديو تعريفي عن التحدي"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                loading="lazy"
-              />
             )}
           </div>
         </div>
