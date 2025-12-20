@@ -2,6 +2,9 @@
 
 import Link from 'next/link'
 
+// Note: Metadata is handled in a separate layout or via generateMetadata in a server component wrapper
+// For client components, metadata should be in a parent server component
+
 const BOOKING_URL = 'https://calendly.com/meriembouzir/30min'
 
 const SESSION_AUDIENCE = [

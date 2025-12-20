@@ -11,7 +11,29 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  return NextResponse.next()
+  // Enforce HTTPS redirect (for non-localhost)
+  const host = req.headers.get('host') || ''
+  if (!host.includes('localhost') && req.headers.get('x-forwarded-proto') !== 'https') {
+    const httpsUrl = new URL(req.url)
+    httpsUrl.protocol = 'https:'
+    return NextResponse.redirect(httpsUrl, 308)
+  }
+
+  // Enforce www canonical (optional - uncomment if you want to force www)
+  // if (host === 'fittrahmoms.com') {
+  //   const wwwUrl = new URL(req.url)
+  //   wwwUrl.host = 'www.fittrahmoms.com'
+  //   return NextResponse.redirect(wwwUrl, 308)
+  // }
+
+  const response = NextResponse.next()
+
+  // Security headers (supplemental to next.config.js headers)
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
+  return response
 }
 
 export const config = {

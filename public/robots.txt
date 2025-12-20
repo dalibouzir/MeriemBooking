@@ -1,0 +1,20 @@
+# Robots.txt for fittrahmoms.com
+# Last updated: December 20, 2025
+
+User-agent: *
+Allow: /
+
+# Block admin and API routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /debug/
+Disallow: /_next/
+
+# Block duplicate content paths
+Disallow: /دخول
+
+# Sitemap location
+Sitemap: https://www.fittrahmoms.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
