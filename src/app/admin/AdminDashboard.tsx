@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import ModalPortal from '@/components/ModalPortal'
 import AnalyticsEnClient from './analytics-en/AnalyticsEnClient'
 
@@ -72,6 +73,10 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
               <span className="pill-label">{t.label}</span>
             </button>
           ))}
+          {/* Challenge admin link */}
+          <Link href="/admin/challenge" className="admin-pill admin-pill-link">
+            <span className="pill-label">🎯 Challenge</span>
+          </Link>
         </nav>
       </header>
 
