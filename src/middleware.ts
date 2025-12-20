@@ -37,6 +37,15 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next|.*\\..*).*)'],
+  matcher: [
+    /*
+     * Match all request paths except for:
+     * - _next (Next.js internals)
+     * - static files (files with extensions like .js, .css, .png, etc.)
+     * - sitemap.xml, robots.txt (SEO files)
+     * - favicon.ico, logo files
+     */
+    '/((?!_next|.*\\..*|sitemap\\.xml|robots\\.txt|favicon\\.ico).*)',
+  ],
 }
 

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Accordion from '@/components/ui/Accordion'
 import ChatbotWidget from '@/components/ChatbotWidget'
 
@@ -67,8 +68,17 @@ const FAQ_GROUPS = [
   },
 ]
 
-export const metadata = {
-  title: 'الأسئلة الشائعة | فطرة الأمهات',
+export const metadata: Metadata = {
+  title: 'الأسئلة الشائعة | Fittrah Moms',
+  description: 'إجابات على الأسئلة الشائعة حول الحجز والجلسات والدورات والموارد في فطرة الأمهات.',
+  alternates: {
+    canonical: 'https://www.fittrahmoms.com/faq',
+  },
+  openGraph: {
+    title: 'الأسئلة الشائعة | Fittrah Moms',
+    description: 'إجابات على الأسئلة الشائعة حول الحجز والجلسات والدورات والموارد في فطرة الأمهات.',
+    url: 'https://www.fittrahmoms.com/faq',
+  },
 }
 
 export default function FaqPage() {

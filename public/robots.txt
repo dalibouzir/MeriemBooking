@@ -4,17 +4,17 @@
 User-agent: *
 Allow: /
 
-# Block admin and API routes
+# Block admin and API routes (private endpoints)
 Disallow: /admin/
 Disallow: /api/
 Disallow: /debug/
-Disallow: /_next/
 
-# Block duplicate content paths
+# Block duplicate/alternative paths
 Disallow: /دخول
+Disallow: /login
+
+# Note: Do NOT block /_next/ — it contains JS/CSS needed for rendering
+# Search engines need these assets to properly index the site
 
 # Sitemap location
 Sitemap: https://www.fittrahmoms.com/sitemap.xml
-
-# Crawl-delay for respectful crawling
-Crawl-delay: 1

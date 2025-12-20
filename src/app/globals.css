@@ -708,7 +708,8 @@ body.assistant-view .chatbot-widget{
   background: hsla(var(--glass));
   color: hsl(var(--text-dim));
   border:1px solid transparent;
-  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
+  white-space:nowrap;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
 }
 .topbar-link:hover{
   color: hsl(var(--text));
@@ -716,10 +717,14 @@ body.assistant-view .chatbot-widget{
   transform: translateY(-1px);
   box-shadow: var(--shadow-1);
 }
+.topbar-link:active{
+  border-color: hsl(280 100% 65% / 0.8);
+  box-shadow: 0 0 0 2px hsl(280 100% 65% / 0.6), 0 0 12px hsl(280 100% 65% / 0.5), 0 0 20px hsl(280 100% 65% / 0.25);
+}
 .topbar-link.is-active{
   color: hsl(var(--text));
-  border-color: hsl(var(--primary) / 0.28);
-  box-shadow: 0 14px 32px hsl(var(--primary-700) / 0.18);
+  border-color: hsl(280 100% 65% / 0.7);
+  box-shadow: 0 0 0 2px hsl(280 100% 65% / 0.5), 0 0 14px hsl(280 100% 65% / 0.4), 0 0 24px hsl(280 100% 65% / 0.2);
 }
 .topbar-actions{
   display:flex;
@@ -737,16 +742,21 @@ body.assistant-view .chatbot-widget{
   background: hsla(var(--glass));
   border:1px solid var(--surface-border);
   color: hsl(var(--text));
-  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+  white-space:nowrap;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
 }
 .topbar .btn-nav:hover{
   transform: translateY(-1px);
   box-shadow: var(--shadow-1);
 }
+.topbar .btn-nav:active{
+  border-color: hsl(280 100% 65% / 0.8);
+  box-shadow: 0 0 0 2px hsl(280 100% 65% / 0.6), 0 0 12px hsl(280 100% 65% / 0.5), 0 0 20px hsl(280 100% 65% / 0.25);
+}
 .topbar .btn-nav.btn-primary{
   background: linear-gradient(130deg, hsl(var(--primary-700)), hsl(var(--primary-600)));
   color:#fff;
-  border:none;
+  border:1px solid transparent;
   box-shadow: 0 16px 36px hsl(var(--primary-700) / 0.24);
 }
 .topbar .btn-nav.btn-outline{
@@ -756,6 +766,11 @@ body.assistant-view .chatbot-widget{
 }
 .topbar .btn-nav.btn-primary:hover{
   box-shadow: 0 20px 44px hsl(var(--primary-700) / 0.28);
+}
+.topbar .btn-nav.btn-primary:active,
+.topbar .btn-nav.btn-outline:active{
+  border-color: hsl(280 100% 65% / 0.8);
+  box-shadow: 0 0 0 2px hsl(280 100% 65% / 0.6), 0 0 12px hsl(280 100% 65% / 0.5), 0 0 20px hsl(280 100% 65% / 0.25);
 }
 .topbar-cta{
   display:inline-flex;
