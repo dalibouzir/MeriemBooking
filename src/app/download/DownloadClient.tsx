@@ -321,10 +321,15 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
             الصفحة تتطلب تحديد منتج. الرجاء العودة للمتجر واختيار المنتج ثم الضغط على «تحميل».
           </p>
         ) : (
-          <p className="dl-sub">
-            الرجاء إدخال معلوماتك أدناه. فور الإرسال ستصلك رسالة تأكيد تحتوي على:
-            <br />- 🔗 رابط مباشر لتحميل المنتج
-          </p>
+          <>
+            <p className="dl-privacy-note">
+              🔒 بياناتك في أمان لدينا ولن نستخدمها لإرسال إعلانات أو رسائل مزعجة.
+            </p>
+            <p className="dl-sub">
+              الرجاء إدخال معلوماتك أدناه. فور الإرسال ستصلك رسالة تأكيد تحتوي على:
+              <br />- 🔗 رابط مباشر لتحميل المنتج
+            </p>
+          </>
         )}
 
           <form id="dl-form" onSubmit={onSubmit} className="dl-form" noValidate>
@@ -525,6 +530,24 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           margin: 0;
           color: hsl(var(--text));
           line-height: 1.4;
+        }
+
+        .dl-privacy-note {
+          background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.1));
+          border: 1px solid rgba(34, 197, 94, 0.4);
+          border-radius: 12px;
+          padding: 10px 14px;
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: #15803d;
+          text-align: center;
+          margin-bottom: 8px;
+        }
+
+        :global(.dark) .dl-privacy-note {
+          background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.15));
+          color: #86efac;
+          border-color: rgba(34, 197, 94, 0.5);
         }
       `}</style>
       </div>
