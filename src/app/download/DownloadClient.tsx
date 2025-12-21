@@ -179,8 +179,10 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       const fd = new FormData(formEl)
       if ((hpRef.current?.value || '').trim() !== '') throw new Error('Spam detected')
 
-      const firstName = String(fd.get('first_name') || '').trim()
-      const lastName = String(fd.get('last_name') || '').trim()
+      const fullName = String(fd.get('full_name') || '').trim()
+      const nameParts = fullName.split(/\s+/)
+      const firstName = nameParts[0] || ''
+      const lastName = nameParts.slice(1).join(' ') || ''
       const email = String(fd.get('email') || '').trim()
       const phoneCode = String(fd.get('country_code') || '').trim() || countryCode || DEFAULT_COUNTRY_CODE
       const localPhone = (phone || String(fd.get('phone') || '')).trim()
@@ -195,10 +197,8 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       const countryName = countryCodeOptions.find((option) => option.code === phoneCode)?.country || ''
       const source = clickSource || (searchParams?.get('source') || searchParams?.get('utm_source') || '').trim() || 'download-form'
 
-      if (!firstName) throw new Error('الاسم مطلوب')
-      if (!lastName) throw new Error('اللقب مطلوب')
+      if (!fullName) throw new Error('الاسم مطلوب')
       if (!isValidEmail(email)) throw new Error('البريد الإلكتروني غير صالح')
-      if (!localPhone) throw new Error('رقم الهاتف مطلوب')
       if (!product) throw new Error('المنتج غير محدد')
 
       const res = await fetch('/api/request-download', {
@@ -322,9 +322,10 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           </p>
         ) : (
           <>
-            <p className="dl-privacy-note">
-              🔒 بياناتك في أمان لدينا ولن نستخدمها لإرسال إعلانات أو رسائل مزعجة.
-            </p>
+            <div className="dl-trust-badge">
+              <span className="dl-trust-icon">🔐</span>
+              <span className="dl-trust-text">بياناتك محمية ولن نشاركها أبداً • لا إعلانات • لا رسائل مزعجة</span>
+            </div>
             <p className="dl-sub">
               الرجاء إدخال معلوماتك أدناه. فور الإرسال ستصلك رسالة تأكيد تحتوي على:
               <br />- 🔗 رابط مباشر لتحميل المنتج
@@ -347,15 +348,9 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           {/* Honeypot */}
           <input ref={hpRef} name="website" tabIndex={-1} autoComplete="off" className="dl-hp" />
 
-          <div className="dl-name-group">
-            <div className="dl-field">
-              <label htmlFor="dl-first-name" className="dl-label">الاسم</label>
-              <input id="dl-first-name" name="first_name" required className="dl-input" autoComplete="given-name" />
-            </div>
-            <div className="dl-field">
-              <label htmlFor="dl-last-name" className="dl-label">اللقب</label>
-              <input id="dl-last-name" name="last_name" required className="dl-input" autoComplete="family-name" />
-            </div>
+          <div className="dl-field">
+            <label htmlFor="dl-full-name" className="dl-label">الاسم الكامل</label>
+            <input id="dl-full-name" name="full_name" required className="dl-input" autoComplete="name" placeholder="مثال: سارة أحمد" />
           </div>
 
           <div className="dl-field">
@@ -373,7 +368,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           </div>
 
           <div className="dl-field">
-            <label htmlFor="dl-phone" className="dl-label">رقم الهاتف / واتساب</label>
+            <label htmlFor="dl-phone" className="dl-label">رقم الواتساب <span className="dl-optional">(اختياري)</span></label>
             <div className="dl-phone-group">
               <label className="sr-only" htmlFor="country_code">
                 رمز الدولة
@@ -398,9 +393,8 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
-                required
                 className="dl-input dl-input-phone"
-                placeholder="5x xxx xxxx"
+                placeholder="5x xxx xxxx (اختياري)"
                 dir="ltr"
                 value={phone}
                 onChange={handlePhoneChange}
@@ -419,7 +413,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           </div>
 
           <button type="submit" className="dl-btn" disabled={loading || productMissing}>
-            {loading ? '⏳ يرجى الإنتظار…' : 'إرسال واستلام رابط التحميل'}
+            {loading ? '⏳ جارٍ الإرسال…' : '📥 تحميل مجاني الآن'}
           </button>
 
           {error && (
@@ -532,22 +526,47 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           line-height: 1.4;
         }
 
-        .dl-privacy-note {
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.1));
-          border: 1px solid rgba(34, 197, 94, 0.4);
-          border-radius: 12px;
-          padding: 10px 14px;
-          font-size: 0.9rem;
-          font-weight: 500;
-          color: #15803d;
+        .dl-trust-badge {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.08));
+          border: 1px dashed rgba(59, 130, 246, 0.4);
+          border-radius: 10px;
+          padding: 12px 18px;
+          margin-bottom: 16px;
+          font-size: 0.85rem;
           text-align: center;
-          margin-bottom: 8px;
         }
 
-        :global(.dark) .dl-privacy-note {
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.15));
-          color: #86efac;
-          border-color: rgba(34, 197, 94, 0.5);
+        .dl-trust-icon {
+          font-size: 1.1rem;
+        }
+
+        .dl-trust-text {
+          color: #1e40af;
+          font-weight: 500;
+          letter-spacing: 0.01em;
+        }
+
+        :global(.dark) .dl-trust-badge {
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1));
+          border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        :global(.dark) .dl-trust-text {
+          color: #93c5fd;
+        }
+
+        .dl-optional {
+          font-size: 0.8rem;
+          font-weight: 400;
+          color: #6b7280;
+        }
+
+        :global(.dark) .dl-optional {
+          color: #9ca3af;
         }
       `}</style>
       </div>
