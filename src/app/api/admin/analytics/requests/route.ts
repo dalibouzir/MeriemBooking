@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     const baseQuery = applyRequestFilters(
       supabase
         .from('download_requests')
-        .select('id, created_at, name, first_name, last_name, email, product_slug, phone, country, source, click_id, user_agent, meta', {
+        .select('id, created_at, name, first_name, last_name, email, product_slug, phone, country, meta', {
           count: 'exact',
         }),
       filters
@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
       query = query.range(start, end)
       const { data, error: err2, count } = await query
       if (err2) throw err2
-      const rows = (data || []).map((row: Record<string, unknown>) => ({ ...row, country: null, source: null, click_id: null, user_agent: null }))
+      const rows = (data || []).map((row: Record<string, unknown>) => ({ ...row, country: null }))
       return NextResponse.json({ rows, total: count || 0, page: pagination.page, pageSize: pagination.pageSize })
     } catch (err3) {
       console.error('analytics requests table error', err3)

@@ -53,7 +53,7 @@ async function fetchRequests(supabase: any, filters: any, search: string) {
   const baseQuery = applyRequestFilters(
     supabase
       .from('download_requests')
-      .select('created_at, name, first_name, last_name, email, product_slug, phone, country, source, click_id, user_agent, meta')
+      .select('created_at, name, first_name, last_name, email, product_slug, phone, country, meta')
       .limit(MAX_ROWS),
     filters
   )

@@ -65,39 +65,9 @@ function mergeSources(requestCounts: Map<string, number>, clickCounts: Map<strin
   return rows.sort((a, b) => b.clicks - a.clicks || b.requests - a.requests)
 }
 
+// Removed requestsBySource aggregation by 'source' as the column is no longer present
 async function requestsBySource(client: SupabaseClient, filters: AnalyticsFilters) {
-  const map = new Map<string, number>()
-
-  if (!filters.devices.length) {
-    const { data, error } = await applyRequestFilters(
-      client.from('download_requests').select('source, count:count()', { head: false }),
-      filters
-    )
-      .group('source')
-      .order('count', { ascending: false })
-
-    if (error) throw error
-
-    for (const row of data || []) {
-      const key = (row as any).source || 'غير معروف'
-      map.set(key, Number((row as any).count || 0))
-    }
-    return map
-  }
-
-  const { data, error } = await applyRequestFilters(
-    client.from('download_requests').select('source, user_agent'),
-    filters
-  )
-  if (error) throw error
-
-  for (const row of data || []) {
-    if (!matchesDevice((row as any).user_agent, filters.devices)) continue
-    const key = (row as any).source || 'غير معروف'
-    map.set(key, (map.get(key) || 0) + 1)
-  }
-
-  return map
+  return new Map<string, number>()
 }
 
 async function clicksBySource(client: SupabaseClient, filters: AnalyticsFilters) {

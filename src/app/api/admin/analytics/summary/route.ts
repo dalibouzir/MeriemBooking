@@ -195,24 +195,22 @@ async function topProductByRequests(client: SupabaseClient, filters: AnalyticsFi
 
 async function topSourceByClicks(client: SupabaseClient, filters: AnalyticsFilters): Promise<Leader> {
   if (!filters.devices.length) {
-    const { data, error } = await applyClickFilters(
-      client.from('download_clicks').select('source, count:count()', { head: false }),
-      filters
-    )
-      .or('meta->>event.eq.click,meta->>event.is.null')
-      .group('source')
-      .order('count', { ascending: false })
-      .limit(1)
+      const { data, error } = await applyClickFilters(
+        client.from('download_clicks').select('count:count()', { head: false }),
+        filters
+      )
+        .or('meta->>event.eq.click,meta->>event.is.null')
+        .order('count', { ascending: false })
+        .limit(1)
 
     if (error) throw error
     const row = (data || [])[0]
-    if (!row) return null
-    const name = (row as any).source || 'غير معروف'
-    return { name, count: Number((row as any).count || 0) }
+      if (!row) return null
+      return { count: Number((row as any).count || 0) }
   }
 
   const { data, error } = await applyClickFilters(
-    client.from('download_clicks').select('source, user_agent, meta'),
+      client.from('download_clicks').select('user_agent, meta'),
     filters
   ).or('meta->>event.eq.click,meta->>event.is.null')
 
@@ -221,8 +219,6 @@ async function topSourceByClicks(client: SupabaseClient, filters: AnalyticsFilte
   const counts = new Map<string, number>()
   for (const row of data || []) {
     if (!matchesDevice((row as any).user_agent, filters.devices)) continue
-    const key = (row as any).source || 'غير معروف'
-    counts.set(key, (counts.get(key) || 0) + 1)
   }
 
   let top: Leader = null

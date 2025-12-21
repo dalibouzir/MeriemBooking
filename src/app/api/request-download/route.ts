@@ -16,8 +16,6 @@ type RequestDownloadBody = {
   last_name?: string
   phone?: string
   country?: string
-  source?: string
-  click_id?: string
 }
 
 export async function POST(req: Request) {
@@ -31,15 +29,14 @@ export async function POST(req: Request) {
       product,
       phone,
       country,
-      source,
-      click_id,
     } = body || {}
 
     const firstName = (first_name ?? '').trim()
     const lastName = (last_name ?? '').trim()
     const fallbackName = (name ?? '').trim()
 
-    if (!email || !product || (!firstName && !fallbackName) || (!lastName && !fallbackName)) {
+    // Accept if name is present, or both first_name and last_name are present
+    if (!email || !product || (!fallbackName && (!firstName || !lastName))) {
       return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 })
     }
 
@@ -56,9 +53,6 @@ export async function POST(req: Request) {
     }
     const formattedPhone = `${phoneMatch[1]} ${phoneMatch[2]}`
     const countryName = (country ?? '').trim() || null
-    const sourceName = (source ?? '').trim() || 'download-form'
-    const clickId = (click_id ?? '').trim() || null
-    const userAgent = req.headers.get('user-agent') || null
 
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE!
@@ -131,9 +125,6 @@ export async function POST(req: Request) {
       product_slug: product,
       phone: formattedPhone,
       country: countryName,
-      source: sourceName,
-      click_id: clickId,
-      user_agent: userAgent,
     })
     if (e1) throw e1
 

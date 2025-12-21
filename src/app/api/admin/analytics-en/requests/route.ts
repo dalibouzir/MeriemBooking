@@ -34,7 +34,7 @@ async function runQuery(
   const { from, to, page, pageSize, search, full } = opts
 
   const selectClause = full
-    ? 'id, created_at, name, first_name, last_name, email, phone, product_slug, country, source, click_id, user_agent, meta'
+    ? 'id, created_at, name, first_name, last_name, email, phone, product_slug, country, meta'
     : 'id, created_at, name, first_name, last_name, email, phone, product_slug, country'
 
   let query = supabase

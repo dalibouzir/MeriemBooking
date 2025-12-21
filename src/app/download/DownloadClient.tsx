@@ -19,8 +19,7 @@ const SUCCESS_CALL_URL = (process.env.NEXT_PUBLIC_SUCCESS_CALL_BOOKING_URL || 'h
 const SUCCESS_SUPPORT_TEXT = (process.env.NEXT_PUBLIC_SUCCESS_SUPPORT_TEXT || 'اطمئني، أرسلنا لك كل التفاصيل عبر الإيميل والواتساب. إذا لم تصلك الرسالة خلال دقائق راسلينا على واتساب.').trim()
 const SUCCESS_CTA_LABEL = (process.env.NEXT_PUBLIC_SUCCESS_CTA_LABEL || 'احجز مكالمتك المجانية الآن').trim()
 const DEFAULT_COUNTRY_CODE = '+33'
-const CLICK_ID_KEY = 'fm_click_id'
-const CLICK_SOURCE_KEY = 'fm_click_source'
+// Removed CLICK_ID_KEY and CLICK_SOURCE_KEY
 
 const generateId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
@@ -46,10 +45,9 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [clickId, setClickId] = useState<string>('')
-  const [clickSource, setClickSource] = useState<string>('')
-  const [countryCode, setCountryCode] = useState<string>(DEFAULT_COUNTRY_CODE)
-  const [phone, setPhone] = useState<string>('')
+  // Removed clickId state
+  const [phone, setPhone] = useState('')
+  const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE)
   const [phoneError, setPhoneError] = useState<string | null>(null)
 
   const product = initialProduct
@@ -79,46 +77,14 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
     setError(null)
   }, [product])
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const existing = window.sessionStorage.getItem(CLICK_ID_KEY)
-      if (existing) {
-        setClickId(existing)
-        return
-      }
-      const id = generateId()
-      window.sessionStorage.setItem(CLICK_ID_KEY, id)
-      setClickId(id)
-    } catch {
-      setClickId('')
-    }
-  }, [])
+  // Removed clickId effect
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const urlSource = (searchParams?.get('source') || searchParams?.get('utm_source') || '').trim()
-      const stored = window.sessionStorage.getItem(CLICK_SOURCE_KEY) || ''
-      const finalSource = urlSource || stored
-      if (urlSource) window.sessionStorage.setItem(CLICK_SOURCE_KEY, urlSource)
-      setClickSource(finalSource)
-    } catch {
-      setClickSource('')
-    }
-  }, [searchParams])
-
-  const PHONE_ALERT = 'يرجى إدخال رقم الهاتف فقط بدون رمز الدولة'
-
-  const validateLocalPhone = (local: string, selectedCode: string): string | null => {
-    const trimmed = local.trim()
-    if (!trimmed) return null
-    // Non-digits
-    if (/[^0-9]/.test(trimmed)) return PHONE_ALERT
-    // Starts with international prefix 00
-    if (trimmed.startsWith('00')) return PHONE_ALERT
-    // Starts with the selected country code digits (user duplicated country code)
-    const codeDigits = (selectedCode || '').replace(/^\+/, '')
+  // Phone validation helpers
+  const PHONE_ALERT = 'يرجى إدخال رقم صحيح بدون رموز أو مسافات زائدة.'
+  const validateLocalPhone = (val: string, code: string) => {
+    const trimmed = val.replace(/\D/g, '')
+    // Example: block numbers starting with country code again
+    const codeDigits = code.replace(/\D/g, '')
     if (codeDigits && trimmed.startsWith(codeDigits)) return PHONE_ALERT
     return null
   }
@@ -196,8 +162,6 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       }
       const fullPhone = `${phoneCode} ${localPhone}`.trim()
       const countryName = countryCodeOptions.find((option) => option.code === phoneCode)?.country || ''
-      const source = clickSource || (searchParams?.get('source') || searchParams?.get('utm_source') || '').trim() || 'download-form'
-
       if (!fullName) throw new Error('الاسم مطلوب')
       if (!isValidEmail(email)) throw new Error('البريد الإلكتروني غير صالح')
       if (!product) throw new Error('المنتج غير محدد')
@@ -206,14 +170,13 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
+          name: fullName,
           email,
+          country: countryName,
           product,
           phone: fullPhone,
-          country: countryName,
-          source,
-          click_id: clickId,
+          first_name: firstName,
+          last_name: lastName,
         }),
       })
 
@@ -257,26 +220,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         // best-effort; ignore failures
       })
 
-      // Fire conversion for click tracking (best-effort)
-      if (clickId) {
-        const payload = {
-          clickId,
-          product,
-          source: 'download-form',
-          event: 'submit' as const,
-        }
-        const body = JSON.stringify(payload)
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon('/api/metrics/download-click', new Blob([body], { type: 'application/json' }))
-        } else {
-          fetch('/api/metrics/download-click', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body,
-            keepalive: true,
-          }).catch(() => {})
-        }
-      }
+      // Removed click tracking logic
 
       const successUrl = `/success?${params.toString()}`
       router.push(successUrl)
