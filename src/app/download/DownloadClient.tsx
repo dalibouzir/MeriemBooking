@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { COUNTRY_DIAL_CODES } from '@/data/countryDialCodes'
+import { trackLead } from '@/lib/meta/lead'
 
 type RequestDownloadResponse = {
   ok?: boolean
@@ -244,41 +245,17 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
       if (SUCCESS_SUPPORT_TEXT) params.set('supportText', SUCCESS_SUPPORT_TEXT)
       if (SUCCESS_CTA_LABEL) params.set('ctaLabel', SUCCESS_CTA_LABEL)
 
-      const eventId = generateId()
-      const eventSourceUrl = typeof window !== 'undefined' ? window.location.href : ''
-      const fbp = readCookie('_fbp')
-      const fbc = readCookie('_fbc')
-
-      if (eventId && eventSourceUrl && email) {
-        const leadPayload = {
-          event_id: eventId,
-          event_source_url: eventSourceUrl,
-          email,
-          phone: fullPhone,
-          fbp: fbp || undefined,
-          fbc: fbc || undefined,
-        }
-
-        try {
-          await fetch('/api/meta/lead', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(leadPayload),
-            keepalive: true,
-          })
-        } catch {
-          // best-effort; ignore failures
-        }
-
-        try {
-          const w = window as typeof window & { fbq?: (...args: unknown[]) => void }
-          if (typeof w.fbq === 'function') {
-            w.fbq('track', 'Lead', { content_name: 'free_booklet' }, { eventID: eventId })
-          }
-        } catch {
-          // ignore pixel issues
-        }
-      }
+      // Track Lead event (Browser Pixel + Server CAPI with deduplication)
+      // Only fires AFTER successful API response - never on validation errors
+      trackLead({
+        email,
+        phone: fullPhone,
+        contentName: 'free_booklet',
+        formName: 'download_form',
+        leadType: 'download',
+      }).catch(() => {
+        // best-effort; ignore failures
+      })
 
       // Fire conversion for click tracking (best-effort)
       if (clickId) {

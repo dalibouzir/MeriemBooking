@@ -4,14 +4,18 @@
  * Example: Lead Form with Meta Tracking
  * 
  * This demonstrates the correct Lead tracking flow with:
- * - Supabase insert first (confirm success)
+ * - Backend/API call first (confirm success)
  * - Single eventId for deduplication
  * - Both Pixel (client) + CAPI (server) firing
+ * 
+ * Two approaches are available:
+ * 1. useMetaTracking() hook - via PixelProvider context
+ * 2. trackLead() function - direct import (shown below)
  */
 
 import { useState } from 'react'
-import { useMetaTracking } from '@/app/providers/PixelProvider'
-// import { supabase } from '@/lib/supabase' // Your Supabase client
+import { trackLead } from '@/lib/meta/lead'
+// Alternative: import { useMetaTracking } from '@/app/providers/PixelProvider'
 
 interface FormData {
   email: string
@@ -24,31 +28,21 @@ export default function LeadFormExample() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Get tracking function from context
-  const { trackLeadEvent } = useMetaTracking()
-
   const handleSubmit = async (formData: FormData) => {
     setLoading(true)
     setError(null)
 
     try {
       // ═══════════════════════════════════════════════════════════════
-      // STEP 1: Insert into Supabase (or your backend)
+      // STEP 1: Call your API (Supabase, fetch, etc.)
       // ═══════════════════════════════════════════════════════════════
-      // const { error: dbError } = await supabase
-      //   .from('leads')
-      //   .insert({
-      //     email: formData.email,
-      //     phone: formData.phone,
-      //     name: formData.name,
-      //     created_at: new Date().toISOString(),
-      //   })
-      //
-      // if (dbError) {
-      //   throw new Error('Failed to save lead')
-      // }
+      // const response = await fetch('/api/your-endpoint', {
+      //   method: 'POST',
+      //   body: JSON.stringify(formData),
+      // })
+      // if (!response.ok) throw new Error('Failed to submit')
 
-      // Simulating successful DB insert
+      // Simulating successful API response
       await new Promise((resolve) => setTimeout(resolve, 500))
 
       // ═══════════════════════════════════════════════════════════════
@@ -59,7 +53,7 @@ export default function LeadFormExample() {
       // - Server-side CAPI: POST /api/meta/capi with same eventID
       //
       // The same eventId ensures Meta deduplicates the events
-      const eventId = await trackLeadEvent({
+      const result = await trackLead({
         email: formData.email,          // Will be SHA-256 hashed for CAPI
         phone: formData.phone,          // Will be SHA-256 hashed for CAPI
         formName: 'download_form',      // Custom data for analysis
@@ -67,13 +61,15 @@ export default function LeadFormExample() {
         leadType: 'download',           // Custom data for analysis
       })
 
-      console.log('Lead tracked with eventId:', eventId)
+      console.log('Lead tracked:', result)
+      // result = { eventId, browserSent: boolean, serverSent: boolean }
 
       // ═══════════════════════════════════════════════════════════════
       // STEP 3: Handle success UI
       // ═══════════════════════════════════════════════════════════════
       setSuccess(true)
     } catch (err) {
+      // Lead tracking is NOT fired on errors
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)

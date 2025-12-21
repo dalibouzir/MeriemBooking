@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { XMarkIcon, ClipboardDocumentIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { useChallengeContext } from '../ChallengeContext'
 import { registerChallengeAction, getChallengeStatsAction } from '../actions'
+import { trackLead } from '@/lib/meta/lead'
 
 export default function ChallengeModalNew() {
   const {
@@ -68,12 +69,32 @@ export default function ChallengeModalNew() {
           durationMinutes: result.duration_minutes,
         })
         setModalState('success')
+        
+        // Track Lead event ONLY on successful registration
+        trackLead({
+          email: email.trim(),
+          contentName: 'fitness_challenge',
+          formName: 'challenge_modal',
+          leadType: 'challenge_registration',
+        }).catch(() => {
+          // best-effort; ignore failures
+        })
       } else if (result.status === 'full') {
         // Registered to waitlist
         setRegistrationResult({
           registrationId: result.registration_id,
         })
         setModalState('waitlist')
+        
+        // Also track waitlist as Lead (still valuable)
+        trackLead({
+          email: email.trim(),
+          contentName: 'fitness_challenge_waitlist',
+          formName: 'challenge_modal',
+          leadType: 'challenge_waitlist',
+        }).catch(() => {
+          // best-effort; ignore failures
+        })
       } else {
         setErrorMessage(result.error || 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.')
         setModalState('error')

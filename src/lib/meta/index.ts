@@ -6,13 +6,22 @@
 export {
   loadPixel,
   trackPageView,
-  trackLead,
+  trackLead as trackLeadPixel,
   trackCustomEvent,
   generateEventId,
   isPixelReady,
   getFbp,
   getFbc,
 } from './pixel'
+
+// Unified Lead tracking (Browser + CAPI with deduplication)
+export {
+  trackLead,
+  trackLeadBrowser,
+  trackLeadServer,
+  type LeadEventPayload,
+  type LeadTrackingResult,
+} from './lead'
 
 export {
   sendCAPIEvent,
