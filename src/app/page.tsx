@@ -17,6 +17,7 @@ import { useRevealOnScroll } from '@/utils/reveal'
 
 const CALENDLY_URL = 'https://calendly.com/meriembouzir/30min?month=2025-12'
 const PRODUCTS_ROUTE = '/products'
+const FOUNDER_ALT = 'مريم بوزير'
 
 const REVIEWS = [
   {
@@ -595,12 +596,11 @@ export default function HomePage() {
                   <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl ring-1 ring-primary/30 animate-float-gentle">
                     <Image
                       src={heroImage}
-                      alt="مريم بوزير — مرشدة في الاتزان العاطفي والعلاقات"
+                      alt={FOUNDER_ALT}
                       fill
                       sizes="(max-width: 768px) 90vw, (max-width: 1280px) 420px, 520px"
                       className="object-cover"
                       priority
-                      suppressHydrationWarning
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
                   </div>
@@ -672,7 +672,7 @@ export default function HomePage() {
         <section className="landing-section landing-bio reveal" data-reveal="left" aria-labelledby="landing-bio-title">
           <div className="landing-bio-card">
             <div className="landing-bio-figure">
-              <Image src="/Meriem.jpeg" alt="صورة مريم بوزير — مؤسسة فطرة الأمهات" width={176} height={176} className="landing-bio-avatar" loading="lazy" suppressHydrationWarning />
+              <Image src="/Meriem.jpeg" alt={FOUNDER_ALT} width={176} height={176} className="landing-bio-avatar" loading="lazy" />
               <div className="landing-bio-meta">
                 <p className="landing-bio-name">مريم بوزير</p>
                 <p className="landing-bio-role">مرشدة في الاتزان العاطفي والعلاقات</p>
