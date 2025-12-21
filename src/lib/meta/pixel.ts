@@ -98,8 +98,13 @@ export async function loadPixel(consent: boolean): Promise<void> {
       resolve()
     }
 
-    script.onerror = () => {
-      console.warn('[Meta Pixel] Failed to load fbevents.js')
+    script.onerror = (e) => {
+      console.warn('[Meta Pixel] Failed to load fbevents.js - This is usually caused by:')
+      console.warn('  1. Ad blocker or privacy extension (uBlock, Privacy Badger, etc.)')
+      console.warn('  2. Browser tracking protection')
+      console.warn('  3. Network blocking facebook.net')
+      console.warn('  Try: Incognito mode without extensions, or disable ad blocker for localhost')
+      console.warn('  Error details:', e)
       resolve()
     }
 
