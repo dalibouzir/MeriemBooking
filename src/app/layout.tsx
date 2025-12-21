@@ -10,6 +10,7 @@ import { Analytics } from '@vercel/analytics/react'
 import Providers from './providers'
 import SiteBackgroundClient from './SiteBackgroundClient'
 import ScrollHideTopbar from '@/components/ScrollHideTopbar'
+import PixelProvider from './providers/PixelProvider'
 
 const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
@@ -150,15 +151,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        <SiteBackgroundClient>
-          <Providers>
-            <ScrollHideTopbar />
+        <PixelProvider>
+          <SiteBackgroundClient>
+            <Providers>
+              <ScrollHideTopbar />
 
-            <main id="main" className="page-wrap">
-              {children}
-            </main>
-          </Providers>
-        </SiteBackgroundClient>
+              <main id="main" className="page-wrap">
+                {children}
+              </main>
+            </Providers>
+          </SiteBackgroundClient>
+        </PixelProvider>
         <Analytics />
       </body>
     </html>
