@@ -54,25 +54,36 @@ interface PixelProviderProps {
 export default function PixelProvider({ children, debug = false }: PixelProviderProps) {
   const [isReady, setIsReady] = useState(false)
   const [hasConsent, setHasConsent] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  // Initialize pixel on mount
+  // Initialize pixel on mount (client-side only)
   useEffect(() => {
+    setMounted(true)
+    
+    // Force consent to true for testing - remove in production if you need strict consent
     const consent = getTrackingConsent()
     setHasConsent(consent)
 
+    if (debug) {
+      console.log('[PixelProvider] Mounting, consent:', consent)
+    }
+
     if (consent) {
       loadPixel(true).then(() => {
-        setIsReady(isPixelReady())
+        const ready = isPixelReady()
+        setIsReady(ready)
         if (debug) {
-          console.log('[PixelProvider] Pixel loaded, ready:', isPixelReady())
+          console.log('[PixelProvider] Pixel loaded, ready:', ready)
         }
       })
+    } else if (debug) {
+      console.log('[PixelProvider] No consent, pixel not loaded')
     }
 
     // Listen for consent changes
     const unsubscribe = onConsentChange((newConsent) => {
       setHasConsent(newConsent)
-      if (newConsent && !isReady) {
+      if (newConsent) {
         loadPixel(true).then(() => {
           setIsReady(isPixelReady())
         })
@@ -80,7 +91,7 @@ export default function PixelProvider({ children, debug = false }: PixelProvider
     })
 
     return unsubscribe
-  }, [debug, isReady])
+  }, [debug]) // Removed isReady from deps to prevent re-render loop
 
   // Track Lead with deduplication (same eventId for Pixel + CAPI)
   const trackLeadEvent = useCallback(

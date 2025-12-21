@@ -21,9 +21,6 @@ export default function PixelTracker({ debug = false }: PixelTrackerProps) {
   
   // Track last fired URL to prevent duplicates
   const lastTrackedUrl = useRef<string | null>(null)
-  
-  // Track if initial page view has been fired
-  const initialPageViewFired = useRef(false)
 
   useEffect(() => {
     // Build current URL
@@ -37,22 +34,35 @@ export default function PixelTracker({ debug = false }: PixelTrackerProps) {
       return
     }
 
-    // Wait a tick for pixel to be ready on initial load
-    const timeout = setTimeout(() => {
+    // Retry mechanism for pixel readiness
+    let attempts = 0
+    const maxAttempts = 20
+    const interval = 100
+
+    const tryTrackPageView = () => {
+      attempts++
+      
       if (isPixelReady()) {
         trackPageView(url)
         lastTrackedUrl.current = url
-        initialPageViewFired.current = true
         
         if (debug) {
-          console.log('[PixelTracker] PageView tracked:', url)
+          console.log('[PixelTracker] PageView tracked:', url, 'after', attempts, 'attempts')
         }
-      } else if (debug) {
-        console.log('[PixelTracker] Pixel not ready, skipping PageView for:', url)
+        return true
       }
-    }, initialPageViewFired.current ? 0 : 100)
+      
+      if (attempts < maxAttempts) {
+        setTimeout(tryTrackPageView, interval)
+      } else if (debug) {
+        console.log('[PixelTracker] Pixel not ready after', maxAttempts, 'attempts, skipping:', url)
+      }
+      
+      return false
+    }
 
-    return () => clearTimeout(timeout)
+    // Small initial delay to let pixel initialize
+    setTimeout(tryTrackPageView, 50)
   }, [pathname, searchParams, debug])
 
   // This component renders nothing

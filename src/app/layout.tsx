@@ -151,7 +151,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        <PixelProvider>
+        <PixelProvider debug={process.env.NODE_ENV === 'development'}>
           <SiteBackgroundClient>
             <Providers>
               <ScrollHideTopbar />
