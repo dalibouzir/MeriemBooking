@@ -206,7 +206,7 @@ async function topSourceByClicks(client: SupabaseClient, filters: AnalyticsFilte
     if (error) throw error
     const row = (data || [])[0]
       if (!row) return null
-      return { count: Number((row as any).count || 0) }
+      return { name: 'غير معروف', count: Number((row as any).count || 0) }
   }
 
   const { data, error } = await applyClickFilters(
