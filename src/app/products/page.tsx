@@ -449,18 +449,27 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      <section className="library-about" aria-labelledby="library-about-title">
-        <div className="library-section-head appear-on-scroll" style={{ '--delay': '0.22s' } as CSSProperties}>
-          <div>
-            <h2 id="library-about-title">من أنا؟</h2>
-          </div>
-        </div>
-        <div className="library-about-card appear-on-scroll" style={{ '--delay': '0.26s' } as CSSProperties}>
-          <p>
-            أنا مريم بوزير، أمّ ومرشدة في الاتزان الشعوري وبناء العلاقات.
+      <section
+        className="library-about appear-on-scroll"
+        aria-labelledby="library-about-title"
+        style={{ '--delay': '0.22s' } as CSSProperties}
+      >
+        <div className="library-about-copy">
+          <h2 id="library-about-title">من أنا؟</h2>
+          <p className="library-about-role">مريم بوزير، أمّ ومرشدة في الاتزان الشعوري وبناء العلاقات.</p>
+          <p className="library-about-text">
             عشتُ ضغط الأمومة وجرّبتُ هذه الأدوات عليّ ومع أمهات أخريات،
-            ووجدتُ فيها أثرًا حقيقيًا… وهذا ما أشاركه معكِ في هذا الكتيّب
+            ووجدتُ فيها أثرًا حقيقيًا… وهذا ما أشاركه معكِ في هذا الكتيّب.
           </p>
+        </div>
+        <div className="library-about-photo">
+          <Image
+            src="/Meriem.png"
+            alt="مريم بوزير"
+            width={160}
+            height={160}
+            className="library-about-img"
+          />
         </div>
       </section>
 
