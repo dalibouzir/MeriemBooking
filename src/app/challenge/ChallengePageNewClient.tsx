@@ -18,9 +18,8 @@ import {
 // Config type for serializable props only
 export interface ChallengeConfig {
   isEnabled: boolean
-  startDate: string
-  endDate: string
-  meetingTime: string
+  startDateLabel: string
+  meetingTimeLabel: string
   duration: number
   maxSeats: number
   title: string
@@ -114,8 +113,8 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
 
           {/* Schedule Section */}
           <ScheduleSectionNew
-            startDate={config.startDate}
-            meetingTime={config.meetingTime}
+            startDateLabel={config.startDateLabel}
+            meetingTimeLabel={config.meetingTimeLabel}
             duration={config.duration}
           />
 
@@ -125,16 +124,11 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
             notFor={config.notFor}
           />
 
-          {/* Requirements + FAQ Combined Row */}
-          <div className="ch-req-faq-row">
-            {/* Requirements Section */}
-            <RequirementsSectionNew requirements={config.requirements} />
+          {/* Requirements Section */}
+          <RequirementsSectionNew requirements={config.requirements} />
 
-            {/* FAQ Section */}
-            {config.faqs.length > 0 && (
-              <FAQSectionNew faqs={config.faqs} />
-            )}
-          </div>
+          {/* FAQ Section */}
+          <FAQSectionNew faqs={config.faqs} />
 
           {/* Final CTA Section */}
           <FinalCTASection />

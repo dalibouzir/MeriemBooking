@@ -3,12 +3,12 @@
 import { useEffect, useRef } from 'react'
 
 interface ScheduleSectionNewProps {
-  startDate: string
-  meetingTime: string
+  startDateLabel: string
+  meetingTimeLabel: string
   duration: number
 }
 
-export default function ScheduleSectionNew({ startDate, meetingTime, duration }: ScheduleSectionNewProps) {
+export default function ScheduleSectionNew({ startDateLabel, meetingTimeLabel, duration }: ScheduleSectionNewProps) {
   const sectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -35,47 +35,16 @@ export default function ScheduleSectionNew({ startDate, meetingTime, duration }:
     return () => observer.disconnect()
   }, [])
 
-  // Format date
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return 'قريباً'
-    try {
-      const date = new Date(dateStr)
-      return date.toLocaleDateString('ar-u-nu-latn', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    } catch {
-      return dateStr
-    }
-  }
-
-  // Format time
-  const formatTime = (dateStr: string) => {
-    if (!dateStr) return 'سيتم تحديده'
-    try {
-      const date = new Date(dateStr)
-      return date.toLocaleTimeString('ar-u-nu-latn', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      })
-    } catch {
-      return 'سيتم تحديده'
-    }
-  }
-
   const scheduleItems = [
     {
       icon: '📅',
       label: 'تاريخ البداية',
-      value: formatDate(startDate),
+      value: startDateLabel || 'قريباً',
     },
     {
       icon: '⏰',
       label: 'وقت اللقاء',
-      value: formatTime(meetingTime),
+      value: meetingTimeLabel || 'سيتم تحديده',
     },
     {
       icon: '⏱️',

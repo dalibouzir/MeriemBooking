@@ -365,6 +365,80 @@ export default function ProductsPage() {
         )}
       </section>
 
+      <section className="ch-whofor-section library-who" aria-labelledby="library-who-title">
+        <div className="ch-whofor-container">
+          <div className="ch-whofor-header appear-on-scroll" style={{ '--delay': '0.12s' } as CSSProperties}>
+            <h2 id="library-who-title" className="ch-section-title">هل هذا الكتيّب لكِ؟</h2>
+          </div>
+
+          <div className="ch-whofor-grid">
+            <div className="ch-whofor-col ch-whofor-col-yes appear-on-scroll" style={{ '--delay': '0.16s' } as CSSProperties}>
+              <h3 className="ch-whofor-col-title">
+                <span className="ch-whofor-col-icon">✓</span>
+                هذا الكتيّب موجّه لكل أم:
+              </h3>
+              <div className="ch-whofor-list">
+                <div className="ch-whofor-item ch-whofor-item-yes">
+                  <span className="ch-whofor-item-icon" aria-hidden="true">✓</span>
+                  <span className="ch-whofor-item-text">تشعر بالإرهاق الدائم والتوتّر</span>
+                </div>
+                <div className="ch-whofor-item ch-whofor-item-yes">
+                  <span className="ch-whofor-item-icon" aria-hidden="true">✓</span>
+                  <span className="ch-whofor-item-text">تغضب بسرعة ولا تعرف كيف تُدير مشاعرها</span>
+                </div>
+                <div className="ch-whofor-item ch-whofor-item-yes">
+                  <span className="ch-whofor-item-icon" aria-hidden="true">✓</span>
+                  <span className="ch-whofor-item-text">تعيش علاقات مُرهِقة مع من حولها</span>
+                </div>
+                <div className="ch-whofor-item ch-whofor-item-yes">
+                  <span className="ch-whofor-item-icon" aria-hidden="true">✓</span>
+                  <span className="ch-whofor-item-text">تشعر في داخلها أنها ابتعدت عن أنوثتها الحقيقية ولم تعد كما كانت</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="ch-whofor-col ch-whofor-col-yes appear-on-scroll" style={{ '--delay': '0.2s' } as CSSProperties}>
+              <h3 className="ch-whofor-col-title">
+                <span className="ch-whofor-col-icon">✨</span>
+                ماذا ستتعلّمين في هذا الكتيّب؟
+              </h3>
+              <div className="ch-whofor-list">
+                <div className="ch-whofor-item ch-whofor-item-yes">
+                  <span className="ch-whofor-item-icon" aria-hidden="true">✓</span>
+                  <span className="ch-whofor-item-text">إدارة مشاعرك بوعي وهدوء بدل الانفجار أو الكبت</span>
+                </div>
+                <div className="ch-whofor-item ch-whofor-item-yes">
+                  <span className="ch-whofor-item-icon" aria-hidden="true">✓</span>
+                  <span className="ch-whofor-item-text">استعادة اتصالك بأنوثتك الحقيقية دون صراع أو ذنب</span>
+                </div>
+                <div className="ch-whofor-item ch-whofor-item-yes">
+                  <span className="ch-whofor-item-icon" aria-hidden="true">✓</span>
+                  <span className="ch-whofor-item-text">بناء علاقات صحّية ومتوازنة مع نفسك ومع الآخرين</span>
+                </div>
+              </div>
+              <p className="library-who-note">
+                خطوات بسيطة، واقعية، وقابلة للتطبيق في حياتك اليومية كأم.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="library-about" aria-labelledby="library-about-title">
+        <div className="library-section-head appear-on-scroll" style={{ '--delay': '0.22s' } as CSSProperties}>
+          <div>
+            <h2 id="library-about-title">من أنا؟</h2>
+          </div>
+        </div>
+        <div className="library-about-card appear-on-scroll" style={{ '--delay': '0.26s' } as CSSProperties}>
+          <p>
+            أنا مريم بوزير، أمّ ومرشدة في الاتزان الشعوري وبناء العلاقات.
+            عشتُ ضغط الأمومة وجرّبتُ هذه الأدوات عليّ ومع أمهات أخريات،
+            ووجدتُ فيها أثرًا حقيقيًا… وهذا ما أشاركه معكِ في هذا الكتيّب
+          </p>
+        </div>
+      </section>
+
       <section id="library-workflow" className="library-flow" aria-labelledby="library-flow-title">
         <div className="library-section-head appear-on-scroll" style={{ '--delay': '0.14s' } as CSSProperties}>
           <div>
@@ -398,30 +472,6 @@ export default function ProductsPage() {
             </a>
             {' '}أو افتحي الدردشة أسفل الصفحة.
           </p>
-        </div>
-      </section>
-
-      <section aria-labelledby="library-why-title" className="library-why-area">
-        <div className="library-section-head appear-on-scroll" style={{ '--delay': '0.18s' } as CSSProperties}>
-          <div>
-            <h2 id="library-why-title">لماذا سميناها مكتبة؟</h2>
-            <p>لأنها ليست مجرد صفحة منتج واحد، بل رفوف متجددة لأدلة ودورات مصغرة.</p>
-          </div>
-        </div>
-        <div className="library-why">
-          {WHY_POINTS.map((card) => (
-            <article
-              key={card.id}
-              className="library-why-card appear-on-scroll"
-              style={{ '--delay': '0.22s' } as CSSProperties}
-            >
-              <span className="library-why-icon" aria-hidden>
-                {card.icon}
-              </span>
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-            </article>
-          ))}
         </div>
       </section>
 

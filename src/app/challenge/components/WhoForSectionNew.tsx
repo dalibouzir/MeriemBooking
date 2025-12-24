@@ -56,7 +56,15 @@ export default function WhoForSectionNew({ targetAudience, notFor }: WhoForSecti
     'من لديها حالات صحية تمنع التمارين',
   ]
 
-  let itemIndex = 0
+  const targetAudienceItems = displayTargetAudience.map((item, index) => ({
+    text: item,
+    dataIndex: index,
+  }))
+
+  const notForItems = displayNotFor.map((item, index) => ({
+    text: item,
+    dataIndex: displayTargetAudience.length + index,
+  }))
 
   return (
     <section ref={sectionRef} className="ch-whofor-section" aria-labelledby="whofor-title">
@@ -78,17 +86,16 @@ export default function WhoForSectionNew({ targetAudience, notFor }: WhoForSecti
               هذا التحدي لك إذا كنت...
             </h3>
             <div className="ch-whofor-list">
-              {displayTargetAudience.map((item, index) => {
-                const currentIndex = itemIndex++
+              {targetAudienceItems.map((item, index) => {
                 return (
                   <div
                     key={index}
-                    ref={(el) => { if (el) itemsRef.current[currentIndex] = el }}
-                    data-index={currentIndex}
+                    ref={(el) => { if (el) itemsRef.current[item.dataIndex] = el }}
+                    data-index={item.dataIndex}
                     className="ch-whofor-item ch-whofor-item-yes ch-reveal-item"
                   >
                     <span className="ch-whofor-item-icon" aria-hidden="true">✓</span>
-                    <span className="ch-whofor-item-text">{item}</span>
+                    <span className="ch-whofor-item-text">{item.text}</span>
                   </div>
                 )
               })}
@@ -102,17 +109,16 @@ export default function WhoForSectionNew({ targetAudience, notFor }: WhoForSecti
               قد لا يناسبك إذا كنت...
             </h3>
             <div className="ch-whofor-list">
-              {displayNotFor.map((item, index) => {
-                const currentIndex = itemIndex++
+              {notForItems.map((item, index) => {
                 return (
                   <div
                     key={index}
-                    ref={(el) => { if (el) itemsRef.current[currentIndex] = el }}
-                    data-index={currentIndex}
+                    ref={(el) => { if (el) itemsRef.current[item.dataIndex] = el }}
+                    data-index={item.dataIndex}
                     className="ch-whofor-item ch-whofor-item-no ch-reveal-item"
                   >
                     <span className="ch-whofor-item-icon" aria-hidden="true">✗</span>
-                    <span className="ch-whofor-item-text">{item}</span>
+                    <span className="ch-whofor-item-text">{item.text}</span>
                   </div>
                 )
               })}

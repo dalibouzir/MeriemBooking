@@ -1,22 +1,15 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import {
-  DevicePhoneMobileIcon,
-  WifiIcon,
-  ClockIcon,
-  HeartIcon,
-} from '@heroicons/react/24/outline'
 
 interface RequirementsSectionNewProps {
   requirements: string[]
 }
 
 const defaultRequirements = [
-  { icon: DevicePhoneMobileIcon, text: 'هاتف ذكي أو جهاز كمبيوتر' },
-  { icon: WifiIcon, text: 'اتصال إنترنت مستقر' },
-  { icon: ClockIcon, text: '30-60 دقيقة يومياً' },
-  { icon: HeartIcon, text: 'الرغبة في التغيير' },
+  { icon: '📱', text: 'هاتف أو حاسوب مع اتصال بالإنترنت' },
+  { icon: '🕒', text: 'مكان هادئ لمدة ساعة' },
+  { icon: '❤️', text: 'الرغبة في الاهتمام بنفسك' },
 ]
 
 export default function RequirementsSectionNew({ requirements }: RequirementsSectionNewProps) {
@@ -76,7 +69,6 @@ export default function RequirementsSectionNew({ requirements }: RequirementsSec
 
         <div className="ch-requirements-grid">
           {displayItems.map((item, index) => {
-            const IconComponent = item.icon
             return (
               <div
                 key={index}
@@ -85,7 +77,7 @@ export default function RequirementsSectionNew({ requirements }: RequirementsSec
                 className="ch-requirement-card ch-reveal-item"
               >
                 <div className="ch-requirement-icon-wrap">
-                  <IconComponent className="ch-requirement-icon" aria-hidden="true" />
+                  <span className="ch-requirement-icon" aria-hidden="true">{item.icon}</span>
                 </div>
                 <p className="ch-requirement-text">{item.text}</p>
               </div>

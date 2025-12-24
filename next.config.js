@@ -65,20 +65,38 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production'
     return [
       {
         source: '/:path*',
         headers: securityHeaders,
       },
-      {
-        source: '/(.*)\\.(js|css|woff2|woff|ttf|otf|ico|png|jpg|jpeg|gif|webp|avif|svg)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
+      ...(!isProd
+        ? [
+            {
+              source: '/_next/static/:path*',
+              headers: [
+                {
+                  key: 'Cache-Control',
+                  value: 'no-store',
+                },
+              ],
+            },
+          ]
+        : []),
+      ...(isProd
+        ? [
+            {
+              source: '/(.*)\\.(js|css|woff2|woff|ttf|otf|ico|png|jpg|jpeg|gif|webp|avif|svg)',
+              headers: [
+                {
+                  key: 'Cache-Control',
+                  value: 'public, max-age=31536000, immutable',
+                },
+              ],
+            },
+          ]
+        : []),
     ]
   },
   async rewrites() {

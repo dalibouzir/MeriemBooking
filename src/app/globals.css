@@ -1602,10 +1602,51 @@ body.assistant-view .chatbot-widget{
     padding:0.9rem 1.4rem;
     min-height:48px;
   }
+  .library-about-card{
+    padding:18px 20px;
+    font-size:1rem;
+  }
 }
 .library-menu-icon{
   width:20px;
   height:20px;
+}
+.library-who-note{
+  margin:16px 0 0;
+  padding:12px 14px;
+  border-radius:14px;
+  background: hsla(var(--primary) / 0.08);
+  border:1px solid hsla(var(--primary) / 0.18);
+  color:hsl(var(--text-dim));
+  line-height:1.7;
+}
+.library-about{
+  border-radius:26px;
+  border:1px solid var(--surface-border);
+  padding:clamp(20px, 4vw, 36px);
+  background:
+    radial-gradient(circle at 12% 22%, hsl(var(--accent) / 0.12), transparent 44%),
+    radial-gradient(circle at 86% 14%, hsl(var(--secondary) / 0.12), transparent 40%),
+    hsla(var(--glass));
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.library-about-card{
+  border-radius:20px;
+  border:1px solid hsla(var(--primary) / 0.2);
+  background: linear-gradient(135deg, hsla(var(--glass-strong)), hsla(var(--glass)));
+  padding:22px 26px;
+  color:hsl(var(--text-dim));
+  line-height:1.9;
+  font-size:1.05rem;
+  opacity:0;
+  transform: translateY(18px);
+}
+.library-about-card.appear-on-scroll.is-visible{
+  animation: library-card-rise 0.7s ease forwards;
+  animation-delay: var(--delay, 0s);
+  box-shadow: 0 16px 40px hsl(var(--primary-700) / 0.16);
 }
 .library-flow{
   border-radius:26px;
@@ -11299,7 +11340,7 @@ html[class*="theme-d"] .product-card .product-btn-download{
 
 .ch-requirements-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
 }
 
@@ -11334,6 +11375,11 @@ html[class*="theme-d"] .product-card .product-btn-download{
 .ch-requirement-icon {
   width: 26px;
   height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  line-height: 1;
   color: hsl(var(--primary));
 }
 
@@ -11361,46 +11407,51 @@ html[class*="theme-d"] .product-card .product-btn-download{
 }
 
 .ch-faq-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ch-faq-item {
+  position: relative;
+  background: linear-gradient(140deg, hsla(var(--glass-strong)) 0%, hsla(var(--glass)) 100%);
+  border: 1px solid hsla(var(--primary) / 0.18);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+  padding: 26px 28px 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.ch-faq-item {
-  background: hsla(var(--glass-strong));
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--surface-border);
-  border-radius: 18px;
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-}
-
 .ch-faq-item:hover {
-  box-shadow: 0 8px 24px hsla(var(--primary) / 0.1);
+  box-shadow: 0 16px 36px hsla(var(--primary) / 0.12);
 }
 
-.ch-faq-item.is-open {
-  border-color: hsla(var(--primary) / 0.35);
+.ch-faq-item::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  right: 0;
+  width: 4px;
+  height: calc(100% - 36px);
+  border-radius: 8px;
+  background: linear-gradient(180deg, hsla(var(--primary) / 0.7), hsla(var(--secondary) / 0.45));
 }
 
-.ch-faq-trigger {
-  width: 100%;
+.ch-faq-item-header {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 24px 28px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: right;
+  gap: 16px;
 }
 
 .ch-faq-number {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, hsla(var(--primary) / 0.15), hsla(var(--secondary) / 0.1));
-  display: flex;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, hsla(var(--primary) / 0.22), hsla(var(--secondary) / 0.16));
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 0.95rem;
@@ -11410,52 +11461,21 @@ html[class*="theme-d"] .product-card .product-btn-download{
 }
 
 .ch-faq-question {
-  flex: 1;
   font-size: 1.2rem;
   font-weight: 700;
   color: hsl(var(--text));
   line-height: 1.5;
-}
-
-.ch-faq-icon-wrap {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: hsla(var(--glass));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.ch-faq-icon {
-  width: 20px;
-  height: 20px;
-  color: hsl(var(--text-dim));
-  transition: transform 0.25s ease;
-}
-
-.ch-faq-item.is-open .ch-faq-icon {
-  transform: rotate(180deg);
-}
-
-.ch-faq-panel {
-  overflow: hidden;
-  transition: max-height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ch-faq-panel[hidden] {
-  display: none;
+  margin: 0;
 }
 
 .ch-faq-answer {
-  padding: 0 28px 28px;
-  padding-right: 86px;
+  padding: 0;
   margin: 0;
   color: hsl(var(--text-dim));
   line-height: 1.85;
   font-size: 1.1rem;
 }
+
 
 /* ─── Final CTA Section ─── */
 .ch-final-cta-section {
@@ -12104,6 +12124,10 @@ html[class*="theme-d"] .product-card .product-btn-download{
     gap: 24px;
   }
   
+  .ch-faq-list {
+    grid-template-columns: 1fr;
+  }
+  
   .ch-requirements-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -12197,18 +12221,14 @@ html[class*="theme-d"] .product-card .product-btn-download{
     padding: 20px 14px;
   }
   
-  .ch-faq-trigger {
-    padding: 18px 20px;
-  }
-  
   .ch-faq-question {
     font-size: 1rem;
   }
   
   .ch-faq-answer {
-    padding-right: 60px;
     font-size: 0.95rem;
   }
+
   
   .ch-final-cta-card {
     padding: 40px 28px;
@@ -12416,19 +12436,15 @@ html[class*="theme-d"] .product-card .product-btn-download{
     gap: 10px;
   }
   
-  .ch-faq-trigger {
-    padding: 16px;
-  }
-  
   .ch-faq-question {
     font-size: 0.95rem;
     line-height: 1.5;
   }
   
   .ch-faq-answer {
-    padding: 0 16px 16px 16px;
     font-size: 0.9rem;
   }
+
   
   .ch-final-cta-section {
     padding: 40px 0 80px;
@@ -12574,4 +12590,3 @@ html[class*="theme-d"] .product-card .product-btn-download{
     animation: none !important;
   }
 }
-

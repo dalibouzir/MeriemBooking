@@ -9,6 +9,39 @@ export const metadata = {
   description: 'انضمّي إلى تحدينا المجاني أونلاين واحصلي على دعم شخصي مع مريم بوزير. المقاعد محدودة!',
 }
 
+const formatScheduleDate = (dateStr: string, timeZone: string) => {
+  if (!dateStr) return 'قريباً'
+  const date = new Date(dateStr)
+  if (Number.isNaN(date.getTime())) return dateStr
+  try {
+    return new Intl.DateTimeFormat('ar-u-nu-latn', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone,
+    }).format(date)
+  } catch {
+    return dateStr
+  }
+}
+
+const formatScheduleTime = (dateStr: string, timeZone: string) => {
+  if (!dateStr) return 'سيتم تحديده'
+  const date = new Date(dateStr)
+  if (Number.isNaN(date.getTime())) return 'سيتم تحديده'
+  try {
+    return new Intl.DateTimeFormat('ar-u-nu-latn', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone,
+    }).format(date)
+  } catch {
+    return 'سيتم تحديده'
+  }
+}
+
 export default async function ChallengePage() {
   const [settings, stats] = await Promise.all([
     getChallengeSettingsAction(),
@@ -28,12 +61,15 @@ export default async function ChallengePage() {
     )
   }
 
+  const timeZone = settings.timezone || 'UTC'
+  const startDateLabel = formatScheduleDate(settings.starts_at, timeZone)
+  const meetingTimeLabel = formatScheduleTime(settings.starts_at, timeZone)
+
   // Transform settings to config format using correct field names from ChallengeSettings
   const config = {
     isEnabled: settings.is_active,
-    startDate: settings.starts_at,
-    endDate: '', // Not in current schema
-    meetingTime: settings.starts_at, // Use starts_at as meeting time
+    startDateLabel,
+    meetingTimeLabel,
     duration: settings.duration_minutes,
     maxSeats: settings.capacity,
     title: settings.title,
