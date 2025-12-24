@@ -21,6 +21,7 @@ import {
 import Accordion from '@/components/ui/Accordion'
 import ChatbotWidget from '@/components/ChatbotWidget'
 import { supabaseClient } from '@/lib/supabase'
+import { trackCustomEvent } from '@/lib/meta'
 import {
   mapLegacyProducts,
   type LegacyProductRow,
@@ -114,7 +115,6 @@ const FAQ_ITEMS = [
   },
 ]
 
-const CTA_ROUTE = '/download'
 const CLICK_ID_KEY = 'fm_click_id'
 const CLICK_SOURCE_KEY = 'fm_click_source'
 
@@ -135,6 +135,11 @@ function trackDownloadClick(product: string, source: string) {
   if (typeof window === 'undefined') return
   const clickId = getOrCreateClickId()
   if (!clickId) return
+  const pixelEventId = trackCustomEvent('DownloadClick', {
+    product,
+    source,
+    page_path: window.location.pathname,
+  })
   try {
     window.sessionStorage.setItem(CLICK_SOURCE_KEY, source)
   } catch {
@@ -146,6 +151,10 @@ function trackDownloadClick(product: string, source: string) {
     source,
     referrer: document?.referrer || '',
     event: 'click' as const,
+    meta: {
+      pixel_event: 'DownloadClick',
+      pixel_event_id: pixelEventId,
+    },
   }
   const body = JSON.stringify(payload)
   if (navigator.sendBeacon) {
@@ -166,6 +175,7 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<BookCategory>('الكل')
   const [activeCardIndex, setActiveCardIndex] = useState(0)
+  const [isStickyVisible, setIsStickyVisible] = useState(false)
   const gridRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     let cancelled = false
@@ -203,6 +213,11 @@ export default function ProductsPage() {
     if (activeCategory === 'الكل') return normalizedResources
     return normalizedResources.filter((book) => book.tags.includes(activeCategory))
   }, [activeCategory, normalizedResources])
+  const stickyBook = useMemo(() => {
+    if (!filteredBooks.length) return null
+    const safeIndex = Math.min(activeCardIndex, filteredBooks.length - 1)
+    return filteredBooks[safeIndex]
+  }, [filteredBooks, activeCardIndex])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -284,6 +299,16 @@ export default function ProductsPage() {
       if (frame) window.cancelAnimationFrame(frame)
     }
   }, [filteredBooks.length])
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsStickyVisible(window.scrollY > 500)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const scrollToCard = (index: number) => {
     const container = gridRef.current
@@ -487,10 +512,20 @@ export default function ProductsPage() {
 
       <ChatbotWidget />
 
-      <div className="library-sticky-cta" aria-live="polite">
-        <span>كل الملفات مجانية للتحميل</span>
-        <Link href={CTA_ROUTE}>ابدئي الآن</Link>
-      </div>
+      {stickyBook ? (
+        <div
+          className={`ch-sticky-cta ${isStickyVisible ? 'is-visible' : ''}`}
+          role="complementary"
+          aria-label="تحميل سريع"
+        >
+          <div className="ch-sticky-cta-content">
+            <SmartLink href={stickyBook.ctaHref} className="library-card-btn" trackProductId={stickyBook.id}>
+              <ArrowDownTrayIcon className="library-menu-icon" aria-hidden />
+              <span>{stickyBook.ctaLabel}</span>
+            </SmartLink>
+          </div>
+        </div>
+      ) : null}
 
     </main>
   )
