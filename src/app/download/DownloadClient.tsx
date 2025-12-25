@@ -233,9 +233,16 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
   }
 
   return (
-    <section dir="rtl" className="dl-section">
+    <section id="download" dir="rtl" className="dl-section">
       <div className="dl-card glass-water">
-        <h1 className="dl-title">تحميل المنتج</h1>
+        <h1 className="dl-title">
+          <span className="dl-title-line">هذا الكتيّب ليس لكل أم بل للأم التي تعبت من كتم مشاعرها</span>
+          <span className="dl-title-line dl-title-offset">وتريد أن تستعيد توازنها بهدوء</span>
+        </h1>
+        <div className="dl-title-rule" aria-hidden="true">
+          <span />
+          <span />
+        </div>
 
         {productMissing ? (
           <p className="dl-warn">
@@ -269,23 +276,29 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           {/* Honeypot */}
           <input ref={hpRef} name="website" tabIndex={-1} autoComplete="off" className="dl-hp" />
 
-          <div className="dl-field">
-            <label htmlFor="dl-full-name" className="dl-label">الاسم الكامل</label>
-            <input id="dl-full-name" name="full_name" required className="dl-input" autoComplete="name" placeholder="مثال: سارة أحمد" />
-          </div>
+          <p className="dl-sub dl-info">
+            «الكتيّب يُرسل على الإيميل فورًا، تأكدي من كتابة إيميلك الصحيح 🤍»
+          </p>
 
-          <div className="dl-field">
-            <label htmlFor="dl-email" className="dl-label">البريد الإلكتروني</label>
-            <input
-              id="dl-email"
-              name="email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              required
-              className="dl-input"
-              dir="ltr"
-            />
+          <div className="dl-name-group">
+            <div className="dl-field">
+              <label htmlFor="dl-full-name" className="dl-label">الاسم الكامل</label>
+              <input id="dl-full-name" name="full_name" required className="dl-input" autoComplete="name" placeholder="مثال: سارة أحمد" />
+            </div>
+
+            <div className="dl-field">
+              <label htmlFor="dl-email" className="dl-label">البريد الإلكتروني</label>
+              <input
+                id="dl-email"
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                required
+                className="dl-input"
+                dir="ltr"
+              />
+            </div>
           </div>
 
           <div className="dl-field">
@@ -334,7 +347,7 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           </div>
 
           <button type="submit" className="dl-btn" disabled={loading || productMissing}>
-            {loading ? '⏳ جارٍ الإرسال…' : '📥 تحميل مجاني الآن'}
+            {loading ? '⏳ جارٍ الإرسال…' : '📥 أرسلوا لي الكتيّب الآن'}
           </button>
 
           {error && (
@@ -426,14 +439,15 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         }
 
         .dl-snippet {
-          background: hsla(var(--accent) / 0.12);
-          border: 1px solid hsla(var(--accent) / 0.4);
+          background: linear-gradient(120deg, hsl(var(--accent) / 0.12), hsl(var(--primary) / 0.08));
+          border: 1px solid hsl(var(--accent) / 0.35);
           border-radius: 16px;
           padding: 12px 16px;
           display: flex;
           flex-direction: column;
           gap: 6px;
           font-size: 0.95rem;
+          box-shadow: 0 10px 24px hsl(var(--primary) / 0.1);
         }
 
         .dl-snippet-label {
@@ -452,13 +466,14 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
           align-items: center;
           justify-content: center;
           gap: 10px;
-          background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.08));
-          border: 1px dashed rgba(59, 130, 246, 0.4);
-          border-radius: 10px;
+          background: linear-gradient(135deg, hsl(var(--primary) / 0.12), hsl(var(--accent) / 0.12));
+          border: 1px dashed hsl(var(--primary) / 0.3);
+          border-radius: 12px;
           padding: 12px 18px;
           margin-bottom: 16px;
           font-size: 0.85rem;
           text-align: center;
+          box-shadow: 0 12px 26px hsl(var(--primary) / 0.12);
         }
 
         .dl-trust-icon {
@@ -466,18 +481,14 @@ export default function DownloadClient({ initialProduct = '' }: { initialProduct
         }
 
         .dl-trust-text {
-          color: #1e40af;
-          font-weight: 500;
+          color: hsl(var(--text));
+          font-weight: 600;
           letter-spacing: 0.01em;
         }
 
         :global(.dark) .dl-trust-badge {
-          background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1));
-          border-color: rgba(99, 102, 241, 0.5);
-        }
-
-        :global(.dark) .dl-trust-text {
-          color: #93c5fd;
+          background: linear-gradient(135deg, hsl(var(--primary) / 0.18), hsl(var(--accent) / 0.16));
+          border-color: hsl(var(--primary) / 0.4);
         }
 
         .dl-optional {
