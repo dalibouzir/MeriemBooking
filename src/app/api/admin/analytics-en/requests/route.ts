@@ -13,29 +13,21 @@ export async function GET(req: NextRequest) {
   const search = (req.nextUrl.searchParams.get('search') || '').trim()
 
   try {
-    const response = await runQuery(supabase, { from, to, page, pageSize, search, full: true })
+    const response = await runQuery(supabase, { from, to, page, pageSize, search })
     return NextResponse.json({ ...response, from, to })
-  } catch (error) {
-    console.warn('analytics-en requests primary failed, retrying with minimal columns', error)
-    try {
-      const response = await runQuery(supabase, { from, to, page, pageSize, search, full: false })
-      return NextResponse.json({ ...response, from, to })
-    } catch (err2) {
-      console.error('analytics-en requests error', err2)
-      return NextResponse.json({ rows: [], total: 0, page, pageSize, from, to })
-    }
+  } catch (err2) {
+    console.error('analytics-en requests error', err2)
+    return NextResponse.json({ rows: [], total: 0, page, pageSize, from, to })
   }
 }
 
 async function runQuery(
   supabase: any,
-  opts: { from: string; to: string; page: number; pageSize: number; search: string; full: boolean }
+  opts: { from: string; to: string; page: number; pageSize: number; search: string }
 ) {
-  const { from, to, page, pageSize, search, full } = opts
+  const { from, to, page, pageSize, search } = opts
 
-  const selectClause = full
-    ? 'id, created_at, name, first_name, last_name, email, phone, product_slug, country, meta'
-    : 'id, created_at, name, first_name, last_name, email, phone, product_slug, country'
+  const selectClause = 'id, created_at, name, first_name, last_name, email, phone, product_slug, country'
 
   let query = supabase
     .from('download_requests')

@@ -53,16 +53,16 @@ type Merged = { bucket: string; clicks: number; requests: number }
 async function clickSeries(client: SupabaseClient, filters: AnalyticsFilters, interval: 'hour' | 'day'): Promise<SeriesPoint[]> {
   try {
     if (!filters.devices.length) {
-      const { data, error } = await applyClickFilters(
+      const baseQuery = applyClickFilters(
         client.from('download_clicks').select(`bucket:date_trunc('${interval}', created_at), count:count()`),
         filters
-      )
-        .or('meta->>event.eq.click,meta->>event.is.null')
-        .group('bucket')
-        .order('bucket', { ascending: true })
+      ).or('meta->>event.eq.click,meta->>event.is.null')
 
-      if (error) throw error
-      return (data || []).map((row: Record<string, unknown>) => ({ bucket: new Date((row as Record<string, unknown>).bucket as string).toISOString(), count: Number((row as Record<string, unknown>).count || 0) }))
+      if (typeof (baseQuery as any).group === 'function') {
+        const { data, error } = await (baseQuery as any).group('bucket').order('bucket', { ascending: true })
+        if (error) throw error
+        return (data || []).map((row: Record<string, unknown>) => ({ bucket: new Date((row as Record<string, unknown>).bucket as string).toISOString(), count: Number((row as Record<string, unknown>).count || 0) }))
+      }
     }
   } catch (err) {
     console.warn('clickSeries aggregation failed, using fallback', err)
@@ -92,15 +92,16 @@ async function clickSeries(client: SupabaseClient, filters: AnalyticsFilters, in
 async function requestSeries(client: SupabaseClient, filters: AnalyticsFilters, interval: 'hour' | 'day'): Promise<SeriesPoint[]> {
   try {
     if (!filters.devices.length) {
-      const { data, error } = await applyRequestFilters(
+      const baseQuery = applyRequestFilters(
         client.from('download_requests').select(`bucket:date_trunc('${interval}', created_at), count:count()`),
         filters
       )
-        .group('bucket')
-        .order('bucket', { ascending: true })
 
-      if (error) throw error
-      return (data || []).map((row: Record<string, unknown>) => ({ bucket: new Date((row as Record<string, unknown>).bucket as string).toISOString(), count: Number((row as Record<string, unknown>).count || 0) }))
+      if (typeof (baseQuery as any).group === 'function') {
+        const { data, error } = await (baseQuery as any).group('bucket').order('bucket', { ascending: true })
+        if (error) throw error
+        return (data || []).map((row: Record<string, unknown>) => ({ bucket: new Date((row as Record<string, unknown>).bucket as string).toISOString(), count: Number((row as Record<string, unknown>).count || 0) }))
+      }
     }
   } catch (err) {
     console.warn('requestSeries aggregation failed, using fallback', err)

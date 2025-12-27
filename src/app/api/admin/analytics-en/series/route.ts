@@ -28,33 +28,35 @@ export async function GET(req: NextRequest) {
 }
 
 async function loadAgg(client: any, table: string, from: string, to: string): Promise<BucketRow[]> {
-  try {
-    const { data, error } = await client
-      .from(table)
-      .select("bucket:date_trunc('day', created_at), count:count()")
-      .gte('created_at', from)
-      .lte('created_at', to)
-      .group('bucket')
-      .order('bucket', { ascending: true })
+  const baseQuery = client
+    .from(table)
+    .select("bucket:date_trunc('day', created_at), count:count()")
+    .gte('created_at', from)
+    .lte('created_at', to)
 
-    if (error) throw error
-    return (data || []).map((row: any) => ({ bucket: row.bucket, count: Number(row.count || 0) }))
-  } catch (err) {
-    console.warn(`${table} agg failed, fallback to client bucket`, err)
-    const { data, error } = await client
-      .from(table)
-      .select('created_at')
-      .gte('created_at', from)
-      .lte('created_at', to)
-      .limit(10000)
-    if (error) throw error
-    const map = new Map<string, number>()
-    for (const row of data || []) {
-      const bucket = normalizeDay(row.created_at)
-      map.set(bucket, (map.get(bucket) || 0) + 1)
+  if (typeof baseQuery.group === 'function') {
+    try {
+      const { data, error } = await baseQuery.group('bucket').order('bucket', { ascending: true })
+      if (error) throw error
+      return (data || []).map((row: any) => ({ bucket: row.bucket, count: Number(row.count || 0) }))
+    } catch (err) {
+      console.warn(`${table} agg failed, fallback to client bucket`, err)
     }
-    return Array.from(map.entries()).map(([bucket, count]) => ({ bucket, count }))
   }
+
+  const { data, error } = await client
+    .from(table)
+    .select('created_at')
+    .gte('created_at', from)
+    .lte('created_at', to)
+    .limit(10000)
+  if (error) throw error
+  const map = new Map<string, number>()
+  for (const row of data || []) {
+    const bucket = normalizeDay(row.created_at)
+    map.set(bucket, (map.get(bucket) || 0) + 1)
+  }
+  return Array.from(map.entries()).map(([bucket, count]) => ({ bucket, count }))
 }
 
 function mergeSeries(reqRows: BucketRow[], clickRows: BucketRow[], from: string, to: string): SeriesPoint[] {

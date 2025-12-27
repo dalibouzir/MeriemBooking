@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import ModalPortal from '@/components/ModalPortal'
 import AnalyticsEnClient from './analytics-en/AnalyticsEnClient'
@@ -246,176 +246,464 @@ function sanitizePhone(raw?: string | null): string | null {
   return value
 }
 
-function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
-  const [subject, setSubject] = useState('')
-  const [body, setBody] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string>('')
-  const [recipients, setRecipients] = useState<Recipient[]>([])
-  const [selected, setSelected] = useState<Record<string, boolean>>({})
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showSelectedOnly, setShowSelectedOnly] = useState(false)
+type BulkEmailTemplate = { id: string; name: string }
+type BulkEmailPreviewRow = {
+  id: string | null
+  email: string
+  first_name: string | null
+  last_name: string | null
+  created_at: string | null
+  status: string | null
+  tags: string[]
+  country: string | null
+  email_valid: boolean
+}
 
-  const loadRecipients = useCallback(async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const aggregated = await fetchRecipientAggregates()
-      setRecipients(aggregated)
-      setSelected((prev) => {
-        const next: Record<string, boolean> = {}
-        for (const item of aggregated) {
-          next[item.emailKey] = prev[item.emailKey] ?? true
-        }
-        return next
-      })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load data'
-      setError(message)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+type BulkEmailPreviewCounts = {
+  eligible: number
+  valid: number
+  invalid: number
+  limited: boolean
+}
+
+type BulkEmailPreviewResponse = {
+  rows: BulkEmailPreviewRow[]
+  total: number
+  page: number
+  pageSize: number
+  counts: BulkEmailPreviewCounts
+}
+
+type BulkEmailFiltersForm = {
+  status: string
+  tags: string
+  country: string
+  from: string
+  to: string
+  search: string
+}
+
+function BulkEmailTab({ adminEmail }: { adminEmail: string }) {
+  const [filters, setFilters] = useState<BulkEmailFiltersForm>({ status: '', tags: '', country: '', from: '', to: '', search: '' })
+  const [templates, setTemplates] = useState<BulkEmailTemplate[]>([])
+  const [templateId, setTemplateId] = useState('')
+  const [campaignName, setCampaignName] = useState('')
+  const [subject, setSubject] = useState('')
+  const [previewText, setPreviewText] = useState('')
+  const [sendOption, setSendOption] = useState<'now' | 'schedule'>('now')
+  const [scheduledAt, setScheduledAt] = useState('')
+  const [preview, setPreview] = useState<BulkEmailPreviewResponse | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewError, setPreviewError] = useState('')
+  const [campaignId, setCampaignId] = useState<string | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [sendError, setSendError] = useState('')
+  const [sendStatus, setSendStatus] = useState<string>('')
+  const [copying, setCopying] = useState(false)
+  const [copyStatus, setCopyStatus] = useState('')
+  const [copyError, setCopyError] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
 
   useEffect(() => {
-    loadRecipients()
-  }, [loadRecipients])
-
-  const deferredRecipients = useDeferredValue(recipients)
-  const selectedCount = useMemo(() => deferredRecipients.reduce((count, r) => count + (selected[r.emailKey] ? 1 : 0), 0), [selected, deferredRecipients])
-  const filteredRecipients = useMemo(() => {
-    let list = deferredRecipients
-    if (showSelectedOnly) list = list.filter((r) => selected[r.emailKey])
-    const q = searchTerm.trim().toLowerCase()
-    if (!q) return list
-    return list.filter((r) =>
-      r.email.toLowerCase().includes(q) ||
-      r.summary.toLowerCase().includes(q) ||
-      r.detailsText.toLowerCase().includes(q) ||
-      (r.names.length > 0 && r.names.some((name) => name.toLowerCase().includes(q))) ||
-      (r.phones.length > 0 && r.phones.some((phone) => phone.toLowerCase().includes(q)))
-    )
-  }, [deferredRecipients, searchTerm, selected, showSelectedOnly])
-
-  const totalLoaded = deferredRecipients.length
-  const filteredCount = filteredRecipients.length
-
-  const toggleRecipient = useCallback((emailKey: string) => {
-    setSelected((prev) => ({ ...prev, [emailKey]: !prev[emailKey] }))
+    let isMounted = true
+    fetch('/api/admin/bulk-email/templates')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return
+        const list = (data?.templates || []) as BulkEmailTemplate[]
+        setTemplates(list)
+        setTemplateId((prev) => prev || list[0]?.id || '')
+      })
+      .catch(() => {
+        if (!isMounted) return
+        setTemplates([])
+      })
+    return () => {
+      isMounted = false
+    }
   }, [])
 
-  function selectAll() {
-    setSelected((prev) => {
-      const next = { ...prev }
-      for (const item of filteredRecipients) next[item.emailKey] = true
-      return next
-    })
-  }
+  const totalPages = useMemo(() => {
+    if (!preview) return 1
+    return Math.max(1, Math.ceil(preview.total / preview.pageSize))
+  }, [preview])
 
-  function clearSelection() {
-    setSelected((prev) => {
-      const next = { ...prev }
-      for (const item of filteredRecipients) next[item.emailKey] = false
-      return next
-    })
-  }
+  const previewCounts = preview?.counts
 
-  function openGmail() {
-    const emails = deferredRecipients.filter((r) => selected[r.emailKey]).map((r) => r.email)
-    if (emails.length === 0) {
-      alert('Select at least one email')
-      return
+  const loadPreview = useCallback(async (nextPage?: number, nextPageSize?: number) => {
+    setPreviewLoading(true)
+    setPreviewError('')
+    const params = new URLSearchParams()
+    if (filters.status.trim()) params.set('status', filters.status)
+    if (filters.tags.trim()) params.set('tags', filters.tags)
+    if (filters.country.trim()) params.set('country', filters.country)
+    if (filters.from) params.set('from', filters.from)
+    if (filters.to) params.set('to', filters.to)
+    if (filters.search.trim()) params.set('search', filters.search.trim())
+    params.set('page', String(nextPage ?? page))
+    params.set('pageSize', String(nextPageSize ?? pageSize))
+
+    try {
+      const res = await fetch(`/api/admin/bulk-email/preview?${params.toString()}`)
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to load preview')
+      setPreview(json as BulkEmailPreviewResponse)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load preview'
+      setPreviewError(message)
+    } finally {
+      setPreviewLoading(false)
     }
-    const url = new URL('https://mail.google.com/mail/u/0/')
-    url.searchParams.set('view', 'cm')
-    url.searchParams.set('fs', '1')
-    url.searchParams.set('tf', '1')
-    if (adminEmail) url.searchParams.set('to', adminEmail)
-    url.searchParams.set('bcc', emails.join(','))
-    if (subject.trim()) url.searchParams.set('su', subject.trim())
-    if (body.trim()) url.searchParams.set('body', body)
-    window.open(url.toString(), '_blank', 'noopener')
-  }
+  }, [filters, page, pageSize])
+
+  const handlePreview = useCallback(async () => {
+    setPage(1)
+    await loadPreview(1, pageSize)
+  }, [loadPreview, pageSize])
+
+  const handleCopyEmails = useCallback(async () => {
+    setCopyError('')
+    setCopyStatus('')
+    setCopying(true)
+    try {
+      const params = buildFilterParams(filters)
+      const res = await fetch(`/api/admin/bulk-email/emails?${params.toString()}`)
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to load emails')
+      const emails = (json?.emails || []) as string[]
+      if (!emails.length) {
+        setCopyStatus('No emails to copy for these filters.')
+        return
+      }
+      await navigator.clipboard.writeText(emails.join('\n'))
+      setCopyStatus(`Copied ${emails.length} emails to clipboard.`)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to copy emails'
+      setCopyError(message)
+    } finally {
+      setCopying(false)
+    }
+  }, [filters])
+
+  const handleReview = useCallback(async () => {
+    setSendError('')
+    setSendStatus('')
+    if (!campaignName.trim()) return setSendError('Campaign name is required.')
+    if (!subject.trim()) return setSendError('Subject is required.')
+    if (!templateId) return setSendError('Select a template first.')
+    if (!preview || preview.counts.valid === 0) return setSendError('Preview recipients before sending.')
+    if (sendOption === 'schedule' && !scheduledAt) return setSendError('Pick a schedule date/time.')
+
+    const payload = {
+      campaignId,
+      name: campaignName.trim(),
+      templateId,
+      subject: subject.trim(),
+      previewText: previewText.trim(),
+      scheduledAt: sendOption === 'schedule' ? toIsoString(scheduledAt) : null,
+      filters: buildFiltersPayload(filters),
+    }
+
+    try {
+      const res = await fetch('/api/admin/bulk-email/create-campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to save campaign')
+      setCampaignId(json?.id || null)
+      setConfirmOpen(true)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save campaign'
+      setSendError(message)
+    }
+  }, [campaignId, campaignName, subject, templateId, previewText, filters, preview, sendOption, scheduledAt])
+
+  const handleSend = useCallback(async () => {
+    if (!campaignId) return setSendError('Campaign not saved yet.')
+    setSendError('')
+    setSendStatus('Sending...')
+
+    try {
+      const res = await fetch('/api/admin/bulk-email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaignId,
+          scheduledAt: sendOption === 'schedule' ? toIsoString(scheduledAt) : null,
+          sendNow: sendOption === 'now',
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error || 'Failed to send campaign')
+      setSendStatus(sendOption === 'schedule' ? 'Campaign scheduled successfully.' : 'Campaign sent successfully.')
+      setConfirmOpen(false)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to send campaign'
+      setSendError(message)
+      setSendStatus('')
+    }
+  }, [campaignId, scheduledAt, sendOption])
 
   return (
     <div>
-      <SectionHeader title="Bulk email"/>
+      <SectionHeader title="Bulk Email" />
       <div className="card p-4 space-y-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div className="text-sm text-gray-700">
-            <div>Loaded addresses: {totalLoaded}</div>
-            <div>Selected: {selectedCount}</div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button className="btn" onClick={loadRecipients} disabled={loading}>Refresh</button>
-            <button className="btn btn-outline" onClick={() => setPickerOpen(true)} disabled={totalLoaded === 0}>Choose emails</button>
-          </div>
+        <div className="admin-form-grid2">
+          <label className="admin-form-row">
+            <span className="admin-form-label">Campaign name</span>
+            <input className="input" value={campaignName} onChange={(e) => setCampaignName(e.target.value)} placeholder="e.g. Spring webinar" />
+          </label>
+          <label className="admin-form-row">
+            <span className="admin-form-label">Template</span>
+            <select className="input" value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
+              {templates.length === 0 ? (
+                <option value="">No templates configured</option>
+              ) : (
+                templates.map((template) => (
+                  <option key={template.id} value={template.id}>{template.name}</option>
+                ))
+              )}
+            </select>
+          </label>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2">
-          <input className="input" placeholder="Subject (optional)" value={subject} onChange={(e)=>setSubject(e.target.value)} />
-          <textarea className="input textarea md:col-span-2" rows={4} placeholder="Email body (optional)" value={body} onChange={(e)=>setBody(e.target.value)} />
+        <div className="admin-form-grid2">
+          <label className="admin-form-row">
+            <span className="admin-form-label">Subject</span>
+            <input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject line" />
+          </label>
+          <label className="admin-form-row">
+            <span className="admin-form-label">Preview text</span>
+            <input className="input" value={previewText} onChange={(e) => setPreviewText(e.target.value)} placeholder="Short preview text" />
+          </label>
         </div>
 
-        {error && <div className="text-sm text-red-600">{error}</div>}
-        {loading && <div className="text-sm text-gray-600">Loading…</div>}
+        <div className="admin-form-grid2">
+          <label className="admin-form-row">
+            <span className="admin-form-label">Status filter</span>
+            <input className="input" value={filters.status} onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))} placeholder="confirmed, active" />
+          </label>
+          <label className="admin-form-row">
+            <span className="admin-form-label">Tags filter</span>
+            <input className="input" value={filters.tags} onChange={(e) => setFilters((prev) => ({ ...prev, tags: e.target.value }))} placeholder="vip, newsletter" />
+          </label>
+          <label className="admin-form-row">
+            <span className="admin-form-label">Country filter</span>
+            <input className="input" value={filters.country} onChange={(e) => setFilters((prev) => ({ ...prev, country: e.target.value }))} placeholder="US, FR" />
+          </label>
+          <label className="admin-form-row">
+            <span className="admin-form-label">Created from</span>
+            <input className="input" type="date" value={filters.from} onChange={(e) => setFilters((prev) => ({ ...prev, from: e.target.value }))} />
+          </label>
+          <label className="admin-form-row">
+            <span className="admin-form-label">Created to</span>
+            <input className="input" type="date" value={filters.to} onChange={(e) => setFilters((prev) => ({ ...prev, to: e.target.value }))} />
+          </label>
+          <label className="admin-form-row">
+            <span className="admin-form-label">Search</span>
+            <input className="input" value={filters.search} onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))} placeholder="Email or name" />
+          </label>
+        </div>
 
-        {selectedCount > 0 ? (
+        <div className="section-toolbar" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="btn btn-primary" onClick={handlePreview} disabled={previewLoading}>Preview recipients</button>
+          <button className="btn btn-outline" onClick={() => loadPreview(page, pageSize)} disabled={!preview || previewLoading}>Refresh preview</button>
+          <button className="btn btn-outline" onClick={handleCopyEmails} disabled={copying}>Copy emails</button>
+        </div>
+
+        {previewError && <div className="text-sm text-red-600">{previewError}</div>}
+        {previewLoading && <div className="text-sm text-gray-600">Loading preview...</div>}
+        {copyError && <div className="text-sm text-red-600">{copyError}</div>}
+        {copyStatus && <div className="text-sm text-green-600">{copyStatus}</div>}
+
+        {previewCounts && (
           <div className="text-sm text-gray-700">
-            The email will be sent to {selectedCount} recipients via BCC in Gmail.
+            <div>Eligible: {previewCounts.eligible}</div>
+            <div>Valid emails: {previewCounts.valid}</div>
+            <div>Invalid emails skipped: {previewCounts.invalid}</div>
+            {previewCounts.limited && <div className="text-xs text-gray-500">Invalid count sampled from first 10,000 records.</div>}
           </div>
-        ) : (
-          <div className="text-sm text-gray-600">Select at least one address before sending.</div>
         )}
 
-        <button className="btn btn-primary" onClick={openGmail} disabled={selectedCount === 0}>Open Gmail</button>
+        <div className="admin-form-grid2">
+          <label className="admin-form-row">
+            <span className="admin-form-label">Send option</span>
+            <div className="flex flex-wrap gap-3 text-sm text-gray-700">
+              <label className="flex items-center gap-2">
+                <input type="radio" checked={sendOption === 'now'} onChange={() => setSendOption('now')} />
+                Send now
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="radio" checked={sendOption === 'schedule'} onChange={() => setSendOption('schedule')} />
+                Schedule
+              </label>
+            </div>
+          </label>
+          <label className="admin-form-row">
+            <span className="admin-form-label">Schedule date/time</span>
+            <input
+              className="input"
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              disabled={sendOption !== 'schedule'}
+            />
+          </label>
+        </div>
+
+        {sendError && <div className="text-sm text-red-600">{sendError}</div>}
+        {sendStatus && <div className="text-sm text-green-600">{sendStatus}</div>}
+
+        <div className="section-toolbar" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="btn btn-primary" onClick={handleReview} disabled={!preview || previewLoading}>Review & confirm</button>
+          <button className="btn btn-outline" onClick={() => setFilters({ status: '', tags: '', country: '', from: '', to: '', search: '' })}>Clear filters</button>
+          <button className="btn" onClick={() => { setPreview(null); setPage(1); setPageSize(25) }}>Clear preview</button>
+        </div>
+      </div>
+
+      <div className="card p-4 space-y-3" style={{ marginTop: 16 }}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-sm text-gray-600">Recipient preview</div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <label className="flex items-center gap-2">
+              Page size
+              <select className="input" value={pageSize} onChange={(e) => {
+                const next = Number(e.target.value)
+                setPageSize(next)
+                setPage(1)
+                loadPreview(1, next)
+              }}>
+                {[25, 50, 100].map((size) => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
+              </select>
+            </label>
+            <button className="btn" disabled={!preview || page <= 1} onClick={() => {
+              const next = Math.max(1, page - 1)
+              setPage(next)
+              loadPreview(next, pageSize)
+            }}>Prev</button>
+            <span>Page {preview ? preview.page : page} / {totalPages}</span>
+            <button className="btn" disabled={!preview || page >= totalPages} onClick={() => {
+              const next = Math.min(totalPages, page + 1)
+              setPage(next)
+              loadPreview(next, pageSize)
+            }}>Next</button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="table responsive text-sm">
+            <thead>
+              <tr className="bg-purple-100 text-purple-800">
+                <th className="p-2 text-left">Email</th>
+                <th className="p-2 text-left">Name</th>
+                <th className="p-2 text-left">Status</th>
+                <th className="p-2 text-left">Tags</th>
+                <th className="p-2 text-left">Country</th>
+                <th className="p-2 text-left">Created</th>
+                <th className="p-2 text-left">Valid</th>
+              </tr>
+            </thead>
+            <tbody>
+              {!preview ? (
+                <tr><td className="p-2" colSpan={7}>Run a preview to load recipients.</td></tr>
+              ) : preview.rows.length === 0 ? (
+                <tr><td className="p-2" colSpan={7}>No recipients match the filters.</td></tr>
+              ) : (
+                preview.rows.map((row, idx) => (
+                  <tr key={`${row.id ?? row.email}-${idx}`} className="odd:bg-gray-50">
+                    <td className="p-2" data-th="Email">{row.email}</td>
+                    <td className="p-2" data-th="Name">{[row.first_name, row.last_name].filter(Boolean).join(' ') || '-'}</td>
+                    <td className="p-2" data-th="Status">{row.status || '-'}</td>
+                    <td className="p-2" data-th="Tags">{row.tags.length ? row.tags.join(', ') : '-'}</td>
+                    <td className="p-2" data-th="Country">{row.country || '-'}</td>
+                    <td className="p-2" data-th="Created">{row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB') : '-'}</td>
+                    <td className="p-2" data-th="Valid">{row.email_valid ? 'Yes' : 'Invalid'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Modal
-        open={pickerOpen}
-        onClose={() => setPickerOpen(false)}
-        title="Choose addresses"
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Confirm bulk email"
         centered
         footer={
           <div className="flex flex-wrap gap-2">
-            <button className="btn btn-primary" onClick={() => { selectAll(); }}>Select all</button>
-            <button className="btn btn-outline" onClick={() => { clearSelection(); }}>Clear all</button>
-            <button className="btn" onClick={() => setPickerOpen(false)}>Done</button>
+            <button className="btn btn-primary" onClick={handleSend}>Confirm & send</button>
+            <button className="btn" onClick={() => setConfirmOpen(false)}>Cancel</button>
           </div>
         }
       >
-        {totalLoaded === 0 ? (
-          <div className="text-sm text-gray-600">No addresses to display.</div>
-        ) : (
-          <div style={{ display: 'grid', gap: 12 }}>
-            <div className="grid" style={{ gap: 12 }}>
-              <input
-                className="input"
-                placeholder="Search by email or name"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <label className="flex items-center gap-2 text-sm" style={{ color: '#4b5563' }}>
-                <input type="checkbox" checked={showSelectedOnly} onChange={(e) => setShowSelectedOnly(e.target.checked)} />
-                Show selected only
-              </label>
-              <div className="text-xs text-gray-500">Showing: {filteredCount} / {totalLoaded}</div>
-            </div>
-            <div style={{ maxHeight: '55vh', overflowY: 'auto', display: 'grid', gap: 12 }}>
-              {filteredCount === 0 ? (
-                <div className="text-sm text-gray-500">No matching results.</div>
-              ) : (
-                filteredRecipients.map((item) => (
-                  <RecipientListItem key={item.emailKey} item={item} isSelected={!!selected[item.emailKey]} onToggle={toggleRecipient} />
-                ))
-              )}
-            </div>
-          </div>
-        )}
+        <div className="grid gap-3 text-sm text-gray-700">
+          <div><strong>Campaign:</strong> {campaignName || '-'}</div>
+          <div><strong>Subject:</strong> {subject || '-'}</div>
+          <div><strong>Template:</strong> {templates.find((t) => t.id === templateId)?.name || templateId || '-'}</div>
+          <div><strong>Preview text:</strong> {previewText || '-'}</div>
+          <div><strong>Recipients:</strong> {previewCounts?.valid || 0} valid, {previewCounts?.invalid || 0} invalid skipped</div>
+          <div><strong>Send time:</strong> {sendOption === 'schedule' && scheduledAt ? new Date(scheduledAt).toLocaleString('en-GB') : 'Send now'}</div>
+          <div><strong>Filters:</strong> {formatFiltersSummary(filters)}</div>
+          {adminEmail && <div><strong>Sender:</strong> {adminEmail}</div>}
+          <div className="text-xs text-gray-500">We will sync contacts, create a segment, and send via Resend.</div>
+        </div>
       </Modal>
     </div>
   )
+}
+
+function buildFiltersPayload(filters: BulkEmailFiltersForm) {
+  return {
+    status: parseList(filters.status),
+    tags: parseList(filters.tags),
+    countries: parseList(filters.country),
+    from: filters.from ? toIsoString(filters.from) : null,
+    to: filters.to ? toIsoString(filters.to) : null,
+    search: filters.search.trim() || null,
+  }
+}
+
+function parseList(value: string) {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function toIsoString(value: string) {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toISOString()
+}
+
+function formatFiltersSummary(filters: BulkEmailFiltersForm) {
+  const parts = []
+  if (filters.status.trim()) parts.push(`Status: ${filters.status}`)
+  if (filters.tags.trim()) parts.push(`Tags: ${filters.tags}`)
+  if (filters.country.trim()) parts.push(`Country: ${filters.country}`)
+  if (filters.from) parts.push(`From: ${filters.from}`)
+  if (filters.to) parts.push(`To: ${filters.to}`)
+  if (filters.search.trim()) parts.push(`Search: ${filters.search.trim()}`)
+  return parts.length ? parts.join(' | ') : 'No filters'
+}
+
+function buildFilterParams(filters: BulkEmailFiltersForm) {
+  const params = new URLSearchParams()
+  if (filters.status.trim()) params.set('status', filters.status)
+  if (filters.tags.trim()) params.set('tags', filters.tags)
+  if (filters.country.trim()) params.set('country', filters.country)
+  if (filters.from) params.set('from', filters.from)
+  if (filters.to) params.set('to', filters.to)
+  if (filters.search.trim()) params.set('search', filters.search.trim())
+  return params
 }
 
 function BulkWhatsappTab() {
@@ -759,40 +1047,6 @@ const WhatsappRecipientItem = React.memo(({ item, isSelected, onToggle }: Whatsa
   )
 })
 WhatsappRecipientItem.displayName = 'WhatsappRecipientItem'
-
-type RecipientListItemProps = {
-  item: Recipient
-  isSelected: boolean
-  onToggle: (emailKey: string) => void
-}
-
-const RecipientListItem = React.memo(({ item, isSelected, onToggle }: RecipientListItemProps) => {
-  return (
-    <label
-      className="glass-water"
-      style={{
-        borderRadius: 12,
-        padding: '12px 16px',
-        display: 'grid',
-        gap: 8,
-        background: 'var(--card-bg, rgba(255,255,255,0.85))',
-        boxShadow: '0 1px 3px rgba(15, 23, 42, 0.08)',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>{item.email}</span>
-        <input type="checkbox" checked={isSelected} onChange={() => onToggle(item.emailKey)} />
-      </div>
-      {item.names.length > 0 && <div className="text-xs text-gray-600">{item.names.join(' / ')}</div>}
-      <div className="text-xs" style={{ color: '#4b5563' }}>{item.summary}</div>
-      {item.detailsText && <div className="text-xs" style={{ color: '#6b7280', lineHeight: 1.5 }}>{item.detailsText}</div>}
-      <div className="text-xs text-gray-500">Last activity: {item.lastActivityLabel}</div>
-    </label>
-  )
-})
-RecipientListItem.displayName = 'RecipientListItem'
-
-RecipientListItem.displayName = 'RecipientListItem'
 
 // Tokens tab removed per request; token summary appears in Stats
 
