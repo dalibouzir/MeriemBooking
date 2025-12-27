@@ -50,8 +50,9 @@ async function collectEmails(supabase: ReturnType<typeof getSupabaseAdmin>, filt
     const { data, error } = await query.range(offset, offset + RECIPIENT_PAGE_SIZE - 1)
     if (error) throw error
 
-    const batch = data || []
-    for (const row of batch as Record<string, unknown>[]) {
+    const batch = (data ?? []) as unknown[]
+    for (const entry of batch) {
+      const row = (entry || {}) as Record<string, unknown>
       const email = cols.email ? String(row[cols.email] || '') : ''
       if (!email) continue
       const normalized = email.trim().toLowerCase()
