@@ -1,4 +1,4 @@
-import type { PostgrestFilterBuilder } from '@supabase/postgrest-js'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { bulkEmailConfig, type BulkEmailConfig } from '@/lib/bulkEmailConfig'
 
 export type BulkEmailFilters = {
@@ -13,7 +13,9 @@ export type BulkEmailFilters = {
 export type Pagination = { page: number; pageSize: number }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Query = PostgrestFilterBuilder<any, any, any>
+// Use a permissive any type for Supabase query builder to avoid Postgrest type parameter changes
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Query = any
 
 export function parseList(value: string | null): string[] {
   return (value || '')

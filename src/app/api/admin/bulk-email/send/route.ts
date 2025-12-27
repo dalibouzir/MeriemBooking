@@ -37,6 +37,8 @@ export async function POST(req: NextRequest) {
   const campaignId = typeof body.campaignId === 'string' ? body.campaignId : null
   if (!campaignId) return NextResponse.json({ error: 'Missing campaignId' }, { status: 400 })
 
+  const campaignIdStr = campaignId as string
+
   const supabase = getSupabaseAdmin()
 
   const { data: campaign, error: campaignError } = await supabase
@@ -63,6 +65,8 @@ export async function POST(req: NextRequest) {
   const scheduledAt = resolveScheduleTime(body.scheduledAt, campaign.scheduled_at)
   const shouldSchedule = Boolean(scheduledAt)
 
+  const scheduledAtStr = scheduledAt as string
+
   const counts: Record<string, unknown> = {}
 
   try {
@@ -87,14 +91,14 @@ export async function POST(req: NextRequest) {
       await supabase.from('bulk_email_campaigns').update({ segment_id: segmentId }).eq('id', campaignId)
     }
 
-    const upserted = await upsertContactsInBatches(campaignId, recipients.valid)
+    const upserted = await upsertContactsInBatches(campaignIdStr, recipients.valid)
     counts.synced = upserted.results.length
     counts.sync_failed = upserted.failures.length
 
-    await attachContactsToSegment(segmentId, upserted.results, campaignId)
+    await attachContactsToSegment(segmentId, upserted.results, campaignIdStr)
 
     const broadcastId = campaign.broadcast_id || await ensureBroadcast({
-      campaignId,
+      campaignId: campaignIdStr,
       segmentId,
       subject: campaign.subject,
       previewText: campaign.preview_text || undefined,
@@ -104,13 +108,13 @@ export async function POST(req: NextRequest) {
     })
 
     if (!campaign.broadcast_id) {
-      await supabase.from('bulk_email_campaigns').update({ broadcast_id: broadcastId }).eq('id', campaignId)
+      await supabase.from('bulk_email_campaigns').update({ broadcast_id: broadcastId }).eq('id', campaignIdStr)
     }
 
     if (shouldSchedule) {
-      await scheduleBroadcast(broadcastId, scheduledAt, `${campaignId}-schedule`)
+      await scheduleBroadcast(broadcastId, scheduledAtStr, `${campaignIdStr}-schedule`)
     } else {
-      await sendBroadcast(broadcastId, `${campaignId}-send`)
+      await sendBroadcast(broadcastId, `${campaignIdStr}-send`)
     }
 
     await writeRecipientAudit(supabase, campaignId, recipients, upserted.results, upserted.failures)
@@ -180,7 +184,7 @@ async function fetchEligibleRecipients(supabase: ReturnType<typeof getSupabaseAd
     if (error) throw error
 
     const batch = data || []
-    for (const row of batch as Record<string, unknown>[]) {
+    for (const row of (batch as unknown as Record<string, unknown>[])) {
       const email = cols.email ? String(row[cols.email] || '') : ''
       if (!email) continue
       const key = email.trim().toLowerCase()

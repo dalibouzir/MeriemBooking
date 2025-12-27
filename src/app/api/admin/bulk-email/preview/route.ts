@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     const { data, error, count } = await query
     if (error) throw error
 
-    const rows = (data || []).map((row: Record<string, unknown>) => {
+    const rows = ((data || []) as unknown as Record<string, unknown>[]).map((row) => {
       const email = cols.email ? String(row[cols.email] || '') : ''
       return {
         id: cols.id ? row[cols.id] : null,
@@ -85,6 +85,8 @@ async function getEmailValidityCounts(total: number, supabase: ReturnType<typeof
   const cols = bulkEmailConfig.columns
   if (!cols.email) return { invalid: 0, limited: false }
 
+  const emailCol = cols.email as string
+
   let query = supabase
     .from(bulkEmailConfig.userTable)
     .select(cols.email)
@@ -96,8 +98,8 @@ async function getEmailValidityCounts(total: number, supabase: ReturnType<typeof
   const { data, error } = await query
   if (error) return { invalid: 0, limited: true }
 
-  const invalid = (data || []).reduce((count, row: Record<string, unknown>) => {
-    const email = String(row[cols.email] || '')
+  const invalid = ((data || []) as unknown as Record<string, unknown>[]).reduce((count, row) => {
+    const email = String(row[emailCol] || '')
     return count + (isValidEmail(email) ? 0 : 1)
   }, 0)
 
