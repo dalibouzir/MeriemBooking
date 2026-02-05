@@ -1092,6 +1092,26 @@ body.assistant-view .chatbot-widget{
   justify-content:center;
   gap:8px;
 }
+.mobile-menu-btn-booking{
+  position:relative;
+  min-height:54px;
+  border-radius:16px;
+  background:linear-gradient(130deg, hsl(var(--secondary)), hsl(var(--primary-700)));
+  color:#fff;
+  font-weight:900;
+  border:1px solid hsla(var(--surface) / 0.5);
+  box-shadow:0 16px 34px hsla(var(--primary) / 0.36);
+  transition:transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+.mobile-menu-btn-booking:hover{
+  transform:translateY(-1px) scale(1.01);
+  box-shadow:0 20px 42px hsla(var(--primary) / 0.42);
+  filter:saturate(1.08);
+}
+.mobile-menu-btn-booking .mobile-menu-btn-icon{
+  width:19px;
+  height:19px;
+}
 .mobile-menu-btn.secondary{
   border:1px solid var(--surface-border);
   background: hsla(var(--glass));
@@ -2974,6 +2994,54 @@ body.assistant-view .chatbot-widget{
   flex-wrap:wrap;
   align-items:center;
 }
+.session-offer-card{
+  width:min(460px, 100%);
+  padding:14px 16px;
+  border-radius:18px;
+  background:linear-gradient(145deg, hsla(var(--surface) / 0.96), hsla(var(--surface-strong) / 0.88));
+  border:1px solid hsla(var(--surface-border));
+  box-shadow:0 12px 28px hsla(var(--primary) / 0.12);
+}
+.session-offer-card ul{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.session-offer-card li{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  color:hsl(var(--text));
+  font-weight:600;
+  line-height:1.5;
+  font-size:0.95rem;
+}
+.session-offer-icon{
+  width:16px;
+  height:16px;
+  flex-shrink:0;
+  margin-top:3px;
+  color:hsl(var(--primary-700));
+}
+.session-offer-price div{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.session-offer-note{
+  margin:0;
+  font-size:0.8rem;
+  font-weight:500;
+  color:hsl(var(--text-dim));
+  line-height:1.5;
+}
+.session-tail{
+  display:flex;
+  justify-content:center;
+}
 .session-hero-btn{
   display:inline-flex;
   align-items:center;
@@ -3060,6 +3128,59 @@ body.assistant-view .chatbot-widget{
   justify-content:center;
   gap:12px;
   flex-wrap:wrap;
+}
+.session-mobile-sticky{
+  display:none;
+}
+@media (max-width: 768px){
+  .session-page{
+    padding-bottom:calc(120px + env(safe-area-inset-bottom));
+  }
+  .session-mobile-sticky{
+    position:fixed;
+    inset-inline:12px;
+    bottom:calc(10px + env(safe-area-inset-bottom));
+    z-index:80;
+    display:flex;
+    justify-content:center;
+    pointer-events:none;
+  }
+  .session-mobile-sticky-shell{
+    width:min(420px, 100%);
+    padding:8px;
+    border-radius:999px;
+    background:
+      linear-gradient(145deg, hsla(var(--surface) / 0.46), hsla(var(--surface-muted) / 0.26)),
+      radial-gradient(circle at 20% 20%, hsla(var(--surface) / 0.22), transparent 65%);
+    backdrop-filter:blur(18px) saturate(1.2);
+    border:1px solid hsla(var(--surface-border) / 0.72);
+    box-shadow:0 10px 28px hsla(var(--primary) / 0.2);
+    pointer-events:auto;
+  }
+  .session-mobile-sticky-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:44px;
+    width:100%;
+    border-radius:999px;
+    background:linear-gradient(120deg, hsl(var(--primary-700)), hsl(var(--secondary)));
+    color:#fff;
+    font-weight:900;
+    font-size:0.95rem;
+    text-decoration:none;
+    box-shadow:0 10px 24px hsla(var(--primary) / 0.28);
+  }
+  .session-cta{
+    display:none;
+  }
+}
+@media (max-width: 640px){
+  .session-offer-card{
+    width:100%;
+    padding:13px 14px;
+    border-radius:16px;
+  }
 }
 
 .train-program{

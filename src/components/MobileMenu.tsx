@@ -87,19 +87,19 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl,
 
         <div className="mobile-menu-cta">
           <Link
+            href={bookingUrl}
+            className="btn mobile-menu-btn mobile-menu-btn-booking"
+            onClick={onClose}
+          >
+            <CalendarDaysIcon className="mobile-menu-btn-icon" aria-hidden />
+            <span>حجز الجلسة الآن</span>
+          </Link>
+          <Link
             href={assistantUrl}
             className="btn btn-primary mobile-menu-btn"
             onClick={onClose}
           >
             <span>مساعد الذكاء الاصطناعي</span>
-          </Link>
-          <Link
-            href={bookingUrl}
-            className="btn btn-primary mobile-menu-btn"
-            onClick={onClose}
-          >
-            <CalendarDaysIcon className="mobile-menu-btn-icon" aria-hidden />
-            <span>حجز الجلسة</span>
           </Link>
           <Link href="/products" className="btn mobile-menu-btn secondary" onClick={onClose}>
             المكتبة الرقمية
