@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'المكتبة | ملفات ومواد تعليمية مجانية',
-  description: 'استكشفي مكتبة فطرة النساء — ملفات ومواد تعليمية مجانية للنساء حول الاتزان العاطفي، العلاقات الأسرية، والأنوثة.',,
+  description: 'استكشفي مكتبة فطرة النساء — ملفات ومواد تعليمية مجانية للنساء حول الاتزان العاطفي، العلاقات الأسرية، والأنوثة.',
   alternates: {
     canonical: 'https://www.fittrahmoms.com/products',
   },
