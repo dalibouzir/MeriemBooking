@@ -610,10 +610,10 @@ export default function HomePage() {
               <div className="flex-1 text-center lg:text-right max-w-2xl order-2 lg:order-1">
                 <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
                   <div className="flex flex-col items-center lg:items-end gap-2" dir="ltr" style={{ textAlign: 'left' }}>
-                    <h1 id="landing-hero-title" className="button hero-title-button" data-text="Fittrah Moms">
-                      <span className="actual-text">&nbsp;Fittrah Moms&nbsp;</span>
+                    <h1 id="landing-hero-title" className="button hero-title-button" data-text="Fittrah Women">
+                      <span className="actual-text">&nbsp;Fittrah Women&nbsp;</span>
                       <span aria-hidden="true" className="hover-text">
-                        &nbsp;Fittrah Moms&nbsp;
+                        &nbsp;Fittrah Women&nbsp;
                       </span>
                     </h1>
                     <span className="hero-scratch" aria-hidden="true" />
@@ -909,7 +909,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="landing-footer-bottom">
-            <span>© {currentYear} Fittrah Moms</span>
+            <span>© {currentYear} Fittrah Women</span>
             <span>كل الحقوق محفوظة لمريم بوزير</span>
           </div>
         </footer>

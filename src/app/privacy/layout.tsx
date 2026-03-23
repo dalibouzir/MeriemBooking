@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'سياسة الخصوصية',
-  description: 'سياسة الخصوصية لموقع فطرة الأمهات — كيف نجمع ونستخدم ونحمي بياناتك الشخصية.',
+  description: 'سياسة الخصوصية لموقع فطرة النساء — كيف نجمع ونستخدم ونحمي بياناتك الشخصية.',
   alternates: {
     canonical: 'https://www.fittrahmoms.com/privacy',
   },

@@ -12,7 +12,7 @@ const getEnv = (k: string): string | undefined => DENO.env?.get?.(k)
 
 const RESEND_API_KEY = getEnv('RESEND_API_KEY')?.trim()
 const ENV_FROM = getEnv('EMAIL_FROM')?.trim()
-const FROM = ENV_FROM && ENV_FROM.length > 0 ? ENV_FROM : 'Meriem <noreply@fittrahmoms.com>'
+const FROM = ENV_FROM && ENV_FROM.length > 0 ? ENV_FROM : 'Fittrah Women <noreply@fittrahmoms.com>'
 const RESEND_ENDPOINT = 'https://api.resend.com/emails'
 
 const json = (data: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>

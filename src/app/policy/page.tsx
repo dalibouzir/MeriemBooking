@@ -16,7 +16,7 @@ export default function PolicyPage() {
             ١. نطاق الخدمات
           </h2>
           <p style={{ lineHeight: 1.8, marginBottom: '1rem' }}>
-            يقدِّم موقع <strong>فطرة الأمهات (Fittrah Moms)</strong> خدمات إرشادية وتعليمية تشمل:
+            يقدِم موقع <strong>فطرة النساء (Fittrah Women)</strong> خدمات إرشادية وتعليمية تشمل:
           </p>
           <ul style={{ paddingRight: '1.5rem', lineHeight: 2 }}>
             <li>جلسات إرشاد فردية عبر مكالمات الفيديو</li>
@@ -50,7 +50,7 @@ export default function PolicyPage() {
           </h2>
           <p style={{ lineHeight: 1.8, marginBottom: '1rem' }}>
             جميع المحتويات على هذا الموقع — بما في ذلك النصوص والصور والملفات والتصاميم والشعارات — 
-            هي ملك لـ <strong>فطرة الأمهات / مريم بوزير</strong> أو مرخَّصة لها.
+            هي ملك لَـ <strong>فطرة النساء / مريم بوزير</strong> أو مرخَـصة لها.
           </p>
           <p style={{ lineHeight: 1.8 }}>
             <strong>يُمنع منعًا باتًا:</strong>

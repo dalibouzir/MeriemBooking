@@ -10,7 +10,7 @@ const getEnv = (k: string): string | undefined => DENO.env?.get?.(k)
 const RESEND_API_KEY = getEnv("RESEND_API_KEY")?.trim()
 const ENV_FROM = getEnv("EMAIL_FROM")?.trim()
 // Fallback is your verified domain
-const FROM = ENV_FROM && ENV_FROM.length > 0 ? ENV_FROM : "Fittrah Moms <noreply@fittrahmoms.com>"
+const FROM = ENV_FROM && ENV_FROM.length > 0 ? ENV_FROM : "Fittrah Women <noreply@fittrahmoms.com>"
 const RESEND_ENDPOINT = "https://api.resend.com/emails"
 const CALENDLY_BOOKING_URL = "https://calendly.com/meriembouzir/30min?month=2025-12"
 
@@ -109,7 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
       {
         error: "Invalid FROM domain",
         details:
-          "EMAIL_FROM must use your verified domain (e.g., Fittrah Moms <noreply@fittrahmoms.com>). Update EMAIL_FROM secret.",
+          "EMAIL_FROM must use your verified domain (e.g., Fittrah Women <noreply@fittrahmoms.com>). Update EMAIL_FROM secret.",
       },
       500,
     )
@@ -236,7 +236,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
 
       <div style="padding:16px 24px;background:linear-gradient(135deg,#ede9fe,#f7f5ff);border-top:1px solid #e6defd;text-align:center;color:#4c1d95;font-size:12px;font-weight:600">
-        فطرة الأمهات · Fittrah Moms
+        فطرة النساء · Fittrah Women
       </div>
     </div>
   </div>

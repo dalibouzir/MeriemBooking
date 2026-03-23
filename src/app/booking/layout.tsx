@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     canonical: 'https://www.fittrahmoms.com/booking',
   },
   openGraph: {
-    title: 'احجزي جلستك | Fittrah Moms',
+    title: 'احجزي جلستك | Fittrah Women',
     description: 'جلسة إرشاد فردية نحو الاتزان العاطفي — مساحة آمنة لفهم مشاعرك واستعادة توازنك.',
     url: 'https://www.fittrahmoms.com/booking',
     type: 'website',

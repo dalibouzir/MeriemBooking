@@ -20,20 +20,20 @@ const tajawal = Tajawal({
 })
 
 const siteUrl = 'https://www.fittrahmoms.com'
-const siteName = 'Fittrah Moms | فطرة الأمهات'
-const siteDescription = 'منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقاتٍ صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا. إرشاد عاطفي وجلسات دعم للأمهات.'
+const siteName = 'Fittrah Women | فطرة النساء'
+const siteDescription = 'منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقاتٍ صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا. إرشاد عاطفي وجلسات دعم للنساء.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: siteName,
-    template: '%s | Fittrah Moms',
+    template: '%s | Fittrah Women',
   },
   description: siteDescription,
-  keywords: ['فطرة الأمهات', 'إرشاد عاطفي', 'دعم الأمهات', 'جلسات إرشادية', 'مريم بوزير', 'الاتزان العاطفي', 'العلاقات الأسرية'],
+  keywords: ['فطرة النساء', 'إرشاد عاطفي', 'دعم النساء', 'جلسات إرشادية', 'مريم بوزير', 'الاتزان العاطفي', 'العلاقات الأسرية'],
   authors: [{ name: 'مريم بوزير', url: siteUrl }],
   creator: 'مريم بوزير',
-  publisher: 'Fittrah Moms',
+  publisher: 'Fittrah Women',
   robots: {
     index: true,
     follow: true,
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
         url: `${siteUrl}/logo/logo.png`,
         width: 800,
         height: 600,
-        alt: 'Fittrah Moms - فطرة الأمهات',
+        alt: 'Fittrah Women - فطرة النساء',
       },
     ],
   },
@@ -97,8 +97,8 @@ const jsonLd = {
     {
       '@type': 'Organization',
       '@id': `${siteUrl}/#organization`,
-      name: 'Fittrah Moms',
-      alternateName: 'فطرة الأمهات',
+      name: 'Fittrah Women',
+      alternateName: 'فطرة النساء',
       url: siteUrl,
       logo: {
         '@type': 'ImageObject',

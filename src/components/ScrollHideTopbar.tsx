@@ -123,10 +123,10 @@ export default function ScrollHideTopbar() {
     <header className={`topbar${hidden ? ' is-hidden' : ''}`}>
       <div className="container topbar-row">
         <div className="brand-col">
-          <Link href="/" className="brand" aria-label="الرجوع للصفحة الرئيسية — فطرة الأمهات">
-            <Image src={TOPBAR_LOGO_SRC} alt="فطرة الأمهات" className="brand-logo" width={48} height={48} priority />
+          <Link href="/" className="brand" aria-label="الرجوع للصفحة الرئيسية — فطرة النساء">
+            <Image src={TOPBAR_LOGO_SRC} alt="فطرة النساء" className="brand-logo" width={48} height={48} priority />
             <span className="brand-copy">
-              <span className="brand-mark">Fittrah Moms</span>
+              <span className="brand-mark">Fittrah Women</span>
             </span>
           </Link>
         </div>

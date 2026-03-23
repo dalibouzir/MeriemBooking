@@ -69,14 +69,14 @@ const FAQ_GROUPS = [
 ]
 
 export const metadata: Metadata = {
-  title: 'الأسئلة الشائعة | Fittrah Moms',
-  description: 'إجابات على الأسئلة الشائعة حول الحجز والجلسات والدورات والموارد في فطرة الأمهات.',
+  title: 'الأسئلة الشائعة | Fittrah Women',
+  description: 'إجابات على الأسئلة الشائعة حول الحجز والجلسات والدورات والموارد في فطرة النساء.',
   alternates: {
     canonical: 'https://www.fittrahmoms.com/faq',
   },
   openGraph: {
-    title: 'الأسئلة الشائعة | Fittrah Moms',
-    description: 'إجابات على الأسئلة الشائعة حول الحجز والجلسات والدورات والموارد في فطرة الأمهات.',
+    title: 'الأسئلة الشائعة | Fittrah Women',
+    description: 'إجابات على الأسئلة الشائعة حول الحجز والجلسات والدورات والموارد في فطرة النساء.',
     url: 'https://www.fittrahmoms.com/faq',
   },
 }

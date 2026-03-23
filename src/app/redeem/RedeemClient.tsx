@@ -147,7 +147,7 @@ export default function RedeemClient() {
       <div className="rd-hero">
         <div className="rd-hero-panel">
           <div className="rd-hero-chip">
-            <span>Fittrah Moms</span>
+            <span>Fittrah Women</span>
             <small>مساحتك للسكينة والأنوثة والاتزان العاطفي</small>
           </div>
           <div className="rd-hero-text">

@@ -181,7 +181,7 @@ export default function ChatbotWidget() {
             key="chatbot-panel"
             className="chatbot-panel"
             role="dialog"
-            aria-label="مساعد فطرة الأمهات"
+            aria-label="مساعد فطرة النساء"
             initial={{ opacity: 0, scale: 0.92, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
@@ -189,7 +189,7 @@ export default function ChatbotWidget() {
           >
             <header className="chatbot-header">
               <div>
-                <p className="chatbot-title">مساعد فطرة الأمهات</p>
+                <p className="chatbot-title">مساعد فطرة النساء</p>
                 <p className="chatbot-sub">أرسلي سؤالك وسنرد خلال دقائق قليلة.</p>
               </div>
               <button

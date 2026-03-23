@@ -18,7 +18,7 @@ export default function PrivacyPage() {
             ١. من نحن
           </h2>
           <p style={{ lineHeight: 1.8, marginBottom: '1rem' }}>
-            موقع <strong>فطرة الأمهات (Fittrah Moms)</strong> هو منصّة إلكترونية تُقدِّم خدمات الإرشاد العاطفي والدعم النفسي للنساء والأمهات. 
+            موقع <strong>فطرة النساء (Fittrah Women)</strong> هو منصَ0627 إلكترونية تُقدِم خدمات الإرشاد العاطفي والدعم النفسي للنساء والأمهات.
             المسؤولة عن الموقع هي <strong>مريم بوزير</strong>.
           </p>
           <p style={{ lineHeight: 1.8 }}>

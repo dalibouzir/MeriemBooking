@@ -9,7 +9,7 @@ const getEnv = (k: string): string | undefined => DENO.env?.get?.(k)
 
 const RESEND_API_KEY = getEnv("RESEND_API_KEY")?.trim()
 const ENV_FROM = getEnv("EMAIL_FROM")?.trim()
-const FROM = ENV_FROM && ENV_FROM.length > 0 ? ENV_FROM : "Fittrah Moms <noreply@fittrahmoms.com>"
+const FROM = ENV_FROM && ENV_FROM.length > 0 ? ENV_FROM : "Fittrah Women <noreply@fittrahmoms.com>"
 const RESEND_ENDPOINT = "https://api.resend.com/emails"
 
 // ------------ utils ------------
@@ -110,7 +110,7 @@ const arabicPlainText = ({
     "مريم بوزير",
     "",
     "— — —",
-    "فطرة الأمهات · Fittrah Moms",
+    "فطرة النساء · Fittrah Women",
   ].join("\n")
 }
 
@@ -148,7 +148,7 @@ const handler = async (req: Request): Promise<Response> => {
     return json(
       {
         error: "Invalid FROM domain",
-        details: "EMAIL_FROM must use your verified domain (e.g., Fittrah Moms <noreply@fittrahmoms.com>).",
+        details: "EMAIL_FROM must use your verified domain (e.g., Fittrah Women <noreply@fittrahmoms.com>).",
       },
       500,
     )
@@ -322,7 +322,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       <!-- Footer -->
       <div style="padding:18px 24px;background:linear-gradient(135deg,#ede9fe,#f7f5ff);border-top:1px solid #e6defd;text-align:center;color:#4c1d95;font-size:13px;font-weight:600">
-        فطرة الأمهات · Fittrah Moms
+        فطرة النساء · Fittrah Women
       </div>
     </div>
   </div>

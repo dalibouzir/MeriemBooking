@@ -1,29 +1,20 @@
-'use client'
+
+"use client"
+import React, { useState } from 'react';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
+
 interface FAQSectionNewProps {
   faqs: { question: string; answer: string }[]
 }
 
-const defaultFaqs = [
-  {
-    question: 'هل التحدّي مجاني بالكامل؟',
-    answer: 'نعم، التحدّي مجاني بالكامل.',
-  },
-  {
-    question: 'هل الجلسة مباشرة أم مسجّلة؟',
-    answer: 'الجلسة مباشرة عبر الإنترنت في الوقت المحدد.',
-  },
-  {
-    question: 'هل يناسب الأمهات المشغولات؟',
-    answer: 'نعم، لأنه مصمم بخطوات قصيرة ومرنة تناسب وقتك.',
-  },
-  {
-    question: 'ماذا لو لم أستطع الحضور؟',
-    answer: 'يمكنك متابعة الخطوات في الوقت المناسب لك.',
-  },
-]
-
 export default function FAQSectionNew({ faqs }: FAQSectionNewProps) {
-  const displayFaqs = faqs.length > 0 ? faqs : defaultFaqs
+  if (faqs.length === 0) return null;
+
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const handleToggle = (idx: number) => {
+    setOpenIndex(openIndex === idx ? null : idx);
+  };
 
   return (
     <section className="ch-faq-section" aria-labelledby="faq-title">
@@ -37,19 +28,35 @@ export default function FAQSectionNew({ faqs }: FAQSectionNewProps) {
           </p>
         </div>
 
-        <div className="ch-faq-list">
-          {displayFaqs.map((faq, index) => (
-            <div key={index} className="ch-faq-item">
-              <div className="ch-faq-item-header">
-                <span className="ch-faq-number">{String(index + 1).padStart(2, '0')}</span>
-                <h3 className="ch-faq-question">{faq.question}</h3>
+        <div className="ch-faq-list" role="list">
+          {faqs.map((faq, index) => (
+            <article key={`faq-${index}`} className="ch-faq-item" role="listitem">
+              <div
+                className={`ch-faq-trigger${openIndex === index ? ' ch-faq-trigger-open' : ''}`}
+                onClick={() => handleToggle(index)}
+                style={{ cursor: 'pointer' }}
+                aria-expanded={openIndex === index}
+                aria-controls={`faq-panel-${index}`}
+                tabIndex={0}
+                role="button"
+              >
+                <span className="ch-faq-number">{index + 1}</span>
+                <span className="ch-faq-question">{faq.question}</span>
+                <span className="ch-faq-icon-wrap" aria-hidden="true">
+                  <ChevronDownIcon className="ch-faq-icon" />
+                </span>
               </div>
-              <p className="ch-faq-answer">{faq.answer}</p>
-            </div>
+              <div
+                id={`faq-panel-${index}`}
+                className="ch-faq-panel"
+                style={{ display: openIndex === index ? 'block' : 'none' }}
+              >
+                <p className="ch-faq-answer">{faq.answer}</p>
+              </div>
+            </article>
           ))}
         </div>
-
       </div>
     </section>
-  )
+  );
 }

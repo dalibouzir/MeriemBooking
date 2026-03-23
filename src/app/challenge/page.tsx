@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const metadata = {
-  title: 'تحدي اونلاين مجاني | Fittrah Moms',
+  title: 'تحدي اونلاين مجاني | Fittrah Women',
   description: 'انضمّي إلى تحدينا المجاني أونلاين واحصلي على دعم شخصي مع مريم بوزير. المقاعد محدودة!',
 }
 

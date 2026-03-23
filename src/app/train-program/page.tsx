@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'البرنامج التدريبي | Fittrah Moms',
-  description: 'برنامج تدريبي متكامل يعيدك لسلامك الداخلي — قريبًا من فطرة الأمهات.',
+  title: 'البرنامج التدريبي | Fittrah Women',
+  description: 'برنامج تدريبي متكامل يعيدك لسلامك الداخلي — قريبًا من فطرة النساء.',
   alternates: {
     canonical: 'https://www.fittrahmoms.com/train-program',
   },
   openGraph: {
-    title: 'البرنامج التدريبي | Fittrah Moms',
-    description: 'برنامج تدريبي متكامل يعيدك لسلامك الداخلي — قريبًا من فطرة الأمهات.',
+    title: 'البرنامج التدريبي | Fittrah Women',
+    description: 'برنامج تدريبي متكامل يعيدك لسلامك الداخلي — قريبًا من فطرة النساء.',
     url: 'https://www.fittrahmoms.com/train-program',
   },
 }
