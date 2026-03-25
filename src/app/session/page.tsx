@@ -32,7 +32,7 @@ export default function SessionPage() {
               احجزي جلستك الآن عبر Calendly
             </Link>
             <Link href={WHATSAPP_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
-              انضمي لمجتمعنا على WhatsApp
+              انضمي لمجتمعنا المجاني على WhatsApp
             </Link>
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function SessionPage() {
           احجزي جلستك الآن عبر Calendly
         </Link>
         <Link href={WHATSAPP_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
-          انضمي لمجتمعنا على WhatsApp
+          انضمي لمجتمعنا المجاني على WhatsApp
         </Link>
       </div>
 
@@ -113,7 +113,7 @@ export default function SessionPage() {
             احجزي جلستك الآن
           </Link>
           <Link href={WHATSAPP_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="session-mobile-sticky-btn">
-            المجتمع
+            المجتمع المجاني
           </Link>
         </div>
       </div>
