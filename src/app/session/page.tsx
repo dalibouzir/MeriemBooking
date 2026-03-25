@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const CALENDLY_URL = 'https://calendly.com/meriembouzir/booking-session-meriem'
+const WHATSAPP_COMMUNITY_URL = 'https://whatsapp.com/channel/0029Vb7aDlsISTkEqMO2sj1O'
 
 const SESSION_AUDIENCE = [
   'يعاني من مشكلات في العلاقات تؤثّر على استقراره وحياته اليومية (علاقات مرهِقة، صعوبات زوجية، توتر عائلي…)',
@@ -29,6 +30,9 @@ export default function SessionPage() {
           <div className="session-hero-actions">
             <Link href={CALENDLY_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
               احجزي جلستك الآن عبر Calendly
+            </Link>
+            <Link href={WHATSAPP_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
+              انضمي لمجتمعنا على WhatsApp
             </Link>
           </div>
         </div>
@@ -98,12 +102,18 @@ export default function SessionPage() {
         <Link href={CALENDLY_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
           احجزي جلستك الآن عبر Calendly
         </Link>
+        <Link href={WHATSAPP_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="btn session-hero-btn">
+          انضمي لمجتمعنا على WhatsApp
+        </Link>
       </div>
 
       <div className="session-mobile-sticky" role="complementary" aria-label="حجز سريع">
         <div className="session-mobile-sticky-shell">
           <Link href={CALENDLY_URL} target="_blank" rel="noopener noreferrer" className="session-mobile-sticky-btn">
             احجزي جلستك الآن
+          </Link>
+          <Link href={WHATSAPP_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="session-mobile-sticky-btn">
+            المجتمع
           </Link>
         </div>
       </div>
