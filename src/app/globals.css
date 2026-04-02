@@ -1145,6 +1145,7 @@ body.assistant-view .chatbot-widget{
   margin:0;
   display:inline-block;
   padding:6px 6px 12px;
+  margin-bottom:18px;
   font-size:clamp(2.2rem, 6vw, 3.2rem);
   font-weight:900;
   line-height:1.05;
@@ -1195,6 +1196,7 @@ body.assistant-view .chatbot-widget{
   text-shadow: 0 4px 20px hsla(var(--primary-700) / 0.25);
 }
 .library-section-head h2#library-shelf-title{
+  margin-top:4px;
   font-size:1.7rem;
   font-weight:700;
   letter-spacing:0.5px;
