@@ -1,7 +1,7 @@
-Place your production logo at this path as "logo.png".
+Place your production logo at this path as "Logo.png".
 
 Expected path:
-  public/logo/logo.png
+  public/logo/Logo.png
 
 Recommended size:
   ~28px height for the navbar (higher-resolution source is fine; the CSS scales it down).

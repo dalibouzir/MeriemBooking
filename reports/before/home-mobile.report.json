@@ -904,7 +904,7 @@
             "entity": "fittrahmoms.com"
           },
           {
-            "url": "https://www.fittrahmoms.com/_next/image?url=%2Flogo%2Flogo.png&w=96&q=75",
+            "url": "https://www.fittrahmoms.com/_next/image?url=%2Flogo%2FLogo.png&w=96&q=75",
             "sessionTargetType": "page",
             "protocol": "h2",
             "rendererStartTime": 420.19599997997284,
@@ -1230,7 +1230,7 @@
             "entity": "fittrahmoms.com"
           },
           {
-            "url": "https://www.fittrahmoms.com/logo/logo.png",
+            "url": "https://www.fittrahmoms.com/logo/Logo.png",
             "sessionTargetType": "page",
             "protocol": "h2",
             "rendererStartTime": 982.1449999958277,
@@ -1314,7 +1314,7 @@
             "entity": "supabase.co"
           },
           {
-            "url": "https://www.fittrahmoms.com/logo/logo.png",
+            "url": "https://www.fittrahmoms.com/logo/Logo.png",
             "sessionTargetType": "page",
             "protocol": "h2",
             "rendererStartTime": 1128.915999993682,
@@ -4432,7 +4432,7 @@
         ],
         "items": [
           {
-            "url": "https://www.fittrahmoms.com/logo/logo.png",
+            "url": "https://www.fittrahmoms.com/logo/Logo.png",
             "totalBytes": 137102
           },
           {

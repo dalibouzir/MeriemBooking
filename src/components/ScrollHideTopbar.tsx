@@ -26,7 +26,7 @@ const NAV_LINKS: NavLink[] = [
 
 const BOOKING_URL = '/session'
 const ASSISTANT_URL = '/assistant'
-const TOPBAR_LOGO_SRC = '/logo/logo.png'
+const TOPBAR_LOGO_SRC = '/logo/Logo.png'
 
 export default function ScrollHideTopbar() {
   const [hidden, setHidden] = useState(false)

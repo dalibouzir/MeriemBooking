@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: `${siteUrl}/logo/logo.png`,
+        url: `${siteUrl}/logo/Logo.png`,
         width: 800,
         height: 600,
         alt: 'Fittrah Women - فطرة النساء',
@@ -68,12 +68,15 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: siteName,
     description: siteDescription,
-    images: [`${siteUrl}/logo/logo.png`],
+    images: [`${siteUrl}/logo/Logo.png`],
   },
   icons: {
-    icon: '/logo/logo.png',
-    shortcut: '/logo/logo.png',
-    apple: '/logo/logo.png',
+    icon: [
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    shortcut: '/favicon-32x32.png',
+    apple: '/logo/Logo.png',
   },
   verification: {
     other: {
@@ -102,7 +105,7 @@ const jsonLd = {
       url: siteUrl,
       logo: {
         '@type': 'ImageObject',
-        url: `${siteUrl}/logo/logo.png`,
+        url: `${siteUrl}/logo/Logo.png`,
       },
       contactPoint: {
         '@type': 'ContactPoint',
