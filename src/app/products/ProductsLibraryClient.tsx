@@ -80,7 +80,7 @@ export default function ProductsLibraryClient() {
 
   return (
     <section className="library-hero" aria-labelledby="library-shelf-title">
-      <div className="library-section-head appear-on-scroll">
+      <div className="library-section-head appear-on-scroll is-visible">
         <div>
           <h1 className="library-hero-title">المكتبة</h1>
           <h2 id="library-shelf-title">ملفات مجانية جاهزة للتطبيق</h2>

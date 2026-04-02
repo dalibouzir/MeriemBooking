@@ -52,26 +52,26 @@ export default function ProductsPage() {
       <ProductsLibraryClient />
       {/* Product WhoFor Section */}
       <section className="library-whofor" style={{ marginTop: 32 }}>
-        <div className="library-section-head appear-on-scroll">
+        <div className="library-section-head appear-on-scroll is-visible">
           <ProductWhoForSection />
         </div>
       </section>
 
       <section id="library-workflow" className="library-flow" aria-labelledby="library-flow-title">
-        <div className="library-section-head appear-on-scroll" style={{ '--delay': '0.14s' } as CSSProperties}>
+        <div className="library-section-head appear-on-scroll is-visible" style={{ '--delay': '0.14s' } as CSSProperties}>
           <div>
             <h2 id="library-flow-title">كيف تعمل التنزيلات؟</h2>
             <p>ثلاث خطوات متتالية تنتهي بملف مطبوع وجلسة تعريفية مجانية.</p>
           </div>
         </div>
-        <p className="library-flow-hint appear-on-scroll" style={{ '--delay': '0.16s' } as CSSProperties}>
+        <p className="library-flow-hint appear-on-scroll is-visible" style={{ '--delay': '0.16s' } as CSSProperties}>
           اسحبي لليمين واليسار لاستعراض الخطوات
         </p>
         <div className="library-flow-steps">
           {FLOW_STEPS.map((step, index) => (
             <article
               key={step.id}
-              className="library-flow-step appear-on-scroll"
+              className="library-flow-step appear-on-scroll is-visible"
               style={{ '--delay': `${0.16 + index * 0.05}s` } as CSSProperties}
             >
               <span className="library-flow-step-number">{index + 1}</span>
@@ -94,7 +94,7 @@ export default function ProductsPage() {
       </section>
 
       <section className="library-faq" aria-labelledby="library-faq-title">
-        <div className="library-section-head appear-on-scroll" style={{ '--delay': '0.26s' } as CSSProperties}>
+        <div className="library-section-head appear-on-scroll is-visible" style={{ '--delay': '0.26s' } as CSSProperties}>
           <div>
             <h2 id="library-faq-title">أسئلة مختصرة</h2>
             <p>كل الإجابات في بطاقة واحدة قابلة للطي حتى على الهاتف.</p>
