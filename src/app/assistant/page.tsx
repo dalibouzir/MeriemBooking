@@ -1,9 +1,16 @@
 'use client'
 
-import { FormEvent, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { FormEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Navbar from '@/components/ScrollHideTopbar'
 import ChatSuggestions from '@/components/ChatSuggestions'
-import { ArrowUpIcon, ChatBubbleLeftRightIcon, UserCircleIcon } from '@heroicons/react/24/outline'
+import {
+  ChatBubbleLeftRightIcon,
+  PaperAirplaneIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  UserCircleIcon,
+  WrenchScrewdriverIcon,
+} from '@heroicons/react/24/outline'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeSanitize from 'rehype-sanitize'
@@ -18,15 +25,22 @@ type ChatMessage = {
 }
 
 const ASSISTANT_TITLE = 'مساعد الذكاء الاصطناعي - Fittrah AI'
-const ASSISTANT_DESCRIPTION = 'أنا هنا لأمنحك إجابات دافئة وسريعة حول التوازن العاطفي، وتخطيط الجلسات، وكل ما يخص يوم الأم.'
-const INITIAL_GREETING = 'مرحباً! أنا Fittrah AI، شاركيني ما يدور في بالك وسأقترح خطوات عملية.'
+const ASSISTANT_DESCRIPTION = 'تواصلي بحرية، أنا هنا لدعمك.'
+const DEMO_TIME = '10:30 ص'
 
-const INPUT_SUGGESTIONS = [
-  'اكتبي رسالتك بالتفصيل…',
-  'مثال: أشعر بالتعب والضغط، كيف أتعامل مع هذا الشعور؟',
-  'مثال: كيف أنظم وقتي بين الأطفال والبيت والراحة؟',
-  'مثال: كيف أتعامل مع غضب طفلي بطريقة هادئة؟',
-]
+const DEMO_USER_TEXT = 'كيف أتعامل مع شعوري بالذنب كأم؟'
+
+const DEMO_ASSISTANT_INTRO =
+  'شعور الذنب شائع جداً لدى الأمهات، وغالباً ما يأتي من رغبتك في تقديم الأفضل لأطفالك. إليك بعض الخطوات لمساعدتك على التعامل معه:'
+
+const DEMO_ASSISTANT_POINTS = [
+  'تذكري أن الكمال غير واقعي، والأمومة رحلة مليئة بالتعلم.',
+  'ركزي على اللحظات اليومية التي تعيشينها مع أطفالك.',
+  'سامحي نفسك، فليس كل خطأ يعني أنك أم سيئة.',
+  'حددي احتياجاتك وخصصي وقتاً لنفسك دون شعور بالذنب.',
+] as const
+
+const DEMO_ASSISTANT_OUTRO = 'كل أم تبذل جهدها، وهذا كافٍ. أنت تقومين بعمل رائع 🌸'
 
 const TYPING_INTERVAL_MS = 14
 const TYPING_STEP = 2
@@ -51,42 +65,79 @@ const formatTime = (date: Date) =>
 
 const createMessageId = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`
 
+function AssistantIntroCard() {
+  return (
+    <aside className="assistant-intro-card" aria-label="عن المساعد">
+      <div className="assistant-intro-content">
+        <h2 className="assistant-intro-title">مساعدك الذكي لدعمك كل يوم</h2>
+        <p className="assistant-intro-subtitle">
+          أنا هنا لأمنحك إجابات دقيقة وسريعة حول التوازن العاطفي، تنظيم المشاعر، وبناء علاقة صحية مع نفسك
+          وأطفالك. اسأليني عن أي موضوع يهمك، وسأكون بجانبك.
+        </p>
+
+        <div className="assistant-benefits" aria-label="مزايا المساعد">
+          <div className="assistant-benefit-row">
+            <div className="assistant-benefit-icon" aria-hidden>
+              <SparklesIcon />
+            </div>
+            <div className="assistant-benefit-text">
+              <p className="assistant-benefit-title">فهم أعمق لمشاعرك</p>
+              <p className="assistant-benefit-desc">نساعدك على فهم مشاعرك وتحديدها بوضوح.</p>
+            </div>
+          </div>
+
+          <div className="assistant-benefit-row">
+            <div className="assistant-benefit-icon" aria-hidden>
+              <WrenchScrewdriverIcon />
+            </div>
+            <div className="assistant-benefit-text">
+              <p className="assistant-benefit-title">أدوات عملية يومية</p>
+              <p className="assistant-benefit-desc">تقنيات وتمارين بسيطة يمكنك تطبيقها فوراً.</p>
+            </div>
+          </div>
+
+          <div className="assistant-benefit-row">
+            <div className="assistant-benefit-icon" aria-hidden>
+              <ShieldCheckIcon />
+            </div>
+            <div className="assistant-benefit-text">
+              <p className="assistant-benefit-title">دعم مخصص وآمن</p>
+              <p className="assistant-benefit-desc">خصوصيتك وراحتك النفسية من أولويتنا.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="assistant-privacy-note">
+        <ShieldCheckIcon aria-hidden />
+        <span>هذه المحادثة سرية وآمنة 100% ولا يتم حفظها.</span>
+      </div>
+      <div className="assistant-intro-botanical" aria-hidden />
+    </aside>
+  )
+}
+
 export default function AssistantPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(0)
-  const [showSuggestion, setShowSuggestion] = useState(true)
   const [suggestionsVisible, setSuggestionsVisible] = useState(true)
-  const [isInputFocused, setIsInputFocused] = useState(false)
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
-  const suggestionIntervalRef = useRef<number | null>(null)
-  const suggestionTimeoutRef = useRef<number | null>(null)
+
   const adjustInputHeight = useCallback(() => {
     const element = inputRef.current
     if (!element) return
     const computedStyle = window.getComputedStyle(element)
-    const lineHeight = parseFloat(computedStyle.lineHeight) || 22
+    const lineHeight = parseFloat(computedStyle.lineHeight) || 24
     const minHeight = lineHeight * 2
-    const maxHeight = lineHeight * 3
+    const maxHeight = lineHeight * 4
 
     element.style.height = 'auto'
     const nextHeight = Math.min(maxHeight, Math.max(minHeight, element.scrollHeight))
     element.style.height = `${nextHeight}px`
     element.style.overflowY = element.scrollHeight > maxHeight ? 'auto' : 'hidden'
-  }, [])
-
-  const clearSuggestionTimers = useCallback(() => {
-    if (suggestionIntervalRef.current) {
-      window.clearInterval(suggestionIntervalRef.current)
-      suggestionIntervalRef.current = null
-    }
-    if (suggestionTimeoutRef.current) {
-      window.clearTimeout(suggestionTimeoutRef.current)
-      suggestionTimeoutRef.current = null
-    }
   }, [])
 
   useEffect(() => {
@@ -95,6 +146,7 @@ export default function AssistantPage() {
       document.body.classList.remove('assistant-view')
     }
   }, [])
+
   useEffect(() => {
     if (messages.length <= 1) return
     const container = messagesContainerRef.current
@@ -136,31 +188,8 @@ export default function AssistantPage() {
   }, [streamingMessageId])
 
   useEffect(() => {
-    if (inputValue.trim() !== '' || isInputFocused) {
-      setShowSuggestion(false)
-      clearSuggestionTimers()
-      return
-    }
-
-    clearSuggestionTimers()
-    setShowSuggestion(true)
-
-    suggestionIntervalRef.current = window.setInterval(() => {
-      setShowSuggestion(false)
-      suggestionTimeoutRef.current = window.setTimeout(() => {
-        setCurrentSuggestionIndex((prev) => (prev + 1) % INPUT_SUGGESTIONS.length)
-        setShowSuggestion(true)
-      }, 280)
-    }, 5000)
-
-    return () => {
-      clearSuggestionTimers()
-    }
-  }, [clearSuggestionTimers, inputValue, isInputFocused])
-  useEffect(() => {
     adjustInputHeight()
   }, [adjustInputHeight, inputValue])
-
 
   const sendMessage = useCallback(
     async (event?: FormEvent, overrideText?: string) => {
@@ -176,6 +205,7 @@ export default function AssistantPage() {
         displayText: trimmed,
         time: formatTime(new Date()),
       }
+
       const conversation = [...messages, userMessage]
       setMessages(conversation)
       setInputValue('')
@@ -248,100 +278,147 @@ export default function AssistantPage() {
     }
   }
 
+  const hasMessages = messages.length > 0
+  const shouldShowChips = suggestionsVisible && !loading
+
+  const renderedMessages = useMemo(() => {
+    if (hasMessages) return null
+
+    return (
+      <>
+        <div className="assistant-message-row message-user">
+          <div className="assistant-bubble assistant-bubble-user">
+            <p>{DEMO_USER_TEXT}</p>
+            <span className="assistant-timestamp">{DEMO_TIME}</span>
+          </div>
+          <div className="assistant-avatar assistant-avatar-user">
+            <UserCircleIcon aria-hidden />
+            <span className="sr-only">أنت</span>
+          </div>
+        </div>
+
+        <div className="assistant-message-row message-bot">
+          <div className="assistant-avatar assistant-avatar-bot">
+            <ChatBubbleLeftRightIcon aria-hidden />
+            <span className="sr-only">Fittrah AI</span>
+          </div>
+          <div className="assistant-bubble assistant-bubble-bot assistant-demo-bubble">
+            <p>{DEMO_ASSISTANT_INTRO}</p>
+            <ul>
+              {DEMO_ASSISTANT_POINTS.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
+            <p>{DEMO_ASSISTANT_OUTRO}</p>
+            <span className="assistant-timestamp">{DEMO_TIME}</span>
+          </div>
+        </div>
+      </>
+    )
+  }, [hasMessages])
+
   return (
     <div className="assistant-page" dir="rtl">
       <Navbar />
       <main className="assistant-main">
-        <div className="assistant-chat">
-          <header className="assistant-chat-header">
-            <div className="assistant-hero-icon">
-              <ChatBubbleLeftRightIcon aria-hidden />
-            </div>
-            <div>
-              <p className="assistant-chat-title">{ASSISTANT_TITLE}</p>
-              <p className="assistant-chat-subtitle">{ASSISTANT_DESCRIPTION}</p>
-            </div>
-          </header>
+        <section className="assistant-layout" aria-label="واجهة مساعد Fittrah AI">
+          <section className="assistant-chat-panel">
+            <header className="assistant-chat-header">
+              <div>
+                <h1 className="assistant-chat-title">{ASSISTANT_TITLE}</h1>
+                <p className="assistant-chat-subtitle">{ASSISTANT_DESCRIPTION}</p>
+              </div>
+              <div className="assistant-chat-icon" aria-hidden>
+                <ChatBubbleLeftRightIcon />
+              </div>
+            </header>
 
-          <div className="assistant-messages" ref={messagesContainerRef}>
-            {messages.map((message) => {
-              const isUser = message.role === 'user'
-              const textToDisplay = message.displayText || message.text
-              const shouldRenderMarkdown = !isUser && !message.streaming
-              const processedAssistantText = shouldRenderMarkdown ? preprocessAssistantText(textToDisplay) : ''
+            <div className="assistant-chat-body">
+              <div className="assistant-messages" ref={messagesContainerRef}>
+                {hasMessages
+                  ? messages.map((message) => {
+                      const isUser = message.role === 'user'
+                      const textToDisplay = message.displayText || message.text
+                      const shouldRenderMarkdown = !isUser && !message.streaming
+                      const processedAssistantText = shouldRenderMarkdown ? preprocessAssistantText(textToDisplay) : ''
 
-              return (
-                <div key={message.id} className={`assistant-message-row ${isUser ? 'message-user' : 'message-bot'}`}>
-                  {!isUser && (
+                      return (
+                        <div key={message.id} className={`assistant-message-row ${isUser ? 'message-user' : 'message-bot'}`}>
+                          {!isUser && (
+                            <div className="assistant-avatar assistant-avatar-bot">
+                              <ChatBubbleLeftRightIcon aria-hidden />
+                              <span className="sr-only">Fittrah AI</span>
+                            </div>
+                          )}
+                          <div className={`assistant-bubble ${isUser ? 'assistant-bubble-user' : 'assistant-bubble-bot'}`}>
+                            {shouldRenderMarkdown ? (
+                              <div className="assistant-markdown">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
+                                  {processedAssistantText}
+                                </ReactMarkdown>
+                              </div>
+                            ) : (
+                              <p>{textToDisplay}</p>
+                            )}
+                            <span className="assistant-timestamp">{message.time}</span>
+                          </div>
+                          {isUser && (
+                            <div className="assistant-avatar assistant-avatar-user">
+                              <UserCircleIcon aria-hidden />
+                              <span className="sr-only">أنت</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
+                  : renderedMessages}
+
+                {loading && (
+                  <div className="assistant-message-row message-bot assistant-typing">
                     <div className="assistant-avatar assistant-avatar-bot">
                       <ChatBubbleLeftRightIcon aria-hidden />
                       <span className="sr-only">Fittrah AI</span>
                     </div>
-                  )}
-                  <div className="assistant-bubble">
-                    {shouldRenderMarkdown ? (
-                      <div className="assistant-markdown">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
-                          {processedAssistantText}
-                        </ReactMarkdown>
-                      </div>
-                    ) : (
-                      <p>{textToDisplay}</p>
-                    )}
-                    <span className="assistant-timestamp">{message.time}</span>
-                  </div>
-                  {isUser && (
-                    <div className="assistant-avatar assistant-avatar-user">
-                      <UserCircleIcon aria-hidden />
-                      <span className="sr-only">أنت</span>
+                    <div className="assistant-bubble assistant-bubble-bot assistant-bubble-typing">
+                      <span>Fittrah AI يكتب...</span>
                     </div>
-                  )}
-                </div>
-              )
-            })}
-            {loading && (
-              <div className="assistant-message-row message-bot assistant-typing">
-                <div className="assistant-avatar assistant-avatar-bot">
-                  <ChatBubbleLeftRightIcon aria-hidden />
-                  <span className="sr-only">Fittrah AI</span>
-                </div>
-                <div className="assistant-bubble assistant-bubble-typing">
-                  <span>Fittrah AI يكتب...</span>
-                </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {error && <p className="assistant-error">{error}</p>}
+              <div className="assistant-chat-actions">
+                {error && <p className="assistant-error">{error}</p>}
+                {shouldShowChips && <ChatSuggestions onSelectSuggestion={handleSelectSuggestion} />}
 
-          {suggestionsVisible && <ChatSuggestions onSelectSuggestion={handleSelectSuggestion} />}
-          <form className="assistant-input-row" onSubmit={sendMessage}>
-            <div className="assistant-input-wrapper">
-              <textarea
-                ref={inputRef}
-                dir="rtl"
-                className="assistant-input"
-                aria-label="اكتبي رسالتك بالتفصيل"
-                value={inputValue}
-                onChange={(event) => setInputValue(event.target.value)}
-                onKeyDown={handleKeyDown}
-                rows={2}
-                disabled={loading}
-                onFocus={() => setIsInputFocused(true)}
-                onBlur={() => setIsInputFocused(false)}
-              />
-              {inputValue.trim() === '' && !isInputFocused && (
-                <div className={`assistant-input-hint ${showSuggestion ? 'hint-visible' : 'hint-hidden'}`}>
-                  {INPUT_SUGGESTIONS[currentSuggestionIndex]}
-                </div>
-              )}
-              <button type="submit" className="assistant-send-btn" disabled={loading || !inputValue.trim()}>
-                <ArrowUpIcon aria-hidden />
-                <span className="sr-only">إرسال</span>
-              </button>
+                <form className="assistant-input-row" onSubmit={sendMessage}>
+                  <div className="assistant-input-wrapper">
+                    <textarea
+                      ref={inputRef}
+                      dir="rtl"
+                      className="assistant-input"
+                      aria-label="اكتبي سؤالك هنا"
+                      placeholder="اكتبي سؤالك هنا..."
+                      value={inputValue}
+                      onChange={(event) => setInputValue(event.target.value)}
+                      onKeyDown={handleKeyDown}
+                      rows={2}
+                      disabled={loading}
+                    />
+
+                    <button type="submit" className="assistant-send-btn" disabled={loading || !inputValue.trim()}>
+                      <PaperAirplaneIcon aria-hidden />
+                      <span className="sr-only">إرسال</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </form>
-        </div>
+
+            <p className="assistant-footer-note">ملاحظة: إجابات المساعد لا تغني عن الاستشارة المتخصصة.</p>
+          </section>
+
+          <AssistantIntroCard />
+        </section>
       </main>
     </div>
   )
