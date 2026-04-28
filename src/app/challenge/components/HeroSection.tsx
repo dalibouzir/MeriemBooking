@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { SparklesIcon, HeartIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { useChallengeContext } from '../ChallengeContext'
 
 interface HeroSectionProps {
@@ -35,10 +36,7 @@ function AnimatedNumber({ value, duration = 1000 }: { value: number; duration?: 
             const progress = Math.min(elapsed / duration, 1)
             const eased = 1 - Math.pow(1 - progress, 3)
             setDisplayValue(Math.round(eased * value))
-
-            if (progress < 1) {
-              requestAnimationFrame(animate)
-            }
+            if (progress < 1) requestAnimationFrame(animate)
           }
 
           requestAnimationFrame(animate)
@@ -68,161 +66,70 @@ export default function HeroSection({ title, subtitle, description }: HeroSectio
       return
     }
 
-    const timer = setTimeout(() => el.classList.add('is-revealed'), 100)
+    const timer = setTimeout(() => el.classList.add('is-revealed'), 80)
     return () => clearTimeout(timer)
   }, [])
 
-  const progressPercent = stats.maxSeats > 0
-    ? Math.min(((stats.maxSeats - stats.remainingSeats) / stats.maxSeats) * 100, 100)
-    : 0
-
   return (
-    <section ref={heroRef} className="ch-hero" aria-labelledby="hero-title">
-      <div className="ch-hero-bg" aria-hidden="true">
-        <div className="ch-hero-blob ch-hero-blob-1" />
-        <div className="ch-hero-blob ch-hero-blob-2" />
-        <div className="ch-hero-blob ch-hero-blob-3" />
-        <div className="ch-hero-gradient" />
-      </div>
+    <section ref={heroRef} className="chl-hero ch-reveal" aria-labelledby="hero-title">
+      <div className="chl-wrap chl-hero-wrap">
+        <aside className="chl-stats-card" aria-label="إحصائيات التسجيل">
+          <h2 className="chl-stats-title">إحصائيات التسجيل</h2>
 
-      <div className="ch-hero-container">
-        <div className="ch-hero-grid">
-          <div className="ch-hero-content">
-            <div className="ch-hero-badges">
-              <span className="ch-badge ch-badge-online">3 أيام</span>
-              <span className="ch-badge ch-badge-limited">90 دقيقة فقط</span>
-              <span className="ch-badge ch-badge-free">مجانًا</span>
+          <div className="chl-stat-box">
+            <div>
+              <p className="chl-stat-label">مسجّلة مؤكدة</p>
+              <p className="chl-stat-value"><AnimatedNumber value={stats.confirmedCount} /></p>
             </div>
-
-            <h1 id="hero-title" className="ch-hero-title">
-              {title || 'تحدّي الأم الهادئة في 3 أيام'}
-            </h1>
-
-            {subtitle && (
-              <p className="ch-hero-subtitle">{subtitle}</p>
-            )}
-
-            {description && (
-              <p className="ch-hero-desc">{description}</p>
-            )}
-
-            <p className="ch-hero-desc">
-              هل سئمتِ من فقدان السيطرة ثم الندم؟ من أن تقولي لنفسك "لن أكرر هذا"…
-              ثم تجدين نفسك في نفس الموقف مرة أخرى؟
-            </p>
-
-            <p className="ch-hero-desc">
-              انضمّي إلى هذا التحدّي حيث سنكشف معًا ما يحدث داخلك في لحظة الانفعال…
-              ولماذا يتكرّر، وكيف تبدئين تغييره.
-            </p>
-
-            <div className="ch-hero-cta">
-              <button
-                type="button"
-                className="ch-btn ch-btn-primary ch-btn-xl"
-                onClick={openModal}
-              >
-                <span className="ch-btn-text">
-                  {stats.isFull ? 'انضمّي لقائمة الانتظار' : 'احجزي مكانك الآن مجانًا'}
-                </span>
-                <span className="ch-btn-shine" aria-hidden="true" />
-              </button>
-
-              <button
-                type="button"
-                className="ch-btn ch-btn-secondary ch-btn-lg"
-                onClick={scrollToDetails}
-              >
-                اقرأي تفاصيل التحدّي
-              </button>
-            </div>
-
-            <p className="ch-hero-micro">
-              البداية لا تحتاج مثالية… فقط خطوة صادقة.
-            </p>
+            <UserGroupIcon className="chl-stat-icon" aria-hidden="true" />
           </div>
 
-          <div className="ch-hero-stats-panel">
-            <div className="ch-stats-card">
-              <div className="ch-stats-card-glow" aria-hidden="true" />
-
-              <h2 className="ch-stats-title">إحصائيات التسجيل</h2>
-
-              <div className="ch-stats-grid">
-                <div className="ch-stat-item ch-stat-main">
-                  <span className="ch-stat-icon" aria-hidden="true">👩‍👧</span>
-                  <div>
-                    <div className="ch-stat-value">
-                      <AnimatedNumber value={stats.confirmedCount} />
-                    </div>
-                    <div className="ch-stat-label">مسجّلة مؤكدة</div>
-                  </div>
-                </div>
-
-                <div className={`ch-stat-item ${stats.remainingSeats <= 5 ? 'ch-stat-urgent' : ''}`}>
-                  {stats.remainingSeats <= 5 && stats.remainingSeats > 0 && (
-                    <span className="ch-stat-badge">الفرص الأخيرة</span>
-                  )}
-                  <span className="ch-stat-icon" aria-hidden="true">🎯</span>
-                  <div>
-                    <div className="ch-stat-value">
-                      <AnimatedNumber value={stats.remainingSeats} />
-                    </div>
-                    <div className="ch-stat-label">مقعد متبقٍ</div>
-                  </div>
-                </div>
-
-                {stats.isFull && stats.waitlistCount > 0 && (
-                  <div className="ch-stat-item ch-stat-waitlist">
-                    <span className="ch-stat-icon" aria-hidden="true">⏳</span>
-                    <div>
-                      <div className="ch-stat-value">
-                        <AnimatedNumber value={stats.waitlistCount} />
-                      </div>
-                      <div className="ch-stat-label">في الانتظار</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="ch-stats-progress">
-                <div className="ch-progress-bar" role="progressbar" aria-valuenow={progressPercent} aria-valuemin={0} aria-valuemax={100}>
-                  <div
-                    className="ch-progress-fill"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                  <div
-                    className="ch-progress-glow"
-                    style={{ left: `${progressPercent}%` }}
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="ch-progress-labels">
-                  <span>{stats.confirmedCount} مسجّلة</span>
-                  <span>{stats.maxSeats} السعة الكاملة</span>
-                </div>
-              </div>
-
-              {stats.remainingSeats <= 10 && stats.remainingSeats > 0 && (
-                <p className="ch-stats-warning">
-                  إذا يناسبك هذا التحدّي، احجزي مكانك قبل اكتمال العدد.
-                </p>
-              )}
-
-              {stats.isFull && (
-                <p className="ch-stats-full">
-                  اكتمل العدد الحالي. يمكنك الانضمام إلى قائمة الانتظار.
-                </p>
-              )}
+          <div className="chl-stat-box">
+            <div>
+              <p className="chl-stat-label">مقعد متبقٍ</p>
+              <p className="chl-stat-value"><AnimatedNumber value={stats.remainingSeats} /></p>
             </div>
+            <HeartIcon className="chl-stat-icon" aria-hidden="true" />
+          </div>
+
+          {stats.isFull && (
+            <p className="chl-stat-foot">اكتمل العدد الحالي، التسجيل متاح في قائمة الانتظار.</p>
+          )}
+
+          {!stats.isFull && (
+            <>
+              <div className="chl-stat-rate">
+                <span>معدل التسجيل</span>
+                <span className="chl-stars">{Math.min(99, Math.round((stats.confirmedCount / Math.max(stats.maxSeats, 1)) * 100))}%</span>
+              </div>
+              <p className="chl-stat-foot">المقاعد المتبقية تنخفض بسرعة. احجزي مكانك الآن.</p>
+            </>
+          )}
+        </aside>
+
+        <div className="chl-hero-content">
+          <div className="chl-hero-decor" aria-hidden="true">
+            <span className="chl-hero-glow" />
+            <span className="chl-hero-leaf" />
+          </div>
+
+          <span className="chl-pill">تحدي العناية بنفسك</span>
+
+          <h1 id="hero-title" className="chl-hero-title">{title || 'تحدّي الأم الهادئة في 3 أيام'}</h1>
+          {subtitle && <p className="chl-hero-lead">{subtitle}</p>}
+
+          {description && <p className="chl-hero-text">{description}</p>}
+
+          <div className="chl-hero-actions">
+            <button type="button" className="chl-btn chl-btn-primary" onClick={openModal}>
+              {stats.isFull ? 'انضمّي لقائمة الانتظار' : 'ابدئي رحلتك الآن مجانًا'}
+              <SparklesIcon className="chl-btn-icon" aria-hidden="true" />
+            </button>
+            <button type="button" className="chl-btn chl-btn-outline" onClick={scrollToDetails}>
+              اقرئي تفاصيل التحدي
+            </button>
           </div>
         </div>
-      </div>
-
-      <div className="ch-hero-wave" aria-hidden="true">
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
-          <path d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,50 1440,40 L1440,80 L0,80 Z" />
-        </svg>
       </div>
     </section>
   )

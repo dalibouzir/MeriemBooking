@@ -8,13 +8,11 @@ import {
   ScheduleSectionNew,
   WhoForSectionNew,
   RequirementsSectionNew,
-  FAQSectionNew,
   FinalCTASection,
   StickyCTANew,
   ChallengeModalNew,
 } from './components'
 
-// Config type for serializable props only
 export interface ChallengeConfig {
   isEnabled: boolean
   startDateLabel: string
@@ -44,7 +42,7 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
     if (!rootEl) return
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const elements = Array.from(rootEl.querySelectorAll<HTMLElement>('.ch-reveal'))
+    const elements = Array.from(rootEl.querySelectorAll<HTMLElement>('.ch-reveal, .ch-reveal-item'))
 
     if (prefersReducedMotion) {
       elements.forEach((el) => el.classList.add('is-revealed'))
@@ -62,8 +60,8 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
         })
       },
       {
-        threshold: 0.1,
-        rootMargin: '0px 0px -8% 0px',
+        threshold: 0.12,
+        rootMargin: '0px 0px -10% 0px',
       }
     )
 
@@ -86,42 +84,27 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
 
   return (
     <ChallengeProvider initialStats={initialStats}>
-      <main ref={pageRef} className="ch-page" dir="rtl" lang="ar">
-        <div className="ch-page-bg" aria-hidden="true">
-          <div className="ch-page-blob ch-page-blob-1" />
-          <div className="ch-page-blob ch-page-blob-2" />
-          <div className="ch-page-blob ch-page-blob-3" />
+      <main ref={pageRef} className="ch-page chl-page" dir="rtl" lang="ar">
+        <div className="chl-page-decor" aria-hidden="true">
+          <span className="chl-page-orb chl-page-orb-a" />
+          <span className="chl-page-orb chl-page-orb-b" />
+          <span className="chl-page-orb chl-page-orb-c" />
         </div>
 
-        <div className="ch-page-content">
-          <HeroSection
-            title={config.title}
-            subtitle={config.subtitle}
-            description={config.description}
-          />
-
+        <div className="chl-content">
+          <HeroSection title={config.title} subtitle={config.subtitle} description={config.description} />
           <BenefitsSectionNew benefits={config.benefits} />
-
           <ScheduleSectionNew
             startDateLabel={config.startDateLabel}
             meetingTimeLabel={config.meetingTimeLabel}
             duration={config.duration}
           />
-
-          <WhoForSectionNew
-            targetAudience={config.targetAudience}
-            notFor={config.notFor}
-          />
-
+          <WhoForSectionNew targetAudience={config.targetAudience} notFor={config.notFor} />
           <RequirementsSectionNew requirements={config.requirements} />
-
-          <FAQSectionNew faqs={config.faqs} />
-
           <FinalCTASection />
         </div>
 
         <StickyCTANew />
-
         <ChallengeModalNew />
       </main>
     </ChallengeProvider>

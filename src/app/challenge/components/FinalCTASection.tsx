@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { SparklesIcon } from '@heroicons/react/24/outline'
 import { useChallengeContext } from '../ChallengeContext'
 
 export default function FinalCTASection() {
@@ -32,43 +33,30 @@ export default function FinalCTASection() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="ch-final-cta-section ch-reveal" aria-labelledby="final-cta-title">
-      <div className="ch-final-cta-container">
-        <div className="ch-final-cta-card">
-          <div className="ch-final-cta-glow" aria-hidden="true" />
+    <section ref={sectionRef} className="chl-final ch-reveal" aria-labelledby="final-cta-title">
+      <div className="chl-wrap">
+        <div className="chl-final-card">
+          <span className="chl-final-leaf chl-final-leaf-right" aria-hidden="true" />
+          <span className="chl-final-leaf chl-final-leaf-left" aria-hidden="true" />
+          <span className="chl-final-spark chl-final-spark-a" aria-hidden="true" />
+          <span className="chl-final-spark chl-final-spark-b" aria-hidden="true" />
 
-          <div className="ch-final-cta-content">
-            <h2 id="final-cta-title" className="ch-final-cta-title">
-              إذا كنتِ تعيشين نفس التوتر كل يوم…
-            </h2>
+          <h2 id="final-cta-title" className="chl-final-title">
+            إذا كنتِ تعيشين نفس التوتر كل يوم...
+            <br />
+            وتتمنين أن يتغير شيء...
+            <br />
+            حتى لو كان بسيطًا
+          </h2>
 
-            <p className="ch-final-cta-desc">
-              وتتمنين أن يتغير شيء… حتى لو كان بسيطًا، فهذا التحدّي لك.
-            </p>
+          <p className="chl-final-sub">فهذا التحدي لك</p>
 
-            {!stats.isFull && stats.remainingSeats > 0 && (
-              <p className="ch-final-cta-remaining">
-                متبقٍ <strong>{stats.remainingSeats}</strong> مقعد فقط من أصل {stats.maxSeats}
-              </p>
-            )}
+          <button type="button" className="chl-btn chl-btn-primary" onClick={openModal}>
+            {stats.isFull ? 'انضمّي لقائمة الانتظار' : 'ابدئي رحلتك الآن مجانًا'}
+            <SparklesIcon className="chl-btn-icon" aria-hidden="true" />
+          </button>
 
-            {stats.isFull && (
-              <p className="ch-final-cta-remaining">
-                المقاعد اكتملت حاليًا، ويمكنك التسجيل في قائمة الانتظار.
-              </p>
-            )}
-
-            <button
-              type="button"
-              className="ch-btn ch-btn-primary ch-btn-xl"
-              onClick={openModal}
-            >
-              <span className="ch-btn-text">
-                {stats.isFull ? 'انضمّي لقائمة الانتظار' : 'احجزي مكانك الآن مجانًا'}
-              </span>
-              <span className="ch-btn-shine" aria-hidden="true" />
-            </button>
-          </div>
+          <p className="chl-final-trust">والتغيير لا يبدأ بالكمال، بل بخطوة صغيرة صادقة</p>
         </div>
       </div>
     </section>

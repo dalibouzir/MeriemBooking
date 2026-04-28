@@ -1,85 +1,109 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { SparklesIcon, HeartIcon, LightBulbIcon } from '@heroicons/react/24/outline'
 
 interface RequirementsSectionNewProps {
   requirements: string[]
 }
 
-const defaultRequirements = [
-  { icon: '١', text: 'اليوم الأول: افهمي ما يحدث داخلك. لماذا تفقدين السيطرة رغم أنك تعلمين؟ (تبسيط عميق لما يحدث في داخلك).' },
-  { icon: '٢', text: 'اليوم الثاني: ابدئي التغيير فعليًا عبر تمارين واستراتيجيات تساعدك على إيقاف ردّة الفعل، التعامل مع trigger، والخروج من نمط التوتر المتكرر.' },
-  { icon: '٣', text: 'اليوم الثالث: جلسة تطبيق وأسئلة مباشرة على حالات حقيقية من المشاركات لتطبيق ما تعلّمناه على مواقف واقعية.' },
+type DayPlan = {
+  id: number
+  label: string
+  title: string
+  points: string[]
+}
+
+const DAY_PLANS: DayPlan[] = [
+  {
+    id: 1,
+    label: 'اليوم الأول',
+    title: 'فهمي نفسك بعمق',
+    points: [
+      'لماذا تفقدين السيطرة رغم معرفتك للصواب',
+      'كيف يعمل نمط التوتر المتكرر داخلك',
+      'تبسيط عميق لما يحدث في لحظة الانفعال',
+    ],
+  },
+  {
+    id: 2,
+    label: 'اليوم الثاني',
+    title: 'ابدئي التغيير عمليًا',
+    points: [
+      'تمارين توقف ردّة الفعل قبل الانفجار',
+      'التعامل مع trigger بطريقة واقعية',
+      'خطة بسيطة للخروج من دائرة التوتر',
+    ],
+  },
+  {
+    id: 3,
+    label: 'اليوم الثالث',
+    title: 'تثبيت التغيير بالتطبيق',
+    points: [
+      'جلسة تطبيق وأسئلة مباشرة',
+      'حالات حقيقية من المشاركات',
+      'تطبيق عملي لما تعلمناه على مواقف يومية',
+    ],
+  },
 ]
+
+const dayIcons = [SparklesIcon, LightBulbIcon, HeartIcon]
 
 export default function RequirementsSectionNew({ requirements }: RequirementsSectionNewProps) {
   const sectionRef = useRef<HTMLElement>(null)
-  const itemsRef = useRef<HTMLDivElement[]>([])
+  void requirements
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const el = sectionRef.current
+    if (!el) return
 
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReducedMotion) {
-      itemsRef.current.forEach((el) => el?.classList.add('is-revealed'))
+      el.classList.add('is-revealed')
       return
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const el = entry.target as HTMLElement
-            const index = parseInt(el.dataset.index || '0', 10)
-            setTimeout(() => {
-              el.classList.add('is-revealed')
-            }, index * 100)
-            observer.unobserve(el)
-          }
-        })
+        if (entries[0].isIntersecting) {
+          el.classList.add('is-revealed')
+          observer.disconnect()
+        }
       },
       { threshold: 0.15 }
     )
 
-    itemsRef.current.forEach((el) => {
-      if (el) observer.observe(el)
-    })
-
+    observer.observe(el)
     return () => observer.disconnect()
-  }, [requirements])
-
-  const displayItems = requirements.length > 0
-    ? requirements.map((text, i) => ({
-        icon: defaultRequirements[i % defaultRequirements.length].icon,
-        text,
-      }))
-    : defaultRequirements
+  }, [])
 
   return (
-    <section ref={sectionRef} className="ch-requirements-section" aria-labelledby="requirements-title">
-      <div className="ch-requirements-container">
-        <div className="ch-requirements-header ch-reveal">
-          <h2 id="requirements-title" className="ch-section-title">
-            تفاصيل الأيام
-          </h2>
-          <p className="ch-section-subtitle">
-            ثلاثة أيام قصيرة، لكن مركّزة، تبدأين فيها فهم ما يحدث وتطبيق تغيير عملي.
-          </p>
-        </div>
+    <section ref={sectionRef} className="chl-section ch-reveal" aria-labelledby="days-title">
+      <div className="chl-wrap">
+        <header className="chl-heading">
+          <h2 id="days-title" className="chl-title">تفاصيل الأيام</h2>
+          <p className="chl-subtitle">رحلة 3 أيام مصممة لتناسب حياتك اليومية</p>
+        </header>
 
-        <div className="ch-requirements-grid">
-          {displayItems.map((item, index) => {
+        <div className="chl-days-grid">
+          {DAY_PLANS.map((day, index) => {
+            const Icon = dayIcons[index % dayIcons.length]
             return (
-              <div
-                key={index}
-                ref={(el) => { if (el) itemsRef.current[index] = el }}
-                data-index={index}
-                className="ch-requirement-card ch-reveal-item"
-              >
-                <div className="ch-requirement-icon-wrap">
-                  <span className="ch-requirement-icon" aria-hidden="true">{item.icon}</span>
-                </div>
-                <p className="ch-requirement-text">{item.text}</p>
-              </div>
+              <article key={day.id} className="chl-day-card ch-reveal-item">
+                <span className="chl-day-badge">{day.id}</span>
+                <p className="chl-day-label">{day.label}</p>
+                <h3 className="chl-day-title">{day.title}</h3>
+
+                <ul className="chl-day-list">
+                  {day.points.map((point, idx) => (
+                    <li key={idx}>{point}</li>
+                  ))}
+                </ul>
+
+                <span className="chl-day-bottom-icon" aria-hidden="true">
+                  <Icon />
+                </span>
+              </article>
             )
           })}
         </div>
