@@ -9,18 +9,17 @@ export default function StickyCTANew() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show after scrolling past hero (approximately 500px)
       setIsVisible(window.scrollY > 500)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll() // Check initial state
+    handleScroll()
 
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   return (
-    <div 
+    <div
       className={`ch-sticky-cta ${isVisible ? 'is-visible' : ''}`}
       role="complementary"
       aria-label="التسجيل السريع"
@@ -33,11 +32,11 @@ export default function StickyCTANew() {
               <>قائمة الانتظار مفتوحة</>
             ) : stats.remainingSeats <= 5 ? (
               <>
-                <strong className="ch-sticky-cta-urgent">{stats.remainingSeats}</strong> مقاعد متبقية فقط!
+                <strong className="ch-sticky-cta-urgent">{stats.remainingSeats}</strong> مقاعد متبقية
               </>
             ) : (
               <>
-                <strong>{stats.remainingSeats}</strong> مقعد متبقي
+                <strong>{stats.remainingSeats}</strong> مقعد متبقٍ
               </>
             )}
           </span>
@@ -48,7 +47,7 @@ export default function StickyCTANew() {
           className="ch-btn ch-btn-primary ch-btn-sticky"
           onClick={openModal}
         >
-          {stats.isFull ? 'قائمة الانتظار' : 'سجّلي الآن'}
+          {stats.isFull ? 'قائمة الانتظار' : 'احجزي الآن'}
         </button>
       </div>
     </div>

@@ -1,15 +1,15 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { 
-  CheckCircleIcon, 
-  SparklesIcon, 
-  HeartIcon, 
+import {
+  CheckCircleIcon,
+  SparklesIcon,
+  HeartIcon,
   LightBulbIcon,
   StarIcon,
   FireIcon,
   BoltIcon,
-  RocketLaunchIcon
+  RocketLaunchIcon,
 } from '@heroicons/react/24/outline'
 
 interface BenefitsSectionNewProps {
@@ -33,7 +33,7 @@ export default function BenefitsSectionNew({ benefits }: BenefitsSectionNewProps
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    
+
     if (prefersReducedMotion) {
       itemsRef.current.forEach((el) => el?.classList.add('is-revealed'))
       return
@@ -62,30 +62,29 @@ export default function BenefitsSectionNew({ benefits }: BenefitsSectionNewProps
     return () => observer.disconnect()
   }, [benefits])
 
-  // Default benefits if none provided
   const displayBenefits = benefits.length > 0 ? benefits : [
-    'خطة تغذية مخصصة تناسب نمط حياتك',
-    'تمارين منزلية بسيطة وفعّالة',
-    'دعم مجتمعي من أمهات مثلك',
-    'متابعة يومية ونصائح عملية',
-    'أدوات تتبع التقدم والإنجازات',
-    'وصفات صحية سريعة التحضير',
+    'لماذا تفقدين السيطرة رغم أنك تعرفين ما هو الصواب.',
+    'ما الذي يحرّك ردّة فعلك من الداخل.',
+    'لماذا يتكرّر نفس النمط رغم محاولاتك المتكررة.',
   ]
 
   return (
-    <section 
-      ref={sectionRef} 
+    <section
+      ref={sectionRef}
       id="challenge-benefits"
-      className="ch-benefits-section" 
+      className="ch-benefits-section"
       aria-labelledby="benefits-title"
     >
       <div className="ch-benefits-container">
         <div className="ch-benefits-header ch-reveal">
           <h2 id="benefits-title" className="ch-section-title">
-            ✨ ماذا ستحصلين عليه؟
+            ماذا يعني هذا التحدّي؟
           </h2>
           <p className="ch-section-subtitle">
-            كل ما تحتاجينه لبدء رحلة التغيير في مكان واحد
+            هذا التحدي ليس مجرد نصائح عابرة، بل مساحة صادقة ترين فيها نفسك بوضوح.
+          </p>
+          <p className="ch-section-subtitle">
+            وتفهمين لأول مرة أشياء ربما لم تنتبهي لها من قبل.
           </p>
         </div>
 

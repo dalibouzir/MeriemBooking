@@ -36,26 +36,25 @@ export default function FinalCTASection() {
       <div className="ch-final-cta-container">
         <div className="ch-final-cta-card">
           <div className="ch-final-cta-glow" aria-hidden="true" />
-          
+
           <div className="ch-final-cta-content">
             <h2 id="final-cta-title" className="ch-final-cta-title">
-              🚀 جاهزة لتبدئي رحلتك؟
+              إذا كنتِ تعيشين نفس التوتر كل يوم…
             </h2>
-            
+
             <p className="ch-final-cta-desc">
-              لا تفوّتي هذه الفرصة المجانية للانضمام إلى مجتمع من الأمهات الطموحات.
-              سجّلي الآن واحجزي مقعدك قبل نفاد المقاعد!
+              وتتمنين أن يتغير شيء… حتى لو كان بسيطًا، فهذا التحدّي لك.
             </p>
 
             {!stats.isFull && stats.remainingSeats > 0 && (
               <p className="ch-final-cta-remaining">
-                متبقي <strong>{stats.remainingSeats}</strong> مقعد فقط من أصل {stats.maxSeats}
+                متبقٍ <strong>{stats.remainingSeats}</strong> مقعد فقط من أصل {stats.maxSeats}
               </p>
             )}
 
             {stats.isFull && (
               <p className="ch-final-cta-remaining">
-                اكتمل العدد! انضمّي لقائمة الانتظار لتكوني أول من يُبلّغ
+                المقاعد اكتملت حاليًا، ويمكنك التسجيل في قائمة الانتظار.
               </p>
             )}
 
@@ -65,7 +64,7 @@ export default function FinalCTASection() {
               onClick={openModal}
             >
               <span className="ch-btn-text">
-                {stats.isFull ? '🔔 انضمّي لقائمة الانتظار' : '✨ سجّلي الآن مجاناً'}
+                {stats.isFull ? 'انضمّي لقائمة الانتظار' : 'احجزي مكانك الآن مجانًا'}
               </span>
               <span className="ch-btn-shine" aria-hidden="true" />
             </button>

@@ -37,24 +37,24 @@ export default function ScheduleSectionNew({ startDateLabel, meetingTimeLabel, d
 
   const scheduleItems = [
     {
-      icon: '📅',
-      label: 'تاريخ البداية',
+      icon: '📆',
+      label: 'بداية اليوم الأول',
       value: startDateLabel || 'قريباً',
     },
     {
       icon: '⏰',
-      label: 'وقت اللقاء',
+      label: 'موعد اللقاء',
       value: meetingTimeLabel || 'سيتم تحديده',
     },
     {
       icon: '⏱️',
-      label: 'مدة اللقاء',
-      value: duration ? `${duration} دقيقة` : '60 دقيقة',
+      label: 'إجمالي الوقت',
+      value: '90 دقيقة خلال 3 أيام',
     },
     {
-      icon: '🌍',
-      label: 'المنصة',
-      value: 'Google Meet (أونلاين)',
+      icon: '🧭',
+      label: 'صيغة التحدّي',
+      value: duration ? `جلسات قصيرة عملية (${duration} دقيقة للجلسة تقريبًا)` : 'جلسات قصيرة عملية',
     },
   ]
 
@@ -63,16 +63,16 @@ export default function ScheduleSectionNew({ startDateLabel, meetingTimeLabel, d
       <div className="ch-schedule-container">
         <div className="ch-schedule-header">
           <h2 id="schedule-title" className="ch-section-title">
-            📅 موعد التحدي
+            قبل أن نبدأ
           </h2>
           <p className="ch-section-subtitle">
-            احفظي الموعد في تقويمك واستعدي للانطلاق
+            أعطينا فقط 90 دقيقة خلال 3 أيام… وهذه قد تكون نقطة التحوّل الأولى في هدوئك الداخلي.
           </p>
         </div>
 
         <div className="ch-schedule-card-wide">
           <div className="ch-schedule-card-glow" aria-hidden="true" />
-          
+
           <div className="ch-schedule-grid">
             {scheduleItems.map((item, index) => (
               <div key={index} className="ch-schedule-item">

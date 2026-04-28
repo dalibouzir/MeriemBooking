@@ -22,6 +22,29 @@ import type { ChallengeSettings } from '@/app/challenge/actions'
 
 type TabKey = 'overview' | 'settings' | 'registrations'
 
+const SCRIPT_DEFAULTS = {
+  title: 'تحدّي الأم الهادئة في 3 أيام',
+  subtitle: 'من التوتر والانفجار… إلى بداية هدوء حقيقي من الداخل',
+  description:
+    'أعطيني فقط 90 دقيقة خلال 3 أيام، واكتشفي كيف تبدأين استعادة هدوئك… حتى لو كنتِ عصبية وتحت ضغط يومي.',
+  benefits: [
+    'لماذا تفقدين السيطرة رغم أنك تعرفين ما هو الصواب.',
+    'ما الذي يحرّك ردّة فعلك من الداخل.',
+    'لماذا يتكرّر نفس النمط رغم محاولاتك المتكررة.',
+  ],
+  requirements: [
+    'اليوم الأول: افهمي ما يحدث داخلك. لماذا تفقدين السيطرة رغم أنك تعلمين؟ (تبسيط عميق لما يحدث في داخلك).',
+    'اليوم الثاني: ابدئي التغيير فعليًا عبر تمارين واستراتيجيات تساعدك على إيقاف ردّة الفعل، التعامل مع trigger، والخروج من نمط التوتر المتكرر.',
+    'اليوم الثالث: جلسة تطبيق وأسئلة مباشرة على حالات حقيقية من المشاركات لتطبيق ما تعلّمناه على مواقف واقعية.',
+  ],
+}
+
+const fallbackText = (value: string | null | undefined, fallbackValue: string) =>
+  value && value.trim() ? value : fallbackValue
+
+const fallbackList = (value: string[] | null | undefined, fallbackValue: string[]) =>
+  value && value.length > 0 ? value : fallbackValue
+
 // Simple Modal component matching existing admin style
 function Modal({
   open,
@@ -261,20 +284,37 @@ function SettingsTab({
 }) {
   const [form, setForm] = useState({
     is_active: settings.is_active ?? false,
-    title: settings.title ?? '',
-    subtitle: settings.subtitle ?? '',
-    description: settings.description ?? '',
+    title: fallbackText(settings.title, SCRIPT_DEFAULTS.title),
+    subtitle: fallbackText(settings.subtitle, SCRIPT_DEFAULTS.subtitle),
+    description: fallbackText(settings.description, SCRIPT_DEFAULTS.description),
     capacity: settings.capacity ?? 0,
     meeting_url: settings.meeting_url ?? '',
     starts_at: settings.starts_at ? settings.starts_at.slice(0, 16) : '',
     duration_minutes: settings.duration_minutes ?? 60,
     timezone: settings.timezone ?? 'Africa/Tunis',
-    benefits: settings.benefits ?? [],
-    requirements: settings.requirements ?? [],
+    benefits: fallbackList(settings.benefits, SCRIPT_DEFAULTS.benefits),
+    requirements: fallbackList(settings.requirements, SCRIPT_DEFAULTS.requirements),
     faq: settings.faq ?? [],
   })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    setForm({
+      is_active: settings.is_active ?? false,
+      title: fallbackText(settings.title, SCRIPT_DEFAULTS.title),
+      subtitle: fallbackText(settings.subtitle, SCRIPT_DEFAULTS.subtitle),
+      description: fallbackText(settings.description, SCRIPT_DEFAULTS.description),
+      capacity: settings.capacity ?? 0,
+      meeting_url: settings.meeting_url ?? '',
+      starts_at: settings.starts_at ? settings.starts_at.slice(0, 16) : '',
+      duration_minutes: settings.duration_minutes ?? 60,
+      timezone: settings.timezone ?? 'Africa/Tunis',
+      benefits: fallbackList(settings.benefits, SCRIPT_DEFAULTS.benefits),
+      requirements: fallbackList(settings.requirements, SCRIPT_DEFAULTS.requirements),
+      faq: settings.faq ?? [],
+    })
+  }, [settings])
 
   const handleSave = async () => {
     setSaving(true)
@@ -284,19 +324,38 @@ function SettingsTab({
       starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : settings.starts_at,
     })
     if (result.success) {
-      setMessage('Settings saved successfully!')
+      setMessage('تم حفظ إعدادات التحدّي بنجاح.')
       onSave()
     } else {
-      setMessage(`Error: ${result.error}`)
+      setMessage(`خطأ: ${result.error}`)
     }
     setSaving(false)
   }
 
   return (
     <div className="admin-section">
-      <h2 className="text-xl font-semibold text-purple-700 mb-4">Challenge Settings</h2>
+      <h2 className="text-xl font-semibold text-purple-700 mb-4">إعدادات صفحة التحدّي (Script-based)</h2>
 
       <div className="admin-challenge-form">
+        <div className="admin-form-row">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() =>
+              setForm((p) => ({
+                ...p,
+                title: SCRIPT_DEFAULTS.title,
+                subtitle: SCRIPT_DEFAULTS.subtitle,
+                description: SCRIPT_DEFAULTS.description,
+                benefits: [...SCRIPT_DEFAULTS.benefits],
+                requirements: [...SCRIPT_DEFAULTS.requirements],
+              }))
+            }
+          >
+            تحميل نص السكربت الافتراضي
+          </button>
+        </div>
+
         {/* Active Toggle */}
         <div className="admin-form-row">
           <label className="admin-form-label">
@@ -305,45 +364,48 @@ function SettingsTab({
               checked={form.is_active}
               onChange={(e) => setForm((p) => ({ ...p, is_active: e.target.checked }))}
             />
-            <span style={{ marginLeft: 8 }}>Challenge Active</span>
+            <span style={{ marginLeft: 8 }}>تفعيل صفحة التحدّي</span>
           </label>
         </div>
 
         {/* Basic Info */}
         <div className="admin-form-row">
-          <label className="admin-form-label">Title</label>
+          <label className="admin-form-label">العنوان الرئيسي</label>
           <input
             type="text"
             className="input"
             value={form.title}
             onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+            placeholder={SCRIPT_DEFAULTS.title}
           />
         </div>
 
         <div className="admin-form-row">
-          <label className="admin-form-label">Subtitle</label>
+          <label className="admin-form-label">العنوان الفرعي</label>
           <input
             type="text"
             className="input"
             value={form.subtitle}
             onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))}
+            placeholder={SCRIPT_DEFAULTS.subtitle}
           />
         </div>
 
         <div className="admin-form-row">
-          <label className="admin-form-label">Description</label>
+          <label className="admin-form-label">الوصف الافتتاحي</label>
           <textarea
             className="input textarea"
             rows={3}
             value={form.description}
             onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+            placeholder={SCRIPT_DEFAULTS.description}
           />
         </div>
 
         {/* Capacity & Meeting */}
         <div className="admin-form-grid2">
           <div className="admin-form-row">
-            <label className="admin-form-label">Capacity</label>
+            <label className="admin-form-label">عدد المقاعد</label>
             <input
               type="number"
               className="input"
@@ -352,7 +414,7 @@ function SettingsTab({
             />
           </div>
           <div className="admin-form-row">
-            <label className="admin-form-label">Meeting URL</label>
+            <label className="admin-form-label">رابط الجلسة</label>
             <input
               type="url"
               className="input"
@@ -365,7 +427,7 @@ function SettingsTab({
         {/* Schedule */}
         <div className="admin-form-grid2">
           <div className="admin-form-row">
-            <label className="admin-form-label">Start Date/Time</label>
+            <label className="admin-form-label">تاريخ/وقت البداية</label>
             <input
               type="datetime-local"
               className="input"
@@ -374,7 +436,7 @@ function SettingsTab({
             />
           </div>
           <div className="admin-form-row">
-            <label className="admin-form-label">Duration (minutes)</label>
+            <label className="admin-form-label">مدة الجلسة (بالدقائق)</label>
             <input
               type="number"
               className="input"
@@ -385,7 +447,7 @@ function SettingsTab({
         </div>
 
         <div className="admin-form-row">
-          <label className="admin-form-label">Timezone</label>
+          <label className="admin-form-label">المنطقة الزمنية</label>
           <input
             type="text"
             className="input"
@@ -397,27 +459,33 @@ function SettingsTab({
 
         {/* Benefits List */}
         <ListEditor
-          label="Benefits"
+          label="قسم: ماذا يعني هذا التحدّي؟ (ستكتشفين)"
           items={form.benefits}
           onChange={(benefits) => setForm((p) => ({ ...p, benefits }))}
         />
 
         {/* Requirements List */}
         <ListEditor
-          label="Requirements"
+          label="قسم: تفاصيل الأيام (اليوم 1/2/3)"
           items={form.requirements}
           onChange={(requirements) => setForm((p) => ({ ...p, requirements }))}
         />
 
         {/* FAQ Editor */}
-        <FAQEditor faq={form.faq} onChange={(faq) => setForm((p) => ({ ...p, faq }))} />
+        <FAQEditor
+          label="الأسئلة الشائعة (اختياري)"
+          faq={form.faq}
+          onChange={(faq) => setForm((p) => ({ ...p, faq }))}
+        />
 
         {/* Save */}
         <div className="admin-form-actions">
           <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Settings'}
+            {saving ? 'جارٍ الحفظ...' : 'حفظ الإعدادات'}
           </button>
-          {message && <span className={message.includes('Error') ? 'text-red-600' : 'text-green-600'}>{message}</span>}
+          {message && (
+            <span className={message.includes('خطأ') ? 'text-red-600' : 'text-green-600'}>{message}</span>
+          )}
         </div>
       </div>
     </div>
@@ -476,16 +544,16 @@ function ListEditor({
           </div>
         ))}
         <div className="admin-list-add">
-          <input
-            type="text"
+          <textarea
             className="input"
-            placeholder={`Add ${label.toLowerCase()}...`}
+            rows={2}
+            placeholder="أضيفي سطرًا جديدًا..."
             value={newItem}
             onChange={(e) => setNewItem(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addItem())}
           />
           <button type="button" className="btn btn-outline" onClick={addItem}>
-            Add
+            إضافة
           </button>
         </div>
       </div>
@@ -495,9 +563,11 @@ function ListEditor({
 
 // FAQ Editor
 function FAQEditor({
+  label,
   faq,
   onChange,
 }: {
+  label: string
   faq: { q: string; a: string }[]
   onChange: (faq: { q: string; a: string }[]) => void
 }) {
@@ -518,16 +588,16 @@ function FAQEditor({
 
   return (
     <div className="admin-form-row">
-      <label className="admin-form-label">FAQ</label>
+      <label className="admin-form-label">{label}</label>
       <div className="admin-faq-editor">
         {faq.map((item, index) => (
           <div key={index} className="admin-faq-item">
             <div className="admin-faq-item-content">
-              <strong>Q: {item.q}</strong>
-              <p>A: {item.a}</p>
+              <strong>س: {item.q}</strong>
+              <p>ج: {item.a}</p>
             </div>
             <button type="button" className="btn btn-outline btn-sm" onClick={() => removeFaq(index)}>
-              Remove
+              حذف
             </button>
           </div>
         ))}
@@ -535,19 +605,19 @@ function FAQEditor({
           <input
             type="text"
             className="input"
-            placeholder="Question..."
+            placeholder="السؤال..."
             value={newQ}
             onChange={(e) => setNewQ(e.target.value)}
           />
           <textarea
             className="input textarea"
             rows={2}
-            placeholder="Answer..."
+            placeholder="الإجابة..."
             value={newA}
             onChange={(e) => setNewA(e.target.value)}
           />
           <button type="button" className="btn btn-outline" onClick={addFaq}>
-            Add FAQ
+            إضافة سؤال
           </button>
         </div>
       </div>

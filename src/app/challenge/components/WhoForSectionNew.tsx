@@ -13,7 +13,7 @@ export default function WhoForSectionNew({ targetAudience, notFor }: WhoForSecti
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    
+
     if (prefersReducedMotion) {
       itemsRef.current.forEach((el) => el?.classList.add('is-revealed'))
       return
@@ -42,18 +42,16 @@ export default function WhoForSectionNew({ targetAudience, notFor }: WhoForSecti
     return () => observer.disconnect()
   }, [targetAudience, notFor])
 
-  // Default values if not provided
   const displayTargetAudience = targetAudience.length > 0 ? targetAudience : [
-    'أم تريد استعادة لياقتها بعد الولادة',
-    'سيدة تبحث عن بداية جديدة لنمط حياة صحي',
-    'من تريد دعماً ومجتمعاً يحفّزها',
-    'مشغولة وتحتاج خطة عملية وبسيطة',
+    'فهم حقيقي لما يحدث داخلك في لحظة الضغط.',
+    'وعي trigger أساسي يسبب أغلب توترك.',
+    'تعلّم استراتيجيات وتمارين بسيطة لتغيير ردّة فعلك.',
   ]
 
   const displayNotFor = notFor.length > 0 ? notFor : [
-    'من تبحث عن حلول سحرية وسريعة',
-    'من لا تستطيع الالتزام لمدة أسبوع',
-    'من لديها حالات صحية تمنع التمارين',
+    'هذا التحدي ليس فقط محتوى، بل مساحة تشعرين فيها أنك مفهومة.',
+    'ما تعيشينه ليس ضعفًا… بل نمط يمكن فهمه وتغييره.',
+    'هذه ليست نهاية التغيير… لكنها بداية صادقة وواقعية له.',
   ]
 
   const targetAudienceItems = displayTargetAudience.map((item, index) => ({
@@ -71,19 +69,18 @@ export default function WhoForSectionNew({ targetAudience, notFor }: WhoForSecti
       <div className="ch-whofor-container">
         <div className="ch-whofor-header ch-reveal">
           <h2 id="whofor-title" className="ch-section-title">
-            🎯 هل هذا التحدي مناسب لك؟
+            ماذا ستحصلين عليه؟
           </h2>
           <p className="ch-section-subtitle">
-            تعرّفي إذا كان هذا التحدي هو ما تبحثين عنه
+            خلال هذه الأيام الثلاثة، لن نطلب منك أن تكوني مثالية… بل أن تبدئي بخطوات واقعية.
           </p>
         </div>
 
         <div className="ch-whofor-grid">
-          {/* YES Column */}
           <div className="ch-whofor-col ch-whofor-col-yes">
             <h3 className="ch-whofor-col-title">
               <span className="ch-whofor-col-icon">✓</span>
-              هذا التحدي لك إذا كنت...
+              ستبدئين بـ
             </h3>
             <div className="ch-whofor-list">
               {targetAudienceItems.map((item, index) => {
@@ -102,11 +99,10 @@ export default function WhoForSectionNew({ targetAudience, notFor }: WhoForSecti
             </div>
           </div>
 
-          {/* NO Column */}
-          <div className="ch-whofor-col ch-whofor-col-no">
+          <div className="ch-whofor-col ch-whofor-col-yes">
             <h3 className="ch-whofor-col-title">
-              <span className="ch-whofor-col-icon ch-whofor-col-icon-no">✗</span>
-              قد لا يناسبك إذا كنت...
+              <span className="ch-whofor-col-icon">♥</span>
+              لستِ وحدك
             </h3>
             <div className="ch-whofor-list">
               {notForItems.map((item, index) => {
@@ -115,9 +111,9 @@ export default function WhoForSectionNew({ targetAudience, notFor }: WhoForSecti
                     key={index}
                     ref={(el) => { if (el) itemsRef.current[item.dataIndex] = el }}
                     data-index={item.dataIndex}
-                    className="ch-whofor-item ch-whofor-item-no ch-reveal-item"
+                    className="ch-whofor-item ch-whofor-item-yes ch-reveal-item"
                   >
-                    <span className="ch-whofor-item-icon" aria-hidden="true">✗</span>
+                    <span className="ch-whofor-item-icon" aria-hidden="true">•</span>
                     <span className="ch-whofor-item-text">{item.text}</span>
                   </div>
                 )

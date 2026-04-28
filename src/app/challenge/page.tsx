@@ -5,8 +5,26 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const metadata = {
-  title: 'تحدي اونلاين مجاني | Fittrah Women',
-  description: 'انضمّي إلى تحدينا المجاني أونلاين واحصلي على دعم شخصي مع مريم بوزير. المقاعد محدودة!',
+  title: 'تحدّي الأم الهادئة في 3 أيام | Fittrah Women',
+  description:
+    'تحدّي مجاني خلال 3 أيام لمساعدة الأم على الانتقال من التوتر والانفجار إلى بداية هدوء حقيقي من الداخل.',
+}
+
+const SCRIPT_DEFAULTS = {
+  title: 'تحدّي الأم الهادئة في 3 أيام',
+  subtitle: 'من التوتر والانفجار… إلى بداية هدوء حقيقي من الداخل',
+  description:
+    'أعطيني فقط 90 دقيقة خلال 3 أيام، واكتشفي كيف تبدأين استعادة هدوئك… حتى لو كنتِ عصبية وتحت ضغط يومي.',
+  benefits: [
+    'لماذا تفقدين السيطرة رغم أنك تعرفين ما هو الصواب.',
+    'ما الذي يحرّك ردّة فعلك من الداخل.',
+    'لماذا يتكرّر نفس النمط رغم محاولاتك المتكررة.',
+  ],
+  requirements: [
+    'اليوم الأول: افهمي ما يحدث داخلك. لماذا تفقدين السيطرة رغم أنك تعلمين؟ (تبسيط عميق لما يحدث في داخلك).',
+    'اليوم الثاني: ابدئي التغيير فعليًا عبر تمارين واستراتيجيات تساعدك على إيقاف ردّة الفعل، التعامل مع trigger، والخروج من نمط التوتر المتكرر.',
+    'اليوم الثالث: جلسة تطبيق وأسئلة مباشرة على حالات حقيقية من المشاركات لتطبيق ما تعلّمناه على مواقف واقعية.',
+  ],
 }
 
 const formatScheduleDate = (dateStr: string, timeZone: string) => {
@@ -48,7 +66,6 @@ export default async function ChallengePage() {
     getChallengeStatsAction(),
   ])
 
-  // If no settings exist, show not found
   if (!settings) {
     return (
       <main className="ch-page ch-page-unavailable" dir="rtl" lang="ar">
@@ -65,25 +82,30 @@ export default async function ChallengePage() {
   const startDateLabel = formatScheduleDate(settings.starts_at, timeZone)
   const meetingTimeLabel = formatScheduleTime(settings.starts_at, timeZone)
 
-  // Transform settings to config format using correct field names from ChallengeSettings
   const config = {
     isEnabled: settings.is_active,
     startDateLabel,
     meetingTimeLabel,
     duration: settings.duration_minutes,
     maxSeats: settings.capacity,
-    title: settings.title,
-    subtitle: settings.subtitle,
-    description: settings.description,
-    benefits: settings.benefits || [],
-    targetAudience: [] as string[], // Not in current schema
-    notFor: [] as string[], // Not in current schema
-    requirements: settings.requirements || [],
-    // Transform FAQ from {q, a} to {question, answer}
-    faqs: (settings.faq || []).map((f) => ({ question: f.q, answer: f.a })),
+    title: settings.title?.trim() || SCRIPT_DEFAULTS.title,
+    subtitle: settings.subtitle?.trim() || SCRIPT_DEFAULTS.subtitle,
+    description: settings.description?.trim() || SCRIPT_DEFAULTS.description,
+    benefits: settings.benefits?.length ? settings.benefits : SCRIPT_DEFAULTS.benefits,
+    targetAudience: [
+      'فهم حقيقي لما يحدث داخلك في لحظة الضغط.',
+      'وعي trigger أساسي يسبب أغلب توترك.',
+      'تعلّم استراتيجيات وتمارين بسيطة لتغيير ردّة فعلك.',
+    ],
+    notFor: [
+      'هذا التحدي ليس فقط محتوى، بل مساحة تشعرين فيها أنك مفهومة.',
+      'ما تعيشينه ليس ضعفًا… بل نمط يمكن فهمه وتغييره.',
+      'هذه ليست نهاية التغيير… لكنها بداية صادقة وواقعية له.',
+    ],
+    requirements: settings.requirements?.length ? settings.requirements : SCRIPT_DEFAULTS.requirements,
+    faqs: [],
   }
 
-  // Transform stats to the expected format using correct field names from ChallengeStats
   const initialStats = {
     maxSeats: stats.capacity,
     confirmedCount: stats.confirmed_count,
@@ -92,7 +114,5 @@ export default async function ChallengePage() {
     isFull: stats.remaining <= 0,
   }
 
-  return (
-    <ChallengePageNewClient config={config} initialStats={initialStats} />
-  )
+  return <ChallengePageNewClient config={config} initialStats={initialStats} />
 }

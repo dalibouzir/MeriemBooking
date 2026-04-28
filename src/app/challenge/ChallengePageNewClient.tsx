@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react'
 import { ChallengeProvider, ChallengeStats } from './ChallengeContext'
 import {
   HeroSection,
-  VideoSection,
   BenefitsSectionNew,
   ScheduleSectionNew,
   WhoForSectionNew,
@@ -40,14 +39,13 @@ interface ChallengePageNewClientProps {
 export default function ChallengePageNewClient({ config, initialStats }: ChallengePageNewClientProps) {
   const pageRef = useRef<HTMLDivElement>(null)
 
-  // Initialize reveal animations
   useEffect(() => {
     const rootEl = pageRef.current
     if (!rootEl) return
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const elements = Array.from(rootEl.querySelectorAll<HTMLElement>('.ch-reveal'))
-    
+
     if (prefersReducedMotion) {
       elements.forEach((el) => el.classList.add('is-revealed'))
       return
@@ -74,7 +72,6 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
     return () => observer.disconnect()
   }, [])
 
-  // Check if challenge is inactive
   if (!config.isEnabled) {
     return (
       <main className="ch-page ch-page-unavailable" dir="rtl" lang="ar">
@@ -90,7 +87,6 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
   return (
     <ChallengeProvider initialStats={initialStats}>
       <main ref={pageRef} className="ch-page" dir="rtl" lang="ar">
-        {/* Animated background blobs */}
         <div className="ch-page-bg" aria-hidden="true">
           <div className="ch-page-blob ch-page-blob-1" />
           <div className="ch-page-blob ch-page-blob-2" />
@@ -98,46 +94,34 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
         </div>
 
         <div className="ch-page-content">
-          {/* Hero - Two Column Editorial Layout */}
           <HeroSection
             title={config.title}
             subtitle={config.subtitle}
             description={config.description}
           />
 
-          {/* Video Section - After Hero */}
-          <VideoSection />
-
-          {/* Benefits Section */}
           <BenefitsSectionNew benefits={config.benefits} />
 
-          {/* Schedule Section */}
           <ScheduleSectionNew
             startDateLabel={config.startDateLabel}
             meetingTimeLabel={config.meetingTimeLabel}
             duration={config.duration}
           />
 
-          {/* Who It's For Section */}
           <WhoForSectionNew
             targetAudience={config.targetAudience}
             notFor={config.notFor}
           />
 
-          {/* Requirements Section */}
           <RequirementsSectionNew requirements={config.requirements} />
 
-          {/* FAQ Section */}
           <FAQSectionNew faqs={config.faqs} />
 
-          {/* Final CTA Section */}
           <FinalCTASection />
         </div>
 
-        {/* Sticky CTA - Mobile */}
         <StickyCTANew />
 
-        {/* Modal - Uses Context */}
         <ChallengeModalNew />
       </main>
     </ChallengeProvider>

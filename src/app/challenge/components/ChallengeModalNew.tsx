@@ -159,7 +159,7 @@ export default function ChallengeModalNew() {
           <div className="ch-modal-header">
             <div className="ch-modal-header-content">
               <h2 id="modal-title" className="ch-modal-title">
-                {modalState === 'form' && (stats.isFull ? '🔔 قائمة الانتظار' : '✨ سجّلي في التحدي')}
+                {modalState === 'form' && (stats.isFull ? '🔔 قائمة الانتظار' : '✨ احجزي مكانك الآن مجانًا')}
                 {modalState === 'loading' && '⏳ جارٍ التسجيل...'}
                 {modalState === 'success' && '🎉 تم التسجيل بنجاح!'}
                 {modalState === 'waitlist' && '📋 تمت إضافتك لقائمة الانتظار'}
@@ -229,7 +229,7 @@ export default function ChallengeModalNew() {
                   disabled={!name.trim() || !email.trim()}
                 >
                   <span className="ch-btn-text">
-                    {stats.isFull ? '🔔 انضمّي لقائمة الانتظار' : '✨ أكّدي التسجيل'}
+                    {stats.isFull ? '🔔 انضمّي لقائمة الانتظار' : '✨ تأكيد الحجز المجاني'}
                   </span>
                   <span className="ch-btn-shine" aria-hidden="true" />
                 </button>
@@ -257,7 +257,7 @@ export default function ChallengeModalNew() {
                 </div>
 
                 <p className="ch-success-message">
-                  مبارك! تم تسجيلك في التحدي بنجاح. احفظي رابط الاجتماع للانضمام في الموعد المحدد.
+                  تم تسجيلك بنجاح. هذه أول خطوة نحو هدوء حقيقي من الداخل.
                 </p>
 
                 {registrationResult?.startsAt && (
@@ -352,8 +352,8 @@ export default function ChallengeModalNew() {
                 </div>
 
                 <p className="ch-waitlist-message">
-                  للأسف المقاعد اكتملت، لكن تمت إضافتك لقائمة الانتظار.
-                  سنُبلّغك فور توفر مقعد أو عند فتح التسجيل للجولة القادمة.
+                  المقاعد اكتملت حاليًا، وتمت إضافتك إلى قائمة الانتظار.
+                  سنُبلغك فور توفر مقعد أو عند فتح الجولة القادمة.
                 </p>
 
                 {registrationResult?.registrationId && (

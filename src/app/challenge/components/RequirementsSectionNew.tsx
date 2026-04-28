@@ -7,9 +7,9 @@ interface RequirementsSectionNewProps {
 }
 
 const defaultRequirements = [
-  { icon: '📱', text: 'هاتف أو حاسوب مع اتصال بالإنترنت' },
-  { icon: '🕒', text: 'مكان هادئ لمدة ساعة' },
-  { icon: '❤️', text: 'الرغبة في الاهتمام بنفسك' },
+  { icon: '١', text: 'اليوم الأول: افهمي ما يحدث داخلك. لماذا تفقدين السيطرة رغم أنك تعلمين؟ (تبسيط عميق لما يحدث في داخلك).' },
+  { icon: '٢', text: 'اليوم الثاني: ابدئي التغيير فعليًا عبر تمارين واستراتيجيات تساعدك على إيقاف ردّة الفعل، التعامل مع trigger، والخروج من نمط التوتر المتكرر.' },
+  { icon: '٣', text: 'اليوم الثالث: جلسة تطبيق وأسئلة مباشرة على حالات حقيقية من المشاركات لتطبيق ما تعلّمناه على مواقف واقعية.' },
 ]
 
 export default function RequirementsSectionNew({ requirements }: RequirementsSectionNewProps) {
@@ -18,7 +18,7 @@ export default function RequirementsSectionNew({ requirements }: RequirementsSec
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    
+
     if (prefersReducedMotion) {
       itemsRef.current.forEach((el) => el?.classList.add('is-revealed'))
       return
@@ -47,7 +47,6 @@ export default function RequirementsSectionNew({ requirements }: RequirementsSec
     return () => observer.disconnect()
   }, [requirements])
 
-  // Use provided requirements or defaults
   const displayItems = requirements.length > 0
     ? requirements.map((text, i) => ({
         icon: defaultRequirements[i % defaultRequirements.length].icon,
@@ -60,10 +59,10 @@ export default function RequirementsSectionNew({ requirements }: RequirementsSec
       <div className="ch-requirements-container">
         <div className="ch-requirements-header ch-reveal">
           <h2 id="requirements-title" className="ch-section-title">
-            📋 ما تحتاجينه للمشاركة
+            تفاصيل الأيام
           </h2>
           <p className="ch-section-subtitle">
-            متطلبات بسيطة لتبدئي رحلتك معنا
+            ثلاثة أيام قصيرة، لكن مركّزة، تبدأين فيها فهم ما يحدث وتطبيق تغيير عملي.
           </p>
         </div>
 

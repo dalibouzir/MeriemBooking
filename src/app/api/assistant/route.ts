@@ -7,13 +7,18 @@ const SYSTEM_PROMPT = `
 احرص على تنظيم الإجابات في فقرات قصيرة أو نقاط عند الحاجة.
 `
 
-const API_URL = 'https://api.openai.com/v1/chat/completions'
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 export async function POST(request: Request) {
-  const openaiKey = process.env.OPENAI_API_KEY
-  if (!openaiKey) {
-    return NextResponse.json({ error: 'OPENAI_API_KEY غير مُحدّد' }, { status: 500 })
+  const openRouterKey = process.env.OPENROUTER_API_KEY
+  if (!openRouterKey) {
+    return NextResponse.json({ error: 'OPENROUTER_API_KEY غير مُحدّد' }, { status: 500 })
   }
+
+  const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-3.7-sonnet'
+  const maxTokens = Number(process.env.OPENROUTER_MAX_TOKENS || 600)
+  const appUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const appName = process.env.OPENROUTER_APP_NAME || 'Fittrah Assistant'
 
   let body: { messages?: { role: string; content: string }[] }
   try {
@@ -28,16 +33,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(OPENROUTER_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${openaiKey}`,
+        Authorization: `Bearer ${openRouterKey}`,
+        'HTTP-Referer': appUrl,
+        'X-Title': appName,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model,
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...conversation],
         temperature: 0.6,
+        max_tokens: Number.isFinite(maxTokens) && maxTokens > 0 ? maxTokens : 600,
       }),
     })
 
