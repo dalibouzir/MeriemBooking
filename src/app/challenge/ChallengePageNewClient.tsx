@@ -7,7 +7,6 @@ import {
   BenefitsSectionNew,
   ScheduleSectionNew,
   WhoForSectionNew,
-  RequirementsSectionNew,
   FinalCTASection,
   StickyCTANew,
   ChallengeModalNew,
@@ -100,7 +99,6 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
             duration={config.duration}
           />
           <WhoForSectionNew targetAudience={config.targetAudience} notFor={config.notFor} />
-          <RequirementsSectionNew requirements={config.requirements} />
           <FinalCTASection />
         </div>
 

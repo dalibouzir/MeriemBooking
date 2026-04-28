@@ -14,16 +14,16 @@ const SCRIPT_DEFAULTS = {
   title: 'تحدّي الأم الهادئة في 3 أيام',
   subtitle: 'من التوتر والانفجار… إلى بداية هدوء حقيقي من الداخل',
   description:
-    'أعطيني فقط 90 دقيقة خلال 3 أيام، واكتشفي كيف تبدأين استعادة هدوئك… حتى لو كنتِ عصبية وتحت ضغط يومي.',
+    'أعطيني فقط 90 دقيقة خلال 3 أيام، واكتشفي كيف تبدأين استعادة هدوئك… حتى لو كنتِ عصبية وتحت ضغط يومي',
   benefits: [
-    'لماذا تفقدين السيطرة رغم أنك تعرفين ما هو الصواب.',
-    'ما الذي يحرّك ردّة فعلك من الداخل.',
-    'لماذا يتكرّر نفس النمط رغم محاولاتك المتكررة.',
+    'لماذا تفقدين السيطرة رغم أنك تعرفين ما هو الصواب',
+    'ما الذي يحرّك ردّة فعلك من الداخل',
+    'ولماذا يتكرّر نفس النمط، رغم محاولاتك المتكررة',
   ],
   requirements: [
-    'اليوم الأول: افهمي ما يحدث داخلك. لماذا تفقدين السيطرة رغم أنك تعلمين؟ (تبسيط عميق لما يحدث في داخلك).',
-    'اليوم الثاني: ابدئي التغيير فعليًا عبر تمارين واستراتيجيات تساعدك على إيقاف ردّة الفعل، التعامل مع trigger، والخروج من نمط التوتر المتكرر.',
-    'اليوم الثالث: جلسة تطبيق وأسئلة مباشرة على حالات حقيقية من المشاركات لتطبيق ما تعلّمناه على مواقف واقعية.',
+    'اليوم الأول: افهمي ما يحدث داخلك',
+    'اليوم الثاني: ابدئي التغيير فعليًا',
+    'اليوم الثالث: جلسة تطبيق وأسئلة مباشرة',
   ],
 }
 
@@ -88,21 +88,21 @@ export default async function ChallengePage() {
     meetingTimeLabel,
     duration: settings.duration_minutes,
     maxSeats: settings.capacity,
-    title: settings.title?.trim() || SCRIPT_DEFAULTS.title,
-    subtitle: settings.subtitle?.trim() || SCRIPT_DEFAULTS.subtitle,
-    description: settings.description?.trim() || SCRIPT_DEFAULTS.description,
-    benefits: settings.benefits?.length ? settings.benefits : SCRIPT_DEFAULTS.benefits,
+    title: SCRIPT_DEFAULTS.title,
+    subtitle: SCRIPT_DEFAULTS.subtitle,
+    description: SCRIPT_DEFAULTS.description,
+    benefits: SCRIPT_DEFAULTS.benefits,
     targetAudience: [
-      'فهم حقيقي لما يحدث داخلك في لحظة الضغط.',
-      'وعي trigger أساسي يسبب أغلب توترك.',
-      'تعلّم استراتيجيات وتمارين بسيطة لتغيير ردّة فعلك.',
+      'فهم حقيقي لما يحدث داخلك في لحظة الضغط',
+      'وعي trigger أساسي يسبب أغلب توترك',
+      'تعلّم استراتيجيات وتمارين بسيطة لتغيير ردّة فعلك',
     ],
     notFor: [
-      'هذا التحدي ليس فقط محتوى، بل مساحة تشعرين فيها أنك مفهومة.',
-      'ما تعيشينه ليس ضعفًا… بل نمط يمكن فهمه وتغييره.',
-      'هذه ليست نهاية التغيير… لكنها بداية صادقة وواقعية له.',
+      'هذا التحدي ليس فقط محتوى',
+      'بل مساحة تشعرين فيها أنك مفهومة',
+      'وأن ما تعيشينه ليس ضعفًا… بل نمط يمكن فهمه وتغييره',
     ],
-    requirements: settings.requirements?.length ? settings.requirements : SCRIPT_DEFAULTS.requirements,
+    requirements: SCRIPT_DEFAULTS.requirements,
     faqs: [],
   }
 

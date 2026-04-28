@@ -1,53 +1,10 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { SparklesIcon, HeartIcon, LightBulbIcon } from '@heroicons/react/24/outline'
 
 interface RequirementsSectionNewProps {
   requirements: string[]
 }
-
-type DayPlan = {
-  id: number
-  label: string
-  title: string
-  points: string[]
-}
-
-const DAY_PLANS: DayPlan[] = [
-  {
-    id: 1,
-    label: 'اليوم الأول',
-    title: 'فهمي نفسك بعمق',
-    points: [
-      'لماذا تفقدين السيطرة رغم معرفتك للصواب',
-      'كيف يعمل نمط التوتر المتكرر داخلك',
-      'تبسيط عميق لما يحدث في لحظة الانفعال',
-    ],
-  },
-  {
-    id: 2,
-    label: 'اليوم الثاني',
-    title: 'ابدئي التغيير عمليًا',
-    points: [
-      'تمارين توقف ردّة الفعل قبل الانفجار',
-      'التعامل مع trigger بطريقة واقعية',
-      'خطة بسيطة للخروج من دائرة التوتر',
-    ],
-  },
-  {
-    id: 3,
-    label: 'اليوم الثالث',
-    title: 'تثبيت التغيير بالتطبيق',
-    points: [
-      'جلسة تطبيق وأسئلة مباشرة',
-      'حالات حقيقية من المشاركات',
-      'تطبيق عملي لما تعلمناه على مواقف يومية',
-    ],
-  },
-]
-
-const dayIcons = [SparklesIcon, LightBulbIcon, HeartIcon]
 
 export default function RequirementsSectionNew({ requirements }: RequirementsSectionNewProps) {
   const sectionRef = useRef<HTMLElement>(null)
@@ -78,34 +35,21 @@ export default function RequirementsSectionNew({ requirements }: RequirementsSec
   }, [])
 
   return (
-    <section ref={sectionRef} className="chl-section ch-reveal" aria-labelledby="days-title">
+    <section ref={sectionRef} className="chl-section ch-reveal" aria-labelledby="final-paragraph-title">
       <div className="chl-wrap">
         <header className="chl-heading">
-          <h2 id="days-title" className="chl-title">تفاصيل الأيام</h2>
-          <p className="chl-subtitle">رحلة 3 أيام مصممة لتناسب حياتك اليومية</p>
+          <h2 id="final-paragraph-title" className="chl-title">الفقرة الأخيرة</h2>
         </header>
 
-        <div className="chl-days-grid">
-          {DAY_PLANS.map((day, index) => {
-            const Icon = dayIcons[index % dayIcons.length]
-            return (
-              <article key={day.id} className="chl-day-card ch-reveal-item">
-                <span className="chl-day-badge">{day.id}</span>
-                <p className="chl-day-label">{day.label}</p>
-                <h3 className="chl-day-title">{day.title}</h3>
-
-                <ul className="chl-day-list">
-                  {day.points.map((point, idx) => (
-                    <li key={idx}>{point}</li>
-                  ))}
-                </ul>
-
-                <span className="chl-day-bottom-icon" aria-hidden="true">
-                  <Icon />
-                </span>
-              </article>
-            )
-          })}
+        <div className="chl-script-block chl-script-block-centered">
+          <p>
+            إذا كنتِ تعيشين نفس التوتر كل يوم…
+            <br />
+            وتتمنين أن يتغير شيء…
+            <br />
+            حتى لو كان بسيطًا
+          </p>
+          <p>👉 فهذا التحدي لك</p>
         </div>
       </div>
     </section>

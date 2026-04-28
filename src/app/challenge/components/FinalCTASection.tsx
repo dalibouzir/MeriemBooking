@@ -42,21 +42,22 @@ export default function FinalCTASection() {
           <span className="chl-final-spark chl-final-spark-b" aria-hidden="true" />
 
           <h2 id="final-cta-title" className="chl-final-title">
-            إذا كنتِ تعيشين نفس التوتر كل يوم...
+            إذا كنتِ تعيشين نفس التوتر كل يوم…
             <br />
-            وتتمنين أن يتغير شيء...
+            وتتمنين أن يتغير شيء…
             <br />
             حتى لو كان بسيطًا
           </h2>
 
-          <p className="chl-final-sub">فهذا التحدي لك</p>
+          <p className="chl-final-sub">👉 فهذا التحدي لك</p>
 
           <button type="button" className="chl-btn chl-btn-primary" onClick={openModal}>
-            {stats.isFull ? 'انضمّي لقائمة الانتظار' : 'ابدئي رحلتك الآن مجانًا'}
+            {stats.isFull ? 'انضمّي لقائمة الانتظار' : 'احجزي مكانك الآن مجانًا'}
             <SparklesIcon className="chl-btn-icon" aria-hidden="true" />
           </button>
 
-          <p className="chl-final-trust">والتغيير لا يبدأ بالكمال، بل بخطوة صغيرة صادقة</p>
+          <p className="chl-final-trust">وابدئي أول خطوة نحو هدوء حقيقي من الداخل</p>
+          <p className="chl-final-proof">إذا كنتِ تعيشين نفس التوتر كل يوم… فهذا التحدي لك</p>
         </div>
       </div>
     </section>

@@ -118,11 +118,33 @@ export default function HeroSection({ title, subtitle, description }: HeroSectio
           <h1 id="hero-title" className="chl-hero-title">{title || 'تحدّي الأم الهادئة في 3 أيام'}</h1>
           {subtitle && <p className="chl-hero-lead">{subtitle}</p>}
 
-          {description && <p className="chl-hero-text">{description}</p>}
+          <div className="chl-hero-copy-card">
+            {description && <p className="chl-hero-text">{description}</p>}
+          </div>
+
+          <div className="chl-hero-sub-card">
+            <div className="chl-qa-block">
+              <p className="chl-qa-question">
+                هل سئمتِ من فقدان السيطرة ثم الندم؟
+                <br />
+                من أن تقولي لنفسك “لن أكرر هذا”…
+                <br />
+                <br />
+                ثم تجدين نفسك في نفس الموقف مرة أخرى؟
+              </p>
+              <p className="chl-qa-answer">
+                انضمّي إلى هذا التحدّي
+                <br />
+                حيث سنكشف معًا ما يحدث داخلك في لحظة الانفعال…
+                <br />
+                ولماذا يتكرّر، وكيف تبدئين تغييره
+              </p>
+            </div>
+          </div>
 
           <div className="chl-hero-actions">
             <button type="button" className="chl-btn chl-btn-primary" onClick={openModal}>
-              {stats.isFull ? 'انضمّي لقائمة الانتظار' : 'ابدئي رحلتك الآن مجانًا'}
+              {stats.isFull ? 'انضمّي لقائمة الانتظار' : 'احجزي مكانك الآن مجانًا'}
               <SparklesIcon className="chl-btn-icon" aria-hidden="true" />
             </button>
             <button type="button" className="chl-btn chl-btn-outline" onClick={scrollToDetails}>

@@ -5,11 +5,13 @@ import Navbar from '@/components/ScrollHideTopbar'
 import ChatSuggestions from '@/components/ChatSuggestions'
 import {
   ChatBubbleLeftRightIcon,
+  InformationCircleIcon,
   PaperAirplaneIcon,
   ShieldCheckIcon,
   SparklesIcon,
   UserCircleIcon,
   WrenchScrewdriverIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -117,12 +119,42 @@ function AssistantIntroCard() {
   )
 }
 
+function AssistantMobileInfo({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <div className="assistant-mobile-info" aria-label="عن المساعد">
+      <button
+        type="button"
+        className="assistant-mobile-info-btn"
+        aria-expanded={open}
+        aria-controls="assistant-mobile-info-panel"
+        onClick={onToggle}
+      >
+        <InformationCircleIcon aria-hidden />
+        <span className="sr-only">عن المساعد</span>
+      </button>
+
+      {open && (
+        <div id="assistant-mobile-info-panel" className="assistant-mobile-info-panel" role="dialog" aria-modal="false">
+          <button type="button" className="assistant-mobile-info-close" onClick={onToggle}>
+            <XMarkIcon aria-hidden />
+            <span className="sr-only">إغلاق</span>
+          </button>
+          <p className="assistant-mobile-info-title">عن المساعد</p>
+          <p className="assistant-mobile-info-text">إجابات سريعة، أدوات عملية، ودعم آمن لمشاعرك اليومية.</p>
+          <p className="assistant-mobile-info-note">هذه المحادثة سرية وآمنة 100% ولا يتم حفظها.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AssistantPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [suggestionsVisible, setSuggestionsVisible] = useState(true)
+  const [mobileInfoOpen, setMobileInfoOpen] = useState(false)
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
 
@@ -211,6 +243,7 @@ export default function AssistantPage() {
       setInputValue('')
       setError(null)
       setSuggestionsVisible(false)
+      setMobileInfoOpen(false)
       setLoading(true)
 
       try {
@@ -328,8 +361,11 @@ export default function AssistantPage() {
                 <h1 className="assistant-chat-title">{ASSISTANT_TITLE}</h1>
                 <p className="assistant-chat-subtitle">{ASSISTANT_DESCRIPTION}</p>
               </div>
-              <div className="assistant-chat-icon" aria-hidden>
-                <ChatBubbleLeftRightIcon />
+              <div className="assistant-chat-header-actions">
+                <AssistantMobileInfo open={mobileInfoOpen} onToggle={() => setMobileInfoOpen((prev) => !prev)} />
+                <div className="assistant-chat-icon" aria-hidden>
+                  <ChatBubbleLeftRightIcon />
+                </div>
               </div>
             </header>
 

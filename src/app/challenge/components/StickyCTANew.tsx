@@ -47,7 +47,7 @@ export default function StickyCTANew() {
           className="ch-btn ch-btn-primary ch-btn-sticky"
           onClick={openModal}
         >
-          {stats.isFull ? 'قائمة الانتظار' : 'احجزي الآن'}
+          {stats.isFull ? 'قائمة الانتظار' : 'احجزي مكانك الآن مجانًا'}
         </button>
       </div>
     </div>

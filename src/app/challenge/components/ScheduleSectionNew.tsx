@@ -1,13 +1,45 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { HeartIcon } from '@heroicons/react/24/outline'
+import { SparklesIcon, LightBulbIcon, HeartIcon } from '@heroicons/react/24/outline'
 
 interface ScheduleSectionNewProps {
   startDateLabel: string
   meetingTimeLabel: string
   duration: number
 }
+
+type DayPlan = {
+  id: number
+  label: string
+  title: string
+  intro?: string
+  points: string[]
+}
+
+const DAY_PLANS: DayPlan[] = [
+  {
+    id: 1,
+    label: 'اليوم الأول:',
+    title: 'افهمي ما يحدث داخلك',
+    points: ['لماذا تفقدين السيطرة رغم أنك تعلمين؟', '(تبسيط عميق لما يحدث في داخلك)'],
+  },
+  {
+    id: 2,
+    label: 'اليوم الثاني:',
+    title: 'ابدئي التغيير فعليًا',
+    intro: 'تمارين واستراتيجيات تساعدك على:',
+    points: ['إيقاف ردّة الفعل', 'التعامل مع trigger', 'الخروج من نمط التوتر المتكرر'],
+  },
+  {
+    id: 3,
+    label: 'اليوم الثالث:',
+    title: 'جلسة تطبيق وأسئلة مباشرة',
+    points: ['سنأخذ حالات حقيقية من المشاركات', 'ونطبّق ما تعلّمناه على مواقف واقعية'],
+  },
+]
+
+const dayIcons = [SparklesIcon, LightBulbIcon, HeartIcon]
 
 export default function ScheduleSectionNew({ startDateLabel, meetingTimeLabel, duration }: ScheduleSectionNewProps) {
   const sectionRef = useRef<HTMLElement>(null)
@@ -40,20 +72,35 @@ export default function ScheduleSectionNew({ startDateLabel, meetingTimeLabel, d
   }, [])
 
   return (
-    <section ref={sectionRef} className="chl-section ch-reveal" aria-labelledby="alone-title">
+    <section ref={sectionRef} className="chl-section ch-reveal" aria-labelledby="days-title">
       <div className="chl-wrap">
-        <div className="chl-alone-card">
-          <span className="chl-alone-leaf" aria-hidden="true" />
-          <span className="chl-alone-heart" aria-hidden="true">
-            <HeartIcon />
-          </span>
+        <header className="chl-heading">
+          <h2 id="days-title" className="chl-title">تفاصيل الأيام</h2>
+        </header>
 
-          <h2 id="alone-title" className="chl-title">لستِ وحدك</h2>
-          <p className="chl-alone-text">
-            هذا التحدي مساحة آمنة تشعرين فيها أنك مفهومة
-            <br />
-            وأن ما تعيشينه ليس ضعفًا… بل نمط يمكن تغييره
-          </p>
+        <div className="chl-days-grid">
+          {DAY_PLANS.map((day, index) => {
+            const Icon = dayIcons[index % dayIcons.length]
+            return (
+              <article key={day.id} className="chl-day-card ch-reveal-item">
+                <span className="chl-day-badge">{day.id}</span>
+                <p className="chl-day-label">{day.label}</p>
+                <h3 className="chl-day-title">{day.title}</h3>
+
+                {day.intro && <p className="chl-day-intro">{day.intro}</p>}
+
+                <ul className="chl-day-list">
+                  {day.points.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+
+                <span className="chl-day-bottom-icon" aria-hidden="true">
+                  <Icon />
+                </span>
+              </article>
+            )
+          })}
         </div>
       </div>
     </section>
