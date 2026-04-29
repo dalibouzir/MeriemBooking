@@ -39,11 +39,14 @@ export async function POST(request: Request) {
       shadow_type: shadowType,
     })
 
-    if (insertError && !isMissingQuizTableError(insertError.message)) {
+    if (insertError) {
+      if (isMissingQuizTableError(insertError.message)) {
+        throw new Error('جدول نتائج الكويز غير موجود في قاعدة البيانات. رجاءً طبّقي migration إنشاء quiz_contendors أولًا.')
+      }
       throw new Error(insertError.message)
     }
 
-    const from = (process.env.RESEND_FROM_EMAIL || 'Fittrah Women <noreply@fittrah.com>').trim()
+    const from = (process.env.RESEND_FROM_EMAIL || 'Fittrah Women <noreply@fittrahmoms.com>').trim()
 
     await sendEmailWithRetry({
       from,

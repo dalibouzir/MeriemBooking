@@ -5,7 +5,7 @@
     "text": "عندما تطلبين من طفلك أمرًا ويرفض أو يتجاهله، ما التصرف الأقرب لكِ؟",
     "options": [
       { "key": "A", "label": "أُصرّ على تنفيذ طلبي فورًا", "icon": "🧭", "mainType": "guide" },
-      { "key": "B", "label": "ألين حتى لا يزعل", "icon": "💛", "mainType": "pleaser" },
+      { "key": "B", "label": "ألين حتى لا ينزعج", "icon": "💛", "mainType": "pleaser" },
       { "key": "C", "label": "أتدخل وأحلّ الموقف بنفسي", "icon": "🛟", "mainType": "rescuer" },
       { "key": "D", "label": "أتركه ليتصرف", "icon": "🌿", "mainType": "independent" }
     ]
@@ -93,7 +93,7 @@
     "text": "إذا أخطأ أمام الآخرين:",
     "options": [
       { "key": "A", "label": "أصحّحه فورًا", "icon": "🧭", "mainType": "guide" },
-      { "key": "B", "label": "أتجاهل حتى لا يزعل", "icon": "💛", "mainType": "pleaser" },
+      { "key": "B", "label": "أتجاهل حتى لا ينزعج", "icon": "💛", "mainType": "pleaser" },
       { "key": "C", "label": "أتدخل وأصلّح", "icon": "🛟", "mainType": "rescuer" },
       { "key": "D", "label": "أعدّي الموقف", "icon": "🌿", "mainType": "independent" }
     ]

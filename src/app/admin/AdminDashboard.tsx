@@ -77,6 +77,9 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
           <Link href="/admin/challenge" className="admin-pill admin-pill-link">
             <span className="pill-label">🎯 Challenge</span>
           </Link>
+          <Link href="/admin/quiz" className="admin-pill admin-pill-link">
+            <span className="pill-label">🧠 Quiz Insights</span>
+          </Link>
         </nav>
       </header>
 
