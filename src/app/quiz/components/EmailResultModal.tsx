@@ -46,6 +46,8 @@ export default function EmailResultModal({
         </button>
       )}
     >
+      <p className="quiz-modal-teaser">هل تريد الانضمام الى التحدي (مجانا)</p>
+
       <label className="quiz-field-label" htmlFor="quiz-name">الاسم</label>
       <input
         id="quiz-name"
