@@ -1,0 +1,222 @@
+[
+  {
+    "id": 1,
+    "category": "behavior",
+    "text": "عندما تطلبين من طفلك أمرًا ويرفض أو يتجاهله، ما التصرف الأقرب لكِ؟",
+    "options": [
+      { "key": "A", "label": "أُصرّ على تنفيذ طلبي فورًا", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "ألين حتى لا يزعل", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أتدخل وأحلّ الموقف بنفسي", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "أتركه ليتصرف", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 2,
+    "category": "behavior",
+    "text": "عندما يبكي طفلك، كيف تتصرفين غالبًا؟",
+    "options": [
+      { "key": "A", "label": "أطلب منه أن يهدأ فورًا", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "أحتويه حتى لو تعبت", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أبحث عن السبب وأصلحه", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "أعطيه مساحة", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 3,
+    "category": "behavior",
+    "text": "ما أكثر ما يزعجك في سلوك طفلك؟",
+    "options": [
+      { "key": "A", "label": "الفوضى وقلة الانضباط", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "زعله مني", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "عجزه عن حل مشاكله", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "تعلّقه الزائد", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 4,
+    "category": "behavior",
+    "text": "إذا أخطأ طفلك، ماذا تفعلين؟",
+    "options": [
+      { "key": "A", "label": "أصحّح الخطأ مباشرة", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "أسامحه بسرعة", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أصلّح الخطأ بنفسي", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "أتركه يتعلّم", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 5,
+    "category": "behavior",
+    "text": "في الأماكن العامة، تميلين إلى:",
+    "options": [
+      { "key": "A", "label": "فرض القواعد بوضوح", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "تجنّب إزعاجه", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "التدخل لتفادي أي مشكلة", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "تركه يدبّر نفسه", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 6,
+    "category": "pressure",
+    "text": "عندما تكونين تحت ضغط، كيف يتغيّر أسلوبك؟",
+    "options": [
+      { "key": "A", "label": "أزداد صرامة", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "أعطي أكثر من طاقتي", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أتحمّل عنه مسؤولياته", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "أنسحب وأصمت", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 7,
+    "category": "pressure",
+    "text": "أقرب وصف لعلاقتك بطفلك:",
+    "options": [
+      { "key": "A", "label": "أوجّه وأحدّد القواعد", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "قريبة جدًا منه", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أنا حلّه لكل مشكلة", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "لكلٍ منا استقلاله", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 8,
+    "category": "pressure",
+    "text": "إذا رفض كلامك صراحة:",
+    "options": [
+      { "key": "A", "label": "أفرض قراري", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "ألين وأتراجع", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أحلّ الموقف بطريقتي", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "أتركه", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 9,
+    "category": "pressure",
+    "text": "إذا أخطأ أمام الآخرين:",
+    "options": [
+      { "key": "A", "label": "أصحّحه فورًا", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "أتجاهل حتى لا يزعل", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أتدخل وأصلّح", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "أعدّي الموقف", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 10,
+    "category": "pressure",
+    "text": "هدفك الأهم في التربية:",
+    "options": [
+      { "key": "A", "label": "الانضباط", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "القرب والحب", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "تجنّب المشاكل", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "الاستقلال", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 11,
+    "category": "shadow",
+    "text": "عند تكرار نفس الخطأ:",
+    "options": [
+      { "key": "A", "label": "أُكثر من النقد", "icon": "⚡", "mainType": "guide" },
+      { "key": "B", "label": "أذوب معه وأبرّر", "icon": "🫧", "mainType": "pleaser" },
+      { "key": "C", "label": "أشعر أني الضحية", "icon": "🎭", "mainType": "rescuer" },
+      { "key": "D", "label": "أنغلق وأبتعد", "icon": "🌙", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 12,
+    "category": "shadow",
+    "text": "عندما لا يستجيب لك:",
+    "options": [
+      { "key": "A", "label": "أشتدّ في الحزم", "icon": "⚡", "mainType": "guide" },
+      { "key": "B", "label": "أخاف أن أخسره", "icon": "🫧", "mainType": "pleaser" },
+      { "key": "C", "label": "أقول: عليّ أن أحلّ كل شيء", "icon": "🎭", "mainType": "rescuer" },
+      { "key": "D", "label": "أنسحب", "icon": "🌙", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 13,
+    "category": "shadow",
+    "text": "شعورك الداخلي المتكرر:",
+    "options": [
+      { "key": "A", "label": "يجب أن يكون كل شيء مضبوطًا", "icon": "⚡", "mainType": "guide" },
+      { "key": "B", "label": "يجب أن يرضى الجميع", "icon": "🫧", "mainType": "pleaser" },
+      { "key": "C", "label": "يجب أن أحلّ كل شيء", "icon": "🎭", "mainType": "rescuer" },
+      { "key": "D", "label": "كل شخص مسؤول عن نفسه", "icon": "🌙", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 14,
+    "category": "shadow",
+    "text": "عندما تتعبين:",
+    "options": [
+      { "key": "A", "label": "أصير قاسية", "icon": "⚡", "mainType": "guide" },
+      { "key": "B", "label": "أُهمِل نفسي", "icon": "🫧", "mainType": "pleaser" },
+      { "key": "C", "label": "ألوم الظروف", "icon": "🎭", "mainType": "rescuer" },
+      { "key": "D", "label": "أنعزل", "icon": "🌙", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 15,
+    "category": "shadow",
+    "text": "عندما تحتاجين دعمًا:",
+    "options": [
+      { "key": "A", "label": "لا أطلبه", "icon": "⚡", "mainType": "guide" },
+      { "key": "B", "label": "أخاف أن أُزعج", "icon": "🫧", "mainType": "pleaser" },
+      { "key": "C", "label": "لا أثق أن أحدًا سيفعلها مثلي", "icon": "🎭", "mainType": "rescuer" },
+      { "key": "D", "label": "أفضل الاعتماد على نفسي", "icon": "🌙", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 16,
+    "category": "identity",
+    "text": "قول “لا” لطفلك:",
+    "options": [
+      { "key": "A", "label": "ضروري وواضح", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "صعب عليّ", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أتفاداه بحلول بديلة", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "طبيعي", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 17,
+    "category": "identity",
+    "text": "عندما يقول: “ماما، انظري إليّ”:",
+    "options": [
+      { "key": "A", "label": "أوجّهه لما يفعل", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "أترك كل شيء لأجله", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أساعده لينجح", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "أشجّعه من بعيد", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 18,
+    "category": "identity",
+    "text": "كيف تعبّرين عن الحب غالبًا؟",
+    "options": [
+      { "key": "A", "label": "بالانضباط والاهتمام", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "بالاحتواء والقرب", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "بالمساعدة والحلول", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "بالثقة والحرية", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 19,
+    "category": "identity",
+    "text": "عندما يغضب منك:",
+    "options": [
+      { "key": "A", "label": "أفرض هدوءه", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "أحاول إرضاءه", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "أبحث عن السبب وأصلحه", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "أعطيه مساحة", "icon": "🌿", "mainType": "independent" }
+    ]
+  },
+  {
+    "id": 20,
+    "category": "identity",
+    "text": "أقرب إحساس لك كأم:",
+    "options": [
+      { "key": "A", "label": "مسؤولة عن كل شيء", "icon": "🧭", "mainType": "guide" },
+      { "key": "B", "label": "يجب أن أكون موجودة دائمًا", "icon": "💛", "mainType": "pleaser" },
+      { "key": "C", "label": "يجب أن أصلّح كل شيء", "icon": "🛟", "mainType": "rescuer" },
+      { "key": "D", "label": "أحب الاستقلال", "icon": "🌿", "mainType": "independent" }
+    ]
+  }
+]

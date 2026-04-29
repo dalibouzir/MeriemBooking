@@ -18,6 +18,7 @@ type NavLink = {
 const NAV_LINKS: NavLink[] = [
   { href: '/', label: 'الرئيسية' },
   { href: '/products', label: 'المكتبة' },
+  { href: '/quiz', label: 'اختبار التربية' },
   { href: '/challenge', label: 'تحدي اونلاين' },
   { href: '/assistant', label: 'مساعد الذكاء الاصطناعي' },
   { href: '/session', label: 'حجز الجلسة' },
