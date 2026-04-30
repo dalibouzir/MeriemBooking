@@ -2,7 +2,6 @@
 
 import type { QuizOption, QuizQuestion } from '../types'
 import ProgressBar from './ProgressBar'
-import Timer from './Timer'
 import OptionCard from './OptionCard'
 
 interface QuizCardProps {
@@ -10,7 +9,6 @@ interface QuizCardProps {
   current: number
   total: number
   selectedOption: QuizOption | null
-  timeLeft: number
   onSelect: (option: QuizOption) => void
   onBack: () => void
   canGoBack: boolean
@@ -21,7 +19,6 @@ export default function QuizCard({
   current,
   total,
   selectedOption,
-  timeLeft,
   onSelect,
   onBack,
   canGoBack,
@@ -31,7 +28,6 @@ export default function QuizCard({
   return (
     <article className="quiz-card">
       <div className="quiz-card-meta">
-        <Timer totalSeconds={timeLeft} />
         <span className="quiz-step-count">{`${current} / ${total}`}</span>
       </div>
 
