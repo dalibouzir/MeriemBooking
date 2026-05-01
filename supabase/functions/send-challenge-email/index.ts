@@ -68,21 +68,30 @@ const formatTimeArabic = (dateStr: string) => {
 const arabicPlainText = ({
   name,
   meetingUrl,
+  day1MeetingUrl,
+  day2MeetingUrl,
   startsAt,
   durationMinutes,
   registrationId,
+  vipCalendlyUrl,
 }: {
   name?: string
-  meetingUrl: string
+  meetingUrl?: string
+  day1MeetingUrl?: string
+  day2MeetingUrl?: string
   startsAt: string
   durationMinutes: number
   registrationId: string
+  vipCalendlyUrl?: string
 }) => {
   const greet = name && name.trim().length > 0 ? name.trim() : "عزيزتي"
   const formattedDate = formatDateArabic(startsAt)
   const formattedTime = formatTimeArabic(startsAt)
   
-  return [
+  const freeDay1Link = day1MeetingUrl || meetingUrl || ""
+  const freeDay2Link = day2MeetingUrl || ""
+
+  const lines = [
     "العنوان: 🎉 تم تسجيلك في تحدي التوازن!",
     "",
     `مرحبًا ${greet}،`,
@@ -94,8 +103,9 @@ const arabicPlainText = ({
     `الوقت: ${formattedTime}`,
     `المدة: ${durationMinutes} دقيقة`,
     "",
-    "🔗 رابط الانضمام للاجتماع:",
-    meetingUrl,
+    "🔗 روابط الانضمام (اليوم الأول والثاني):",
+    freeDay1Link ? `اليوم الأول: ${freeDay1Link}` : "اليوم الأول: سيتم إرساله لاحقًا",
+    freeDay2Link ? `اليوم الثاني: ${freeDay2Link}` : "اليوم الثاني: سيتم إرساله لاحقًا",
     "",
     "⚠️ ملاحظات مهمة:",
     "• احرصي على الانضمام قبل الموعد بـ 5 دقائق",
@@ -111,7 +121,18 @@ const arabicPlainText = ({
     "",
     "— — —",
     "فطرة النساء · Fittrah Women",
-  ].join("\n")
+  ]
+
+  if (vipCalendlyUrl) {
+    lines.push(
+      "",
+      "⭐ تريدين دخول جلسة اليوم الثالث VIP (مدفوعة)؟",
+      "احجزي مكانك من هنا:",
+      vipCalendlyUrl
+    )
+  }
+
+  return lines.join("\n")
 }
 
 // ------------ handler ------------
@@ -119,9 +140,12 @@ type RequestPayload = {
   name?: string
   email?: string
   meetingUrl?: string
+  day1MeetingUrl?: string
+  day2MeetingUrl?: string
   startsAt?: string
   durationMinutes?: number
   registrationId?: string
+  vipCalendlyUrl?: string
   replyTo?: string
   meriemImgUrl?: string
 }
@@ -161,15 +185,31 @@ const handler = async (req: Request): Promise<Response> => {
     return json({ error: "Invalid JSON body" }, 400)
   }
 
-  const { name, email, meetingUrl, startsAt, durationMinutes, registrationId, replyTo, meriemImgUrl } = payload ?? {}
+  const {
+    name,
+    email,
+    meetingUrl,
+    day1MeetingUrl,
+    day2MeetingUrl,
+    startsAt,
+    durationMinutes,
+    registrationId,
+    vipCalendlyUrl,
+    replyTo,
+    meriemImgUrl,
+  } = payload ?? {}
 
   // Validation
   const errors: string[] = []
   if (!email || !isValidEmail(email)) errors.push("valid email is required")
-  if (!meetingUrl || !isValidUrl(meetingUrl)) errors.push("valid meetingUrl is required")
+  if (!meetingUrl && !day1MeetingUrl) errors.push("day1MeetingUrl (or meetingUrl) is required")
+  if (meetingUrl && !isValidUrl(meetingUrl)) errors.push("meetingUrl must be a valid URL when provided")
+  if (day1MeetingUrl && !isValidUrl(day1MeetingUrl)) errors.push("day1MeetingUrl must be a valid URL when provided")
+  if (day2MeetingUrl && !isValidUrl(day2MeetingUrl)) errors.push("day2MeetingUrl must be a valid URL when provided")
   if (!startsAt) errors.push("startsAt is required")
   if (!durationMinutes || typeof durationMinutes !== "number") errors.push("durationMinutes is required")
   if (!registrationId) errors.push("registrationId is required")
+  if (vipCalendlyUrl && !isValidUrl(vipCalendlyUrl)) errors.push("vipCalendlyUrl must be a valid URL when provided")
 
   if (errors.length) return json({ error: "Validation failed", details: errors }, 400)
 
@@ -177,7 +217,8 @@ const handler = async (req: Request): Promise<Response> => {
   const greet = typeof name === "string" && name.trim().length > 0 ? name.trim() : "عزيزتي"
 
   const ensuredEmail = email as string
-  const ensuredMeetingUrl = meetingUrl as string
+  const ensuredDay1MeetingUrl = (day1MeetingUrl || meetingUrl) as string
+  const ensuredDay2MeetingUrl = day2MeetingUrl || ""
   const ensuredStartsAt = startsAt as string
   const ensuredDuration = durationMinutes as number
   const ensuredRegistrationId = registrationId as string
@@ -268,7 +309,7 @@ const handler = async (req: Request): Promise<Response> => {
               <span style="font-size:24px;width:36px;text-align:center">🌐</span>
               <div>
                 <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:2px">المنصة</div>
-                <div style="font-size:16px;font-weight:700;color:#1f2937">Google Meet (أونلاين)</div>
+                <div style="font-size:16px;font-weight:700;color:#1f2937">جلسة أونلاين (Zoom / Meet)</div>
               </div>
             </div>
           </div>
@@ -278,16 +319,31 @@ const handler = async (req: Request): Promise<Response> => {
         <div style="padding:24px;border-radius:20px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#ffffff;box-shadow:0 20px 40px rgba(124,58,237,0.3)">
           <h3 style="margin:0 0 14px;font-size:17px;display:flex;align-items:center;gap:10px">
             <span style="font-size:22px">🔗</span>
-            <span>رابط الانضمام للاجتماع</span>
+            <span>روابط الانضمام لليومين المجانيين</span>
           </h3>
-          <p style="margin:0 0 16px;font-size:14px;opacity:0.9">احفظي هذا الرابط واستخدميه للانضمام في الموعد المحدد</p>
-          <div style="background:rgba(255,255,255,0.15);padding:14px 18px;border-radius:12px;margin-bottom:16px;word-break:break-all">
-            <a href="${ensuredMeetingUrl}" style="color:#ffffff;text-decoration:none;font-size:14px;font-family:monospace">${ensuredMeetingUrl}</a>
+          <p style="margin:0 0 16px;font-size:14px;opacity:0.9">احفظي الروابط التالية للانضمام في كل يوم</p>
+          <div style="display:grid;gap:10px;margin-bottom:16px">
+            <div style="background:rgba(255,255,255,0.15);padding:14px 18px;border-radius:12px;word-break:break-all">
+              <div style="font-size:12px;opacity:.85;margin-bottom:6px">اليوم الأول</div>
+              <a href="${ensuredDay1MeetingUrl}" style="color:#ffffff;text-decoration:none;font-size:14px;font-family:monospace">${ensuredDay1MeetingUrl}</a>
+            </div>
+            ${ensuredDay2MeetingUrl ? `
+            <div style="background:rgba(255,255,255,0.15);padding:14px 18px;border-radius:12px;word-break:break-all">
+              <div style="font-size:12px;opacity:.85;margin-bottom:6px">اليوم الثاني</div>
+              <a href="${ensuredDay2MeetingUrl}" style="color:#ffffff;text-decoration:none;font-size:14px;font-family:monospace">${ensuredDay2MeetingUrl}</a>
+            </div>
+            ` : ''}
           </div>
-          <a href="${ensuredMeetingUrl}" style="display:inline-flex;align-items:center;gap:10px;background:#ffffff;color:#7c3aed;text-decoration:none;padding:14px 28px;border-radius:14px;font-weight:800;font-size:15px;box-shadow:0 8px 20px rgba(0,0,0,0.15)" target="_blank" rel="noopener noreferrer">
+          <a href="${ensuredDay1MeetingUrl}" style="display:inline-flex;align-items:center;gap:10px;background:#ffffff;color:#7c3aed;text-decoration:none;padding:14px 28px;border-radius:14px;font-weight:800;font-size:15px;box-shadow:0 8px 20px rgba(0,0,0,0.15)" target="_blank" rel="noopener noreferrer">
             <span style="font-size:20px">🚀</span>
-            <span>افتحي رابط الاجتماع</span>
+            <span>افتحي رابط اليوم الأول</span>
           </a>
+          ${ensuredDay2MeetingUrl ? `
+          <a href="${ensuredDay2MeetingUrl}" style="display:inline-flex;align-items:center;gap:10px;background:#ffffff;color:#7c3aed;text-decoration:none;padding:14px 28px;border-radius:14px;font-weight:800;font-size:15px;box-shadow:0 8px 20px rgba(0,0,0,0.15);margin-inline-start:8px" target="_blank" rel="noopener noreferrer">
+            <span style="font-size:20px">🚀</span>
+            <span>افتحي رابط اليوم الثاني</span>
+          </a>
+          ` : ''}
         </div>
 
         <!-- Tips Card -->
@@ -317,6 +373,21 @@ const handler = async (req: Request): Promise<Response> => {
           <p style="margin:0;font-size:15px;color:#713f12">💜 أنتظركِ بشوق في اللقاء!</p>
         </div>
 
+        ${vipCalendlyUrl ? `
+        <div style="padding:22px;border-radius:18px;background:linear-gradient(135deg,#fdf4ff,#f5f3ff);border:1px solid #e9d5ff;display:grid;gap:12px">
+          <h3 style="margin:0;font-size:16px;color:#7c3aed;display:flex;align-items:center;gap:8px">
+            <span>⭐</span>
+            <span>اليوم الثالث VIP (مدفوع)</span>
+          </h3>
+          <p style="margin:0;font-size:14px;color:#5b21b6">
+            إذا رغبتِ في فتح وصولك إلى جلسة اليوم الثالث VIP والدفع عبر Calendly:
+          </p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            ${btn(vipCalendlyUrl, "احجزي اليوم الثالث VIP", "#9333ea", "#ec4899", "💳")}
+          </div>
+        </div>
+        ` : ''}
+
         <p style="margin:0;font-size:15px;color:#111111">مع محبّتي،<br/><strong style="color:#7c3aed">مريم بوزير</strong></p>
       </div>
 
@@ -330,10 +401,13 @@ const handler = async (req: Request): Promise<Response> => {
 
   const text = arabicPlainText({
     name,
-    meetingUrl: ensuredMeetingUrl,
+    meetingUrl,
+    day1MeetingUrl: ensuredDay1MeetingUrl,
+    day2MeetingUrl: ensuredDay2MeetingUrl,
     startsAt: ensuredStartsAt,
     durationMinutes: ensuredDuration,
     registrationId: ensuredRegistrationId,
+    vipCalendlyUrl,
   })
 
   // Build body for Resend

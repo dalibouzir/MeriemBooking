@@ -12,6 +12,8 @@ import {
   updateRegistrationAction,
   deleteRegistrationAction,
   promoteWaitlistAction,
+  grantVipDay3AccessAction,
+  sendVipDay3EmailAction,
   exportCsvAction,
   type AdminOverview,
   type ChartDataPoint,
@@ -289,6 +291,10 @@ function SettingsTab({
     description: fallbackText(settings.description, SCRIPT_DEFAULTS.description),
     capacity: settings.capacity ?? 0,
     meeting_url: settings.meeting_url ?? '',
+    day1_zoom_url: settings.day1_zoom_url ?? settings.meeting_url ?? '',
+    day2_zoom_url: settings.day2_zoom_url ?? '',
+    day3_paid_calendly_url: settings.day3_paid_calendly_url ?? '',
+    day3_vip_zoom_url: settings.day3_vip_zoom_url ?? '',
     starts_at: settings.starts_at ? settings.starts_at.slice(0, 16) : '',
     duration_minutes: settings.duration_minutes ?? 60,
     timezone: settings.timezone ?? 'Africa/Tunis',
@@ -307,6 +313,10 @@ function SettingsTab({
       description: fallbackText(settings.description, SCRIPT_DEFAULTS.description),
       capacity: settings.capacity ?? 0,
       meeting_url: settings.meeting_url ?? '',
+      day1_zoom_url: settings.day1_zoom_url ?? settings.meeting_url ?? '',
+      day2_zoom_url: settings.day2_zoom_url ?? '',
+      day3_paid_calendly_url: settings.day3_paid_calendly_url ?? '',
+      day3_vip_zoom_url: settings.day3_vip_zoom_url ?? '',
       starts_at: settings.starts_at ? settings.starts_at.slice(0, 16) : '',
       duration_minutes: settings.duration_minutes ?? 60,
       timezone: settings.timezone ?? 'Africa/Tunis',
@@ -319,8 +329,10 @@ function SettingsTab({
   const handleSave = async () => {
     setSaving(true)
     setMessage('')
+    const normalizedMeetingUrl = form.meeting_url.trim() || form.day1_zoom_url.trim()
     const result = await updateChallengeSettingsAction({
       ...form,
+      meeting_url: normalizedMeetingUrl,
       starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : settings.starts_at,
     })
     if (result.success) {
@@ -414,12 +426,58 @@ function SettingsTab({
             />
           </div>
           <div className="admin-form-row">
-            <label className="admin-form-label">رابط الجلسة</label>
+            <label className="admin-form-label">رابط الجلسة الافتراضي (لإيميل التسجيل)</label>
             <input
               type="url"
               className="input"
               value={form.meeting_url}
               onChange={(e) => setForm((p) => ({ ...p, meeting_url: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        <div className="admin-form-grid2">
+          <div className="admin-form-row">
+            <label className="admin-form-label">رابط Zoom اليوم الأول (مجاني)</label>
+            <input
+              type="url"
+              className="input"
+              value={form.day1_zoom_url}
+              onChange={(e) => setForm((p) => ({ ...p, day1_zoom_url: e.target.value }))}
+              placeholder="https://zoom.us/..."
+            />
+          </div>
+          <div className="admin-form-row">
+            <label className="admin-form-label">رابط Zoom اليوم الثاني (مجاني)</label>
+            <input
+              type="url"
+              className="input"
+              value={form.day2_zoom_url}
+              onChange={(e) => setForm((p) => ({ ...p, day2_zoom_url: e.target.value }))}
+              placeholder="https://zoom.us/..."
+            />
+          </div>
+        </div>
+
+        <div className="admin-form-grid2">
+          <div className="admin-form-row">
+            <label className="admin-form-label">رابط Calendly المدفوع (اليوم الثالث VIP)</label>
+            <input
+              type="url"
+              className="input"
+              value={form.day3_paid_calendly_url}
+              onChange={(e) => setForm((p) => ({ ...p, day3_paid_calendly_url: e.target.value }))}
+              placeholder="https://calendly.com/..."
+            />
+          </div>
+          <div className="admin-form-row">
+            <label className="admin-form-label">رابط Zoom الخاص بـ VIP (اليوم الثالث)</label>
+            <input
+              type="url"
+              className="input"
+              value={form.day3_vip_zoom_url}
+              onChange={(e) => setForm((p) => ({ ...p, day3_vip_zoom_url: e.target.value }))}
+              placeholder="https://zoom.us/..."
             />
           </div>
         </div>
@@ -645,6 +703,8 @@ function RegistrationsTab({
 }) {
   const [editModal, setEditModal] = useState<Registration | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [grantModal, setGrantModal] = useState<Registration | null>(null)
+  const [sendingVipId, setSendingVipId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState(filters.search || '')
   const pageSize = filters.pageSize || 20
   const totalPages = Math.ceil(total / pageSize)
@@ -680,6 +740,17 @@ function RegistrationsTab({
     setDeleteId(null)
     onRefresh()
     onOverviewRefresh()
+  }
+
+  const handleResendVipEmail = async (id: string) => {
+    setSendingVipId(id)
+    const result = await sendVipDay3EmailAction({ registrationId: id })
+    setSendingVipId(null)
+    if (result.success) {
+      alert('VIP email sent successfully.')
+    } else {
+      alert(result.error || 'Failed to send VIP email.')
+    }
   }
 
   return (
@@ -757,6 +828,7 @@ function RegistrationsTab({
               <th>Email</th>
               <th>Phone</th>
               <th>Status</th>
+              <th>VIP Day3</th>
               <th>Link Copied</th>
               <th>Link Saved</th>
               <th>Actions</th>
@@ -765,7 +837,7 @@ function RegistrationsTab({
           <tbody>
             {registrations.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: 20 }}>
+                <td colSpan={9} style={{ textAlign: 'center', padding: 20 }}>
                   No registrations found
                 </td>
               </tr>
@@ -779,6 +851,7 @@ function RegistrationsTab({
                   <td>
                     <span className={`admin-reg-status ${reg.status}`}>{reg.status}</span>
                   </td>
+                  <td>{reg.vip_day3_access ? '✅ Granted' : '—'}</td>
                   <td>{reg.link_copied_at ? '✅' : '—'}</td>
                   <td>{reg.link_saved_at ? '✅' : '—'}</td>
                   <td>
@@ -786,6 +859,20 @@ function RegistrationsTab({
                       <button className="btn btn-sm" onClick={() => setEditModal(reg)}>
                         Edit
                       </button>
+                      {!reg.vip_day3_access && (
+                        <button className="btn btn-sm btn-primary" onClick={() => setGrantModal(reg)}>
+                          Grant VIP Day3
+                        </button>
+                      )}
+                      {reg.vip_day3_access && (
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => handleResendVipEmail(reg.id)}
+                          disabled={sendingVipId === reg.id}
+                        >
+                          {sendingVipId === reg.id ? 'Sending...' : 'Resend VIP Email'}
+                        </button>
+                      )}
                       {reg.status === 'waitlist' && (
                         <button className="btn btn-sm btn-primary" onClick={() => handlePromote(reg.id)}>
                           Promote
@@ -839,6 +926,18 @@ function RegistrationsTab({
         />
       )}
 
+      {grantModal && (
+        <GrantVipModal
+          registration={grantModal}
+          onClose={() => setGrantModal(null)}
+          onGranted={() => {
+            setGrantModal(null)
+            onRefresh()
+            onOverviewRefresh()
+          }}
+        />
+      )}
+
       {/* Delete Confirmation */}
       <Modal
         open={!!deleteId}
@@ -858,6 +957,90 @@ function RegistrationsTab({
         <p>Are you sure you want to delete this registration? This action cannot be undone.</p>
       </Modal>
     </div>
+  )
+}
+
+function GrantVipModal({
+  registration,
+  onClose,
+  onGranted,
+}: {
+  registration: Registration
+  onClose: () => void
+  onGranted: () => void
+}) {
+  const [paymentSource, setPaymentSource] = useState('manual')
+  const [paymentNote, setPaymentNote] = useState('')
+  const [sendEmail, setSendEmail] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  const handleGrant = async () => {
+    setSaving(true)
+    const result = await grantVipDay3AccessAction({
+      registrationId: registration.id,
+      paymentSource,
+      paymentNote,
+      sendEmail,
+      grantedBy: 'admin',
+    })
+    setSaving(false)
+
+    if (!result.success) {
+      alert(result.error || 'Failed to grant VIP access')
+      return
+    }
+    if (result.warning) {
+      alert(result.warning)
+    }
+    onGranted()
+  }
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Grant VIP Day 3 Access"
+      footer={
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-primary" onClick={handleGrant} disabled={saving}>
+            {saving ? 'Granting...' : 'Grant VIP'}
+          </button>
+          <button className="btn btn-outline" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      }
+    >
+      <div className="modal-form">
+        <p style={{ margin: 0 }}>
+          {registration.name} - <span className="ltr-cell">{registration.email}</span>
+        </p>
+        <div className="admin-form-row">
+          <label className="admin-form-label">Payment Source</label>
+          <select className="input" value={paymentSource} onChange={(e) => setPaymentSource(e.target.value)}>
+            <option value="manual">Manual</option>
+            <option value="cash">Cash</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="stripe">Stripe</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div className="admin-form-row">
+          <label className="admin-form-label">Payment Note (optional)</label>
+          <textarea
+            className="input textarea"
+            rows={3}
+            value={paymentNote}
+            onChange={(e) => setPaymentNote(e.target.value)}
+            placeholder="Any note for this manual VIP grant..."
+          />
+        </div>
+        <label className="admin-form-label" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} />
+          <span>Send VIP Day 3 email with Zoom link now</span>
+        </label>
+      </div>
+    </Modal>
   )
 }
 

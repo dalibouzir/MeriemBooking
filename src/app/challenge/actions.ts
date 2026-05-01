@@ -2,11 +2,25 @@
 
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
 
+function isValidHttpUrl(value: string | null | undefined): value is string {
+  if (!value) return false
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 // Types for challenge data
 export type ChallengeSettings = {
   id: string
   capacity: number
   meeting_url: string
+  day1_zoom_url: string | null
+  day2_zoom_url: string | null
+  day3_paid_calendly_url: string | null
+  day3_vip_zoom_url: string | null
   starts_at: string
   duration_minutes: number
   timezone: string
@@ -33,6 +47,8 @@ export type RegistrationResult = {
   remaining?: number
   error?: string
   meeting_url?: string
+  day1_zoom_url?: string | null
+  day2_zoom_url?: string | null
   starts_at?: string
   duration_minutes?: number
 }
@@ -143,27 +159,42 @@ export async function registerChallengeAction(formData: FormData): Promise<Regis
     if (result.status === 'success' || result.status === 'already_registered') {
       const { data: settings } = await supabase
         .from('challenge_settings')
-        .select('meeting_url, starts_at, duration_minutes')
+        .select('meeting_url, day1_zoom_url, day2_zoom_url, starts_at, duration_minutes, day3_paid_calendly_url')
         .limit(1)
         .single()
       
-      // Send confirmation email (don't await - fire and forget to not block response)
-      if (result.status === 'success' && settings?.meeting_url) {
-        sendChallengeConfirmationEmail({
-          name,
-          email,
-          meetingUrl: settings.meeting_url,
-          startsAt: settings.starts_at,
-          durationMinutes: settings.duration_minutes,
-          registrationId: result.registration_id,
-        }).catch((err) => console.error('Failed to send confirmation email:', err))
+      const validMeetingUrl = isValidHttpUrl(settings?.meeting_url) ? settings.meeting_url : ''
+      const validDay1Url = isValidHttpUrl(settings?.day1_zoom_url) ? settings.day1_zoom_url : validMeetingUrl
+      const validDay2Url = isValidHttpUrl(settings?.day2_zoom_url) ? settings.day2_zoom_url : null
+      const validVipCalendly = isValidHttpUrl(settings?.day3_paid_calendly_url) ? settings.day3_paid_calendly_url : null
+
+      // Send confirmation email for new or existing registration.
+      // Await to avoid serverless runtimes dropping a detached Promise.
+      if ((result.status === 'success' || result.status === 'already_registered') && settings && validDay1Url) {
+        try {
+          await sendChallengeConfirmationEmail({
+            name,
+            email,
+            meetingUrl: validMeetingUrl,
+            day1MeetingUrl: validDay1Url,
+            day2MeetingUrl: validDay2Url,
+            startsAt: settings.starts_at,
+            durationMinutes: settings.duration_minutes,
+            registrationId: result.registration_id,
+            vipCalendlyUrl: validVipCalendly,
+          })
+        } catch (err) {
+          console.error('Failed to send confirmation email:', err)
+        }
       }
       
       return {
         status: result.status as 'success' | 'already_registered',
         registration_id: result.registration_id,
         remaining: result.remaining,
-        meeting_url: settings?.meeting_url,
+        meeting_url: validDay1Url || validMeetingUrl,
+        day1_zoom_url: validDay1Url || null,
+        day2_zoom_url: validDay2Url,
         starts_at: settings?.starts_at,
         duration_minutes: settings?.duration_minutes,
       }
@@ -187,16 +218,22 @@ async function sendChallengeConfirmationEmail({
   name,
   email,
   meetingUrl,
+  day1MeetingUrl,
+  day2MeetingUrl,
   startsAt,
   durationMinutes,
   registrationId,
+  vipCalendlyUrl,
 }: {
   name: string
   email: string
   meetingUrl: string
+  day1MeetingUrl?: string | null
+  day2MeetingUrl?: string | null
   startsAt: string
   durationMinutes: number
   registrationId: string
+  vipCalendlyUrl?: string | null
 }) {
   const supabase = getSupabaseAdmin()
   
@@ -205,9 +242,12 @@ async function sendChallengeConfirmationEmail({
       name,
       email,
       meetingUrl,
+      day1MeetingUrl,
+      day2MeetingUrl,
       startsAt,
       durationMinutes,
       registrationId,
+      vipCalendlyUrl,
     },
   })
   

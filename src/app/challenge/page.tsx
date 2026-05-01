@@ -7,7 +7,7 @@ export const revalidate = 0
 export const metadata = {
   title: 'تحدّي الأم الهادئة في 3 أيام | Fittrah Women',
   description:
-    'تحدّي مجاني خلال 3 أيام لمساعدة الأم على الانتقال من التوتر والانفجار إلى بداية هدوء حقيقي من الداخل.',
+    'تحدّي خلال 3 أيام لمساعدة الأم على الانتقال من التوتر والانفجار إلى بداية هدوء حقيقي من الداخل.',
 }
 
 const SCRIPT_DEFAULTS = {
@@ -93,6 +93,9 @@ export default async function ChallengePage() {
     startDateLabel,
     meetingTimeLabel,
     duration: settings.duration_minutes,
+    day1ZoomUrl: fallbackText(settings.day1_zoom_url, settings.meeting_url || ''),
+    day2ZoomUrl: settings.day2_zoom_url,
+    day3PaidCalendlyUrl: settings.day3_paid_calendly_url,
     maxSeats: settings.capacity,
     title: fallbackText(settings.title, SCRIPT_DEFAULTS.title),
     subtitle: fallbackText(settings.subtitle, SCRIPT_DEFAULTS.subtitle),

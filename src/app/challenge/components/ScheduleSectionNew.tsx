@@ -7,6 +7,9 @@ interface ScheduleSectionNewProps {
   startDateLabel: string
   meetingTimeLabel: string
   duration: number
+  day1ZoomUrl?: string | null
+  day2ZoomUrl?: string | null
+  day3PaidCalendlyUrl?: string | null
 }
 
 type DayPlan = {
@@ -41,11 +44,21 @@ const DAY_PLANS: DayPlan[] = [
 
 const dayIcons = [SparklesIcon, LightBulbIcon, HeartIcon]
 
-export default function ScheduleSectionNew({ startDateLabel, meetingTimeLabel, duration }: ScheduleSectionNewProps) {
+export default function ScheduleSectionNew({
+  startDateLabel,
+  meetingTimeLabel,
+  duration,
+  day1ZoomUrl,
+  day2ZoomUrl,
+  day3PaidCalendlyUrl,
+}: ScheduleSectionNewProps) {
   const sectionRef = useRef<HTMLElement>(null)
   void startDateLabel
   void meetingTimeLabel
   void duration
+  void day1ZoomUrl
+  void day2ZoomUrl
+  void day3PaidCalendlyUrl
 
   useEffect(() => {
     const el = sectionRef.current
@@ -76,6 +89,7 @@ export default function ScheduleSectionNew({ startDateLabel, meetingTimeLabel, d
       <div className="chl-wrap">
         <header className="chl-heading">
           <h2 id="days-title" className="chl-title">تفاصيل الأيام</h2>
+          <p className="chl-subtitle">رحلة من 3 أيام بخطوات عملية واضحة تساعدك على الفهم والتغيير.</p>
         </header>
 
         <div className="chl-days-grid">

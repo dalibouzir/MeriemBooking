@@ -17,6 +17,9 @@ export interface ChallengeConfig {
   startDateLabel: string
   meetingTimeLabel: string
   duration: number
+  day1ZoomUrl?: string | null
+  day2ZoomUrl?: string | null
+  day3PaidCalendlyUrl?: string | null
   maxSeats: number
   title: string
   subtitle: string
@@ -97,6 +100,9 @@ export default function ChallengePageNewClient({ config, initialStats }: Challen
             startDateLabel={config.startDateLabel}
             meetingTimeLabel={config.meetingTimeLabel}
             duration={config.duration}
+            day1ZoomUrl={config.day1ZoomUrl}
+            day2ZoomUrl={config.day2ZoomUrl}
+            day3PaidCalendlyUrl={config.day3PaidCalendlyUrl}
           />
           <WhoForSectionNew targetAudience={config.targetAudience} notFor={config.notFor} />
           <FinalCTASection />

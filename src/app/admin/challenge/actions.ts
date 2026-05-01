@@ -1,7 +1,17 @@
 'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { sendEmailWithRetry } from '@/lib/resend'
 import type { ChallengeSettings } from '@/app/challenge/actions'
+
+function isValidHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
 
 // Types for admin
 export type AdminOverview = {
@@ -29,6 +39,11 @@ export type Registration = {
   status: 'confirmed' | 'waitlist'
   link_copied_at: string | null
   link_saved_at: string | null
+  vip_day3_access: boolean
+  vip_day3_granted_at: string | null
+  vip_day3_granted_by: string | null
+  vip_payment_source: string | null
+  vip_payment_note: string | null
 }
 
 export type RegistrationFilters = {
@@ -181,6 +196,24 @@ export async function updateChallengeSettingsAction(
   payload: Partial<ChallengeSettings>
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabaseAdmin()
+  const urlFields: Array<keyof ChallengeSettings> = [
+    'meeting_url',
+    'day1_zoom_url',
+    'day2_zoom_url',
+    'day3_paid_calendly_url',
+    'day3_vip_zoom_url',
+  ]
+
+  for (const field of urlFields) {
+    const value = payload[field]
+    if (typeof value !== 'string') continue
+    const trimmed = value.trim()
+    if (!trimmed) continue
+    if (!isValidHttpUrl(trimmed)) {
+      return { success: false, error: `Invalid URL in ${field}` }
+    }
+    ;(payload as Record<string, unknown>)[field] = trimmed
+  }
 
   // Get current settings to get the ID
   const { data: current } = await supabase
@@ -353,7 +386,7 @@ export async function exportCsvAction(
 
   let query = supabase
     .from('challenge_registrations')
-    .select('id, created_at, name, email, phone, status, link_copied_at, link_saved_at')
+    .select('id, created_at, name, email, phone, status, link_copied_at, link_saved_at, vip_day3_access, vip_day3_granted_at, vip_day3_granted_by, vip_payment_source, vip_payment_note')
     .order('created_at', { ascending: false })
 
   if (filter !== 'all') {
@@ -363,7 +396,7 @@ export async function exportCsvAction(
   const { data } = await query
 
   // Generate CSV
-  const headers = ['ID', 'Created At', 'Name', 'Email', 'Phone', 'Status', 'Link Copied At', 'Link Saved At']
+  const headers = ['ID', 'Created At', 'Name', 'Email', 'Phone', 'Status', 'Link Copied At', 'Link Saved At', 'VIP Day3 Access', 'VIP Granted At', 'VIP Granted By', 'VIP Payment Source', 'VIP Payment Note']
   const rows = (data || []).map((r) => [
     r.id,
     r.created_at,
@@ -373,6 +406,11 @@ export async function exportCsvAction(
     r.status,
     r.link_copied_at || '',
     r.link_saved_at || '',
+    r.vip_day3_access ? 'true' : 'false',
+    r.vip_day3_granted_at || '',
+    r.vip_day3_granted_by || '',
+    r.vip_payment_source || '',
+    r.vip_payment_note || '',
   ])
 
   const csv = [headers, ...rows].map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n')
@@ -381,4 +419,277 @@ export async function exportCsvAction(
   const filename = `challenge-registrations-${filter}-${now}.csv`
 
   return { csv, filename }
+}
+
+export async function grantVipDay3AccessAction({
+  registrationId,
+  paymentSource = 'manual',
+  paymentNote = '',
+  sendEmail = true,
+  grantedBy = 'admin',
+}: {
+  registrationId: string
+  paymentSource?: string
+  paymentNote?: string
+  sendEmail?: boolean
+  grantedBy?: string
+}): Promise<{ success: boolean; error?: string; warning?: string }> {
+  const supabase = getSupabaseAdmin()
+
+  const { data: registration, error: regError } = await supabase
+    .from('challenge_registrations')
+    .select('id, name, email')
+    .eq('id', registrationId)
+    .single()
+
+  if (regError || !registration) {
+    return { success: false, error: 'Registration not found' }
+  }
+
+  const { error: updateError } = await supabase
+    .from('challenge_registrations')
+    .update({
+      vip_day3_access: true,
+      vip_day3_granted_at: new Date().toISOString(),
+      vip_day3_granted_by: grantedBy,
+      vip_payment_source: paymentSource,
+      vip_payment_note: paymentNote || null,
+    })
+    .eq('id', registrationId)
+
+  if (updateError) {
+    console.error('Error granting VIP access:', updateError)
+    return { success: false, error: updateError.message }
+  }
+
+  if (!sendEmail) {
+    return { success: true }
+  }
+
+  const { data: settings, error: settingsError } = await supabase
+    .from('challenge_settings')
+    .select('day3_vip_zoom_url, starts_at, duration_minutes')
+    .limit(1)
+    .single()
+
+  if (settingsError || !settings?.day3_vip_zoom_url) {
+    return {
+      success: true,
+      warning: 'تم منح صلاحية VIP، لكن لم يتم إرسال الإيميل لأن رابط Zoom لليوم الثالث غير مضاف.',
+    }
+  }
+
+  try {
+    await sendVipDay3AccessEmail({
+      name: registration.name,
+      email: registration.email,
+      vipMeetingUrl: settings.day3_vip_zoom_url,
+      startsAt: settings.starts_at,
+      durationMinutes: settings.duration_minutes,
+      paymentSource,
+      paymentNote,
+    })
+    return { success: true }
+  } catch (err) {
+    console.error('Error sending VIP email:', err)
+    const errorMessage = err instanceof Error ? err.message : String(err)
+    return {
+      success: true,
+      warning: `تم منح صلاحية VIP، لكن فشل إرسال الإيميل. السبب: ${errorMessage}`,
+    }
+  }
+}
+
+export async function sendVipDay3EmailAction({
+  registrationId,
+}: {
+  registrationId: string
+}): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabaseAdmin()
+
+  const { data: registration, error: regError } = await supabase
+    .from('challenge_registrations')
+    .select('id, name, email, vip_day3_access, vip_payment_source, vip_payment_note')
+    .eq('id', registrationId)
+    .single()
+
+  if (regError || !registration) {
+    return { success: false, error: 'Registration not found' }
+  }
+
+  if (!registration.vip_day3_access) {
+    return { success: false, error: 'VIP day 3 access is not granted for this registration yet' }
+  }
+
+  const { data: settings, error: settingsError } = await supabase
+    .from('challenge_settings')
+    .select('day3_vip_zoom_url, starts_at, duration_minutes')
+    .limit(1)
+    .single()
+
+  if (settingsError || !settings?.day3_vip_zoom_url) {
+    return { success: false, error: 'VIP Day 3 Zoom link is missing in challenge settings' }
+  }
+
+  try {
+    await sendVipDay3AccessEmail({
+      name: registration.name,
+      email: registration.email,
+      vipMeetingUrl: settings.day3_vip_zoom_url,
+      startsAt: settings.starts_at,
+      durationMinutes: settings.duration_minutes,
+      paymentSource: registration.vip_payment_source || undefined,
+      paymentNote: registration.vip_payment_note || undefined,
+    })
+    return { success: true }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err)
+    return { success: false, error: errorMessage }
+  }
+}
+
+async function sendVipDay3AccessEmail({
+  name,
+  email,
+  vipMeetingUrl,
+  startsAt,
+  durationMinutes,
+  paymentSource,
+  paymentNote,
+}: {
+  name: string
+  email: string
+  vipMeetingUrl: string
+  startsAt: string
+  durationMinutes?: number
+  paymentSource?: string
+  paymentNote?: string
+}) {
+  const supabase = getSupabaseAdmin()
+  const vipPayload = {
+    name,
+    email,
+    vipMeetingUrl,
+    startsAt,
+    durationMinutes,
+    paymentSource,
+    paymentNote,
+  }
+
+  const { error } = await supabase.functions.invoke('send-challenge-vip-email', {
+    body: vipPayload,
+  })
+
+  if (!error) return
+
+  // Fallback: send VIP template directly through Resend from server action.
+  try {
+    await sendEmailWithRetry({
+      from: getVipFromAddress(),
+      to: email,
+      subject: '✨ تم تفعيل دخولك VIP لليوم الثالث',
+      html: buildVipHtml({
+        name,
+        vipMeetingUrl,
+        startsAt,
+        durationMinutes,
+        paymentSource,
+        paymentNote,
+      }),
+    })
+  } catch (fallbackErr) {
+    const vipErrorMessage = parseInvokeError(error)
+    const fallbackErrorMessage = parseInvokeError(fallbackErr)
+    throw new Error(`VIP function failed: ${vipErrorMessage} | direct resend failed: ${fallbackErrorMessage}`)
+  }
+}
+
+function parseInvokeError(error: unknown): string {
+  if (!error) return 'Unknown error'
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+  if (typeof error === 'object') {
+    const maybeMessage = (error as { message?: unknown }).message
+    if (typeof maybeMessage === 'string') return maybeMessage
+    try {
+      return JSON.stringify(error)
+    } catch {
+      return String(error)
+    }
+  }
+  return String(error)
+}
+
+function getVipFromAddress() {
+  const fromEmail = process.env.RESEND_FROM_EMAIL?.trim() || 'noreply@fittrahmoms.com'
+  return `Fittrah Women <${fromEmail}>`
+}
+
+function formatDateArabic(dateStr?: string) {
+  if (!dateStr) return 'سيتم إعلامك بالموعد'
+  try {
+    return new Date(dateStr).toLocaleDateString('ar-u-nu-latn', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  } catch {
+    return dateStr
+  }
+}
+
+function buildVipHtml({
+  name,
+  vipMeetingUrl,
+  startsAt,
+  durationMinutes,
+  paymentSource,
+  paymentNote,
+}: {
+  name: string
+  vipMeetingUrl: string
+  startsAt: string
+  durationMinutes?: number
+  paymentSource?: string
+  paymentNote?: string
+}) {
+  const greet = name?.trim() ? name.trim() : 'عزيزتي'
+  const dayDate = formatDateArabic(startsAt)
+  const sourceLine = paymentSource ? `<p style="margin:0 0 4px">طريقة الدفع: ${escapeHtml(paymentSource)}</p>` : ''
+  const noteLine = paymentNote ? `<p style="margin:0 0 4px">ملاحظة: ${escapeHtml(paymentNote)}</p>` : ''
+
+  return `
+    <div style="font-family:Tajawal,Tahoma,Arial,sans-serif;direction:rtl;text-align:right;background:#f4f3ff;padding:24px;color:#111">
+      <div style="max-width:620px;margin:0 auto;background:#fff;border-radius:18px;border:1px solid #e9d5ff;box-shadow:0 18px 42px rgba(124,58,237,.16);overflow:hidden">
+        <div style="padding:22px 24px;background:linear-gradient(145deg,#f5edff,#eef2ff);border-bottom:1px solid #e9d5ff">
+          <h1 style="margin:0;font-size:22px;color:#6d28d9">✨ تم تفعيل دخولك VIP لليوم الثالث</h1>
+        </div>
+        <div style="padding:20px 24px;line-height:1.9;font-size:15px">
+          <p style="margin:0 0 10px">مرحبًا <strong>${escapeHtml(greet)}</strong>،</p>
+          <p style="margin:0 0 10px">تم تفعيل وصولك إلى جلسة VIP (اليوم الثالث) بنجاح.</p>
+          <p style="margin:0 0 12px"><strong>موعد الجلسة:</strong> ${escapeHtml(dayDate)}</p>
+          <p style="margin:0 0 8px"><strong>رابط Zoom الخاص بجلسة VIP:</strong></p>
+          <p style="margin:0 0 18px"><a href="${escapeAttr(vipMeetingUrl)}" target="_blank" rel="noopener noreferrer" style="color:#6d28d9;font-weight:700;text-decoration:none">${escapeHtml(vipMeetingUrl)}</a></p>
+          ${sourceLine}
+          ${noteLine}
+          <p style="margin:14px 0 0">نراك قريبًا 💜</p>
+          <p style="margin:6px 0 0;color:#6d28d9;font-weight:700">Fittrah Women</p>
+        </div>
+      </div>
+    </div>
+  `.trim()
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+function escapeAttr(value: string) {
+  return escapeHtml(value)
 }

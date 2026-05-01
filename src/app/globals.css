@@ -12042,12 +12042,20 @@ html[class*="theme-d"] .product-card .product-btn-download{
   max-height: 90vh;
   overflow-y: auto;
   overflow-x: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
   border-radius: 28px;
   background: hsla(var(--glass-strong));
   backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--surface-border);
   box-shadow: 0 28px 70px hsla(var(--primary) / 0.2);
   animation: ch-modal-slide 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ch-modal-card::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 @keyframes ch-modal-slide {
@@ -13786,6 +13794,51 @@ html[class*="theme-d"] .product-card .product-btn-download{
   margin-top: auto;
   color: var(--chl-primary);
   opacity: 0.86;
+}
+
+.chl-day-link {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--primary) / 0.34);
+  background: hsl(var(--surface) / 0.85);
+  color: var(--chl-primary-700);
+  font-weight: 800;
+  text-decoration: none;
+  padding: 10px 14px;
+}
+
+.chl-day-link:hover {
+  background: hsl(var(--surface-strong) / 0.92);
+}
+
+.chl-day-vip {
+  margin-top: 14px;
+}
+
+.chl-day-vip-note {
+  margin: 0 0 8px;
+  color: #a21caf;
+  font-weight: 900;
+  text-align: center;
+}
+
+.chl-day-link-vip {
+  border-color: hsl(312 72% 58% / 0.6);
+  background: linear-gradient(135deg, hsl(292 82% 97%), hsl(313 100% 97%));
+  color: #831843;
+}
+
+.chl-day-vip-wait {
+  margin: 0;
+  text-align: center;
+  color: var(--chl-text-subtle);
+  font-size: 0.93rem;
 }
 
 .chl-day-bottom-icon svg {

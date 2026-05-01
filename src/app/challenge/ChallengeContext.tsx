@@ -17,6 +17,8 @@ type ModalState = 'closed' | 'form' | 'loading' | 'success' | 'waitlist' | 'erro
 // Registration result type
 interface RegistrationResult {
   meetLink?: string
+  day1MeetLink?: string | null
+  day2MeetLink?: string | null
   registrationId?: string
   startsAt?: string
   durationMinutes?: number
