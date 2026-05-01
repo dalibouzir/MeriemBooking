@@ -13170,7 +13170,7 @@ html[class*="theme-d"] .product-card .product-btn-download{
 
 .chl-hero-wrap {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 1fr;
   gap: 34px;
   align-items: center;
 }
@@ -13614,6 +13614,67 @@ html[class*="theme-d"] .product-card .product-btn-download{
   margin-top: 24px;
 }
 
+.chl-identity-merge {
+  margin-top: 24px;
+  width: min(1440px, calc(100vw - 20px));
+  padding-inline: 0 !important;
+  margin-inline: auto;
+}
+
+.chl-identity-merge .landing-bio-card {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  display: block;
+  padding: clamp(20px, 3vw, 38px);
+}
+
+.chl-identity-merge-card {
+  display: block;
+}
+
+.chl-identity-message {
+  border-radius: 26px;
+  border: 1px solid hsl(var(--primary) / 0.2);
+  background:
+    radial-gradient(120% 130% at 70% 0%, hsl(var(--primary) / 0.16), hsl(var(--surface) / 0.76) 55%),
+    hsl(var(--surface) / 0.74);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 16px 30px hsl(var(--primary) / 0.12);
+  padding: clamp(22px, 2.3vw, 34px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: clamp(16px, 2vw, 24px);
+}
+
+.chl-identity-message .chl-title {
+  margin-bottom: 10px;
+}
+
+.chl-identity-message .chl-alone-text {
+  margin-top: 0;
+}
+
+.chl-identity-merge .landing-bio-figure {
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.chl-identity-merge .landing-bio-meta {
+  text-align: center;
+}
+
+.chl-identity-merge .landing-bio-body {
+  max-width: 100%;
+}
+
+.chl-identity-merge .landing-bio-quote-card {
+  max-width: 760px;
+}
+
 .chl-check-icon-wrap {
   flex-shrink: 0;
 }
@@ -13838,19 +13899,16 @@ html[class*="theme-d"] .product-card .product-btn-download{
     gap: 20px;
   }
 
-  .chl-stats-card {
-    max-width: 360px;
-    margin: 0 auto;
-    order: 2;
-  }
-
-  .chl-hero-content {
-    order: 1;
-  }
-
   .chl-features-grid,
   .chl-days-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .chl-identity-merge {
+    width: calc(100vw - 16px);
+    margin-inline: auto;
   }
 }
 

@@ -217,12 +217,6 @@ export default function ChallengeModalNew() {
                   />
                 </div>
 
-                {!stats.isFull && stats.remainingSeats > 0 && (
-                  <div className="ch-form-remaining">
-                    متبقي <strong>{stats.remainingSeats}</strong> مقعد من أصل {stats.maxSeats}
-                  </div>
-                )}
-
                 <button
                   type="submit"
                   className="ch-btn ch-btn-primary ch-btn-lg ch-btn-full"

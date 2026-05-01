@@ -28,17 +28,7 @@ export default function StickyCTANew() {
         <div className="ch-sticky-cta-info">
           <span className="ch-sticky-cta-pulse" aria-hidden="true" />
           <span className="ch-sticky-cta-text">
-            {stats.isFull ? (
-              <>قائمة الانتظار مفتوحة</>
-            ) : stats.remainingSeats <= 5 ? (
-              <>
-                <strong className="ch-sticky-cta-urgent">{stats.remainingSeats}</strong> مقاعد متبقية
-              </>
-            ) : (
-              <>
-                <strong>{stats.remainingSeats}</strong> مقعد متبقٍ
-              </>
-            )}
+            {stats.isFull ? <>قائمة الانتظار مفتوحة</> : <>التسجيل مفتوح الآن</>}
           </span>
         </div>
 
