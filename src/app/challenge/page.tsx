@@ -27,6 +27,12 @@ const SCRIPT_DEFAULTS = {
   ],
 }
 
+const fallbackText = (value: string | null | undefined, fallbackValue: string) =>
+  value && value.trim() ? value : fallbackValue
+
+const fallbackList = (value: string[] | null | undefined, fallbackValue: string[]) =>
+  value && value.length > 0 ? value : fallbackValue
+
 const formatScheduleDate = (dateStr: string, timeZone: string) => {
   if (!dateStr) return 'قريباً'
   const date = new Date(dateStr)
@@ -88,10 +94,10 @@ export default async function ChallengePage() {
     meetingTimeLabel,
     duration: settings.duration_minutes,
     maxSeats: settings.capacity,
-    title: SCRIPT_DEFAULTS.title,
-    subtitle: SCRIPT_DEFAULTS.subtitle,
-    description: SCRIPT_DEFAULTS.description,
-    benefits: SCRIPT_DEFAULTS.benefits,
+    title: fallbackText(settings.title, SCRIPT_DEFAULTS.title),
+    subtitle: fallbackText(settings.subtitle, SCRIPT_DEFAULTS.subtitle),
+    description: fallbackText(settings.description, SCRIPT_DEFAULTS.description),
+    benefits: fallbackList(settings.benefits, SCRIPT_DEFAULTS.benefits),
     targetAudience: [
       'فهم حقيقي لما يحدث داخلك في لحظة الضغط',
       'وعي trigger أساسي يسبب أغلب توترك',
@@ -102,8 +108,8 @@ export default async function ChallengePage() {
       'بل مساحة تشعرين فيها أنك مفهومة',
       'وأن ما تعيشينه ليس ضعفًا… بل نمط يمكن فهمه وتغييره',
     ],
-    requirements: SCRIPT_DEFAULTS.requirements,
-    faqs: [],
+    requirements: fallbackList(settings.requirements, SCRIPT_DEFAULTS.requirements),
+    faqs: settings.faq?.map((item) => ({ question: item.q, answer: item.a })) ?? [],
   }
 
   const initialStats = {
