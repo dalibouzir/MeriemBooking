@@ -37,8 +37,6 @@ export default function HeroSection({ title, subtitle, description }: HeroSectio
             <span className="chl-hero-leaf" />
           </div>
 
-          <span className="chl-pill">تحدي العناية بنفسك</span>
-
           <h1 id="hero-title" className="chl-hero-title">{title || 'تحدّي الأم الهادئة في 3 أيام'}</h1>
           {subtitle && <p className="chl-hero-lead">{subtitle}</p>}
 
