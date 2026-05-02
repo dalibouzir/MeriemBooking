@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
 import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
@@ -130,6 +129,14 @@ export default function ChallengeModalNew() {
 
   if (modalState === 'closed') return null
 
+  const modalTitle =
+    (modalState === 'form' && (stats.isFull ? '🔔 قائمة الانتظار' : '✨ احجزي مكانك الآن مجانًا')) ||
+    (modalState === 'loading' && '⏳ جارٍ التسجيل...') ||
+    (modalState === 'success' && '') ||
+    (modalState === 'waitlist' && '📋 تمت إضافتك لقائمة الانتظار') ||
+    (modalState === 'error' && '❌ حدث خطأ') ||
+    ''
+
   return (
     <div 
       className="ch-modal-backdrop"
@@ -142,7 +149,7 @@ export default function ChallengeModalNew() {
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="ch-modal-card" style={{ width: 'min(1120px, 100%)' }}>
+      <div className={`ch-modal-card ${modalState === 'success' ? 'is-success' : ''}`} style={{ width: 'min(980px, 100%)' }}>
         {/* Decorative blobs */}
         <div className="ch-modal-decor" aria-hidden="true">
           <div className="ch-modal-blob ch-modal-blob-1" />
@@ -153,13 +160,11 @@ export default function ChallengeModalNew() {
           {/* Header */}
           <div className="ch-modal-header">
             <div className="ch-modal-header-content">
-              <h2 id="modal-title" className="ch-modal-title">
-                {modalState === 'form' && (stats.isFull ? '🔔 قائمة الانتظار' : '✨ احجزي مكانك الآن مجانًا')}
-                {modalState === 'loading' && '⏳ جارٍ التسجيل...'}
-                {modalState === 'success' && 'تم تسجيلك بنجاح 🎉'}
-                {modalState === 'waitlist' && '📋 تمت إضافتك لقائمة الانتظار'}
-                {modalState === 'error' && '❌ حدث خطأ'}
-              </h2>
+              {modalTitle ? (
+                <h2 id="modal-title" className="ch-modal-title">
+                  {modalTitle}
+                </h2>
+              ) : null}
             </div>
 
             {modalState !== 'loading' && (
@@ -240,11 +245,6 @@ export default function ChallengeModalNew() {
             {/* Success State */}
             {modalState === 'success' && (
               <div className="ch-modal-success ch-modal-success-vip">
-                <div className="ch-modal-state-badge ch-modal-state-badge-success">
-                  <span className="ch-modal-state-badge-icon">✓</span>
-                  <span>تم تأكيد تسجيلك</span>
-                </div>
-
                 <div className="ch-vip-congrats">
                   <p className="ch-vip-congrats-title">🎉مبروك! تم تسجيلك في التحدي</p>
                   <p className="ch-vip-congrats-note">
@@ -255,38 +255,37 @@ export default function ChallengeModalNew() {
                 </div>
 
                 <section className="ch-vip-offer-card" aria-label="VIP offer">
-                  <div className="ch-vip-offer-visual-wrap">
-                    <div className="ch-vip-offer-visual-glow" aria-hidden="true" />
-                    <Image
-                      src="/Meriem.jpeg"
-                      alt="VIP challenge offer"
-                      width={560}
-                      height={320}
-                      className="ch-vip-offer-image"
-                      priority
-                    />
-                    <span className="ch-vip-offer-badge">VIP</span>
-                  </div>
-
                   <div className="ch-vip-offer-copy">
+                    <div className="ch-vip-divider" aria-hidden="true" />
                     <p className="ch-vip-offer-kicker">لكن قبل أن تغادري… عندي لك فرصة لا تتكرر 👇</p>
-                    <h3 className="ch-vip-offer-title">💜 عرض VIP</h3>
-                    <p className="ch-vip-offer-subtitle">✨ لا تضيّعي أقوى جزء في هذا التحدي</p>
-                    <p className="ch-vip-offer-day">اليوم الثالث (VIP):</p>
+                    <div className="ch-vip-divider" aria-hidden="true" />
 
-                    <ul className="ch-vip-offer-points">
-                      <li>تحليل حالتك أنتِ</li>
-                      <li>إجابة مباشرة على أسئلتك</li>
-                      <li>تطبيق عملي على واقعك</li>
-                    </ul>
+                    <div className="ch-vip-offer-grid">
+                      <div className="ch-vip-offer-main">
+                        <h3 className="ch-vip-offer-title">💜 عرض VIP</h3>
+                        <p className="ch-vip-offer-subtitle">✨ لا تضيّعي أقوى جزء في هذا التحدي</p>
+                        <p className="ch-vip-offer-day">اليوم الثالث (VIP):</p>
 
-                    <p className="ch-vip-offer-old-price">بدل 29€</p>
-                    <p className="ch-vip-offer-main-price">🔥 اليوم فقط: 9€</p>
-                    <p className="ch-vip-offer-tn-price">🇹🇳 لتونس: 19 دينار</p>
+                        <ul className="ch-vip-offer-points">
+                          <li>تحليل حالتك أنتِ</li>
+                          <li>إجابة مباشرة على أسئلتك</li>
+                          <li>تطبيق عملي على واقعك</li>
+                        </ul>
+                      </div>
 
-                    <div className="ch-vip-offer-urgency">
-                      <p>⚠️ الأماكن محدودة</p>
-                      <p>وبعد امتلاء المجموعة يرجع السعر لـ 29€</p>
+                      <div className="ch-vip-offer-side">
+                        <p className="ch-vip-offer-section-title">💰 السعر</p>
+                        <p className="ch-vip-offer-old-price">بدل 29€</p>
+                        <p className="ch-vip-offer-main-price">🔥 اليوم فقط: 9€</p>
+                        <p className="ch-vip-offer-tn-price">🇹🇳 لتونس: 19 دينار</p>
+
+                        <div className="ch-vip-divider" aria-hidden="true" />
+                        <p className="ch-vip-offer-section-title">⏳ الإلحاح</p>
+                        <div className="ch-vip-offer-urgency">
+                          <p>⚠️ الأماكن محدودة</p>
+                          <p>وبعد امتلاء المجموعة يرجع السعر لـ 29€</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -304,13 +303,7 @@ export default function ChallengeModalNew() {
                   </p>
                 )}
 
-                <button
-                  type="button"
-                  className="ch-btn ch-btn-secondary ch-btn-lg ch-btn-full"
-                  onClick={handleClose}
-                >
-                  إغلاق
-                </button>
+                <button type="button" className="ch-vip-later-link" onClick={handleClose}>لاحقًا</button>
               </div>
             )}
 
