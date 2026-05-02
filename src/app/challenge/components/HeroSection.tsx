@@ -37,7 +37,7 @@ export default function HeroSection({ title, subtitle, description }: HeroSectio
             <span className="chl-hero-leaf" />
           </div>
 
-          <h1 id="hero-title" className="chl-hero-title">{title || 'تحدّي الأم الهادئة في 3 أيام'}</h1>
+          <h1 id="hero-title" className="chl-hero-title">{title || 'تحدّي الأم المطمئنة في 3 أيام'}</h1>
           {subtitle && <p className="chl-hero-lead">{subtitle}</p>}
 
           <div className="chl-hero-copy-card">
