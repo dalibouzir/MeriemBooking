@@ -27,8 +27,10 @@ const SCRIPT_DEFAULTS = {
   ],
 }
 
+const normalizeLegacyChallengeCopy = (value: string) => value.replace(/الهادئة/g, 'المطمئنة')
+
 const fallbackText = (value: string | null | undefined, fallbackValue: string) =>
-  value && value.trim() ? value : fallbackValue
+  value && value.trim() ? normalizeLegacyChallengeCopy(value) : fallbackValue
 
 const fallbackList = (value: string[] | null | undefined, fallbackValue: string[]) =>
   value && value.length > 0 ? value : fallbackValue
