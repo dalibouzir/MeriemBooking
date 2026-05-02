@@ -61,7 +61,7 @@ export function renderQuizResultEmailHtml(input: QuizResultEmailInput) {
               href="https://fittrahwomen.com/challenge"
               style="display:inline-block;padding:12px 20px;border-radius:12px;background:#c02693;color:#fff;text-decoration:none;font-weight:800;"
             >
-              انضمي إلى تحدي الأم الهادئة (3 أيام)
+              انضمي إلى تحدي الأم المطمئنة (3 أيام)
             </a>
           </div>
         </div>

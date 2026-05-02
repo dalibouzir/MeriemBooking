@@ -25,7 +25,7 @@ import type { ChallengeSettings } from '@/app/challenge/actions'
 type TabKey = 'overview' | 'settings' | 'registrations'
 
 const SCRIPT_DEFAULTS = {
-  title: 'تحدّي الأم الهادئة في 3 أيام',
+  title: 'تحدّي الأم المطمئنة في 3 أيام',
   subtitle: 'من التوتر والانفجار… إلى بداية هدوء حقيقي من الداخل',
   description:
     'أعطيني فقط 90 دقيقة خلال 3 أيام، واكتشفي كيف تبدأين استعادة هدوئك… حتى لو كنتِ عصبية وتحت ضغط يومي',
