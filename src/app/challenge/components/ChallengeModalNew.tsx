@@ -276,7 +276,7 @@ export default function ChallengeModalNew() {
                       <div className="ch-vip-offer-side">
                         <p className="ch-vip-offer-section-title">💰 السعر</p>
                         <p className="ch-vip-offer-old-price">بدل 29€</p>
-                        <p className="ch-vip-offer-main-price">🔥 اليوم فقط: 9€</p>
+                        <p className="ch-vip-offer-main-price">9€</p>
                         <p className="ch-vip-offer-tn-price">🇹🇳 لتونس: 19 دينار</p>
 
                         <div className="ch-vip-divider" aria-hidden="true" />
