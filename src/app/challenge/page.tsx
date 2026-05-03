@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const metadata = {
-  title: 'تحدّي الأم المطمئنة في 3 أيام | Fittrah Women',
+  title: 'تحدي اونلاين',
   description:
     'تحدّي خلال 3 أيام لمساعدة الأم على الانتقال من التوتر والانفجار إلى بداية هدوء حقيقي من الداخل.',
 }
