@@ -16,6 +16,7 @@ import {
 import { useRevealOnScroll } from '@/utils/reveal'
 
 const CALENDLY_URL = 'https://calendly.com/meriembouzir/30min?month=2025-12'
+const WHATSAPP_COMMUNITY_URL = 'https://whatsapp.com/channel/0029Vb7aDlsISTkEqMO2sj1O'
 const PRODUCTS_ROUTE = '/products'
 const FOUNDER_ALT = 'مريم بوزير'
 
@@ -641,13 +642,8 @@ export default function HomePage() {
                   <button type="button" className="btn-hero-primary" onClick={handleScrollToFeatured}>
                     استكشفي الملفات
                   </button>
-                  <Link
-                    href={CALENDLY_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-hero-secondary"
-                  >
-                    احجزي مكالمتك المجانية
+                  <Link href={WHATSAPP_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="btn-hero-secondary">
+                    انضمي لمجتمعنا المجاني على WhatsApp
                   </Link>
                 </div>
               </div>
