@@ -7,8 +7,6 @@ interface ScheduleSectionNewProps {
   startDateLabel: string
   meetingTimeLabel: string
   duration: number
-  day1ZoomUrl?: string | null
-  day2ZoomUrl?: string | null
   day3PaidCalendlyUrl?: string | null
 }
 
@@ -48,16 +46,12 @@ export default function ScheduleSectionNew({
   startDateLabel,
   meetingTimeLabel,
   duration,
-  day1ZoomUrl,
-  day2ZoomUrl,
   day3PaidCalendlyUrl,
 }: ScheduleSectionNewProps) {
   const sectionRef = useRef<HTMLElement>(null)
   void startDateLabel
   void meetingTimeLabel
   void duration
-  void day1ZoomUrl
-  void day2ZoomUrl
   void day3PaidCalendlyUrl
 
   useEffect(() => {

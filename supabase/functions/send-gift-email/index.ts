@@ -7,6 +7,18 @@ const DENO: { env?: DenoEnv["env"]; serve?: (h: (req: Request) => Response | Pro
 
 const getEnv = (k: string): string | undefined => DENO.env?.get?.(k)
 
+// Supabase's gateway accepts the public anon key (which every browser has), so this
+// function checks for the service-role key itself. Only our Next.js server holds it.
+const isServiceRoleRequest = (req: Request): boolean => {
+  const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY")?.trim()
+  if (!serviceKey) return false
+  const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim()
+  if (!token || token.length !== serviceKey.length) return false
+  let diff = 0
+  for (let i = 0; i < token.length; i++) diff |= token.charCodeAt(i) ^ serviceKey.charCodeAt(i)
+  return diff === 0
+}
+
 const RESEND_API_KEY = getEnv("RESEND_API_KEY")?.trim()
 const ENV_FROM = getEnv("EMAIL_FROM")?.trim()
 // Fallback is your verified domain
@@ -96,6 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return json(null, 204)
 
   if (req.method !== "POST") return json({ error: "Method Not Allowed" }, 405)
+  if (!isServiceRoleRequest(req)) return json({ error: "Unauthorized" }, 401)
 
   if (!RESEND_API_KEY) {
     return json({ error: "Missing RESEND_API_KEY (check Supabase secrets / redeploy)" }, 500)

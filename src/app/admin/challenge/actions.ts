@@ -1,6 +1,7 @@
 'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { assertAdmin } from '@/lib/adminAuth'
 import { sendEmailWithRetry } from '@/lib/resend'
 import type { ChallengeSettings } from '@/app/challenge/actions'
 
@@ -66,6 +67,7 @@ export type RegistrationListResult = {
  * Get admin overview stats
  */
 export async function getAdminOverviewAction(): Promise<AdminOverview> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   // Get settings for capacity
@@ -124,6 +126,7 @@ export async function getAdminOverviewAction(): Promise<AdminOverview> {
  * Get chart data for last 14 days
  */
 export async function getAdminChartDataAction(): Promise<ChartDataPoint[]> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   // Calculate date range (last 14 days)
@@ -173,6 +176,7 @@ export async function getAdminChartDataAction(): Promise<ChartDataPoint[]> {
  * Get challenge settings for admin editing
  */
 export async function getAdminChallengeSettingsAction(): Promise<ChallengeSettings | null> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   const { data, error } = await supabase
@@ -195,6 +199,7 @@ export async function getAdminChallengeSettingsAction(): Promise<ChallengeSettin
 export async function updateChallengeSettingsAction(
   payload: Partial<ChallengeSettings>
 ): Promise<{ success: boolean; error?: string }> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
   const urlFields: Array<keyof ChallengeSettings> = [
     'meeting_url',
@@ -248,6 +253,7 @@ export async function updateChallengeSettingsAction(
 export async function listRegistrationsAction(
   filters: RegistrationFilters = {}
 ): Promise<RegistrationListResult> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
   const { status = 'all', notCopied, saved, search, page = 1, pageSize = 20 } = filters
 
@@ -304,6 +310,7 @@ export async function updateRegistrationAction(
   id: string,
   fields: Partial<Pick<Registration, 'name' | 'email' | 'phone' | 'status'>>
 ): Promise<{ success: boolean; error?: string }> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   const { error } = await supabase
@@ -323,6 +330,7 @@ export async function updateRegistrationAction(
  * Delete a registration
  */
 export async function deleteRegistrationAction(id: string): Promise<{ success: boolean; error?: string }> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   const { error } = await supabase.from('challenge_registrations').delete().eq('id', id)
@@ -339,6 +347,7 @@ export async function deleteRegistrationAction(id: string): Promise<{ success: b
  * Promote a waitlist registration to confirmed (if capacity allows)
  */
 export async function promoteWaitlistAction(id: string): Promise<{ success: boolean; error?: string }> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   // Check capacity
@@ -382,6 +391,7 @@ export async function promoteWaitlistAction(id: string): Promise<{ success: bool
 export async function exportCsvAction(
   filter: 'all' | 'confirmed' | 'waitlist'
 ): Promise<{ csv: string; filename: string }> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   let query = supabase
@@ -434,6 +444,7 @@ export async function grantVipDay3AccessAction({
   sendEmail?: boolean
   grantedBy?: string
 }): Promise<{ success: boolean; error?: string; warning?: string }> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   const { data: registration, error: regError } = await supabase
@@ -505,6 +516,7 @@ export async function sendVipDay3EmailAction({
 }: {
   registrationId: string
 }): Promise<{ success: boolean; error?: string }> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   const { data: registration, error: regError } = await supabase

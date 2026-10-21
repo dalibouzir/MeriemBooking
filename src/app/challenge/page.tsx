@@ -95,8 +95,6 @@ export default async function ChallengePage() {
     startDateLabel,
     meetingTimeLabel,
     duration: settings.duration_minutes,
-    day1ZoomUrl: fallbackText(settings.day1_zoom_url, settings.meeting_url || ''),
-    day2ZoomUrl: settings.day2_zoom_url,
     day3PaidCalendlyUrl: settings.day3_paid_calendly_url,
     maxSeats: settings.capacity,
     title: fallbackText(settings.title, SCRIPT_DEFAULTS.title),

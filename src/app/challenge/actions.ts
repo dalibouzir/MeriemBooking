@@ -53,31 +53,35 @@ export type RegistrationResult = {
   duration_minutes?: number
 }
 
-export type MeetingDetails = {
-  meeting_url: string
-  starts_at: string
-  duration_minutes: number
-  timezone: string
-}
+// Settings without the meeting links. This action is callable by anyone, so the
+// Zoom URLs must never be selected here; they are only handed out by
+// registerChallengeAction after a registration.
+export type PublicChallengeSettings = Omit<
+  ChallengeSettings,
+  'meeting_url' | 'day1_zoom_url' | 'day2_zoom_url' | 'day3_vip_zoom_url'
+>
+
+const PUBLIC_SETTINGS_COLUMNS =
+  'id, capacity, starts_at, duration_minutes, timezone, updated_at, title, subtitle, description, benefits, requirements, faq, is_active, day3_paid_calendly_url'
 
 /**
- * Get challenge settings (public data only - no meeting_url)
+ * Get challenge settings (public data only - no meeting links)
  */
-export async function getChallengeSettingsAction(): Promise<ChallengeSettings | null> {
+export async function getChallengeSettingsAction(): Promise<PublicChallengeSettings | null> {
   const supabase = getSupabaseAdmin()
-  
+
   const { data, error } = await supabase
     .from('challenge_settings')
-    .select('*')
+    .select(PUBLIC_SETTINGS_COLUMNS)
     .limit(1)
     .single()
-  
+
   if (error || !data) {
     console.error('Error fetching challenge settings:', error)
     return null
   }
-  
-  return data as ChallengeSettings
+
+  return data as unknown as PublicChallengeSettings
 }
 
 /**
@@ -255,99 +259,4 @@ async function sendChallengeConfirmationEmail({
     console.error('Error sending challenge email:', error)
     throw error
   }
-}
-
-/**
- * Get meeting details for a confirmed registration (secure - only returns URL if confirmed)
- */
-export async function getMeetingDetailsAction(registrationId: string): Promise<MeetingDetails | null> {
-  const supabase = getSupabaseAdmin()
-  
-  // Verify the registration exists and is confirmed
-  const { data: registration, error: regError } = await supabase
-    .from('challenge_registrations')
-    .select('status')
-    .eq('id', registrationId)
-    .single()
-  
-  if (regError || !registration) {
-    console.error('Registration not found:', regError)
-    return null
-  }
-  
-  // Only allow meeting URL access for confirmed registrations
-  if (registration.status !== 'confirmed') {
-    return null
-  }
-  
-  // Get the meeting details from settings
-  const { data: settings, error: settingsError } = await supabase
-    .from('challenge_settings')
-    .select('meeting_url, starts_at, duration_minutes, timezone')
-    .limit(1)
-    .single()
-  
-  if (settingsError || !settings) {
-    console.error('Settings not found:', settingsError)
-    return null
-  }
-  
-  return settings as MeetingDetails
-}
-
-/**
- * Get registration by email (for already_registered state)
- */
-export async function getRegistrationByEmailAction(email: string): Promise<{ id: string; status: string } | null> {
-  const supabase = getSupabaseAdmin()
-  
-  const { data, error } = await supabase
-    .from('challenge_registrations')
-    .select('id, status')
-    .eq('email', email.toLowerCase().trim())
-    .single()
-  
-  if (error || !data) {
-    return null
-  }
-  
-  return data
-}
-
-/**
- * Mark that the user copied the meeting link
- */
-export async function markLinkCopiedAction(registrationId: string): Promise<boolean> {
-  const supabase = getSupabaseAdmin()
-  
-  const { error } = await supabase
-    .from('challenge_registrations')
-    .update({ link_copied_at: new Date().toISOString() })
-    .eq('id', registrationId)
-  
-  if (error) {
-    console.error('Error marking link as copied:', error)
-    return false
-  }
-  
-  return true
-}
-
-/**
- * Mark that the user saved the meeting link
- */
-export async function markLinkSavedAction(registrationId: string): Promise<boolean> {
-  const supabase = getSupabaseAdmin()
-  
-  const { error } = await supabase
-    .from('challenge_registrations')
-    .update({ link_saved_at: new Date().toISOString() })
-    .eq('id', registrationId)
-  
-  if (error) {
-    console.error('Error marking link as saved:', error)
-    return false
-  }
-  
-  return true
 }

@@ -12,3 +12,10 @@ export async function requireAdminSession() {
   if (!isAdmin(session?.user?.email)) return null
   return session
 }
+
+// Server actions are public POST endpoints, so every admin action must call this first.
+export async function assertAdmin() {
+  const session = await requireAdminSession()
+  if (!session) throw new Error('Unauthorized')
+  return session
+}

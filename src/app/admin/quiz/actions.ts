@@ -1,6 +1,7 @@
 'use server'
 
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin'
+import { assertAdmin } from '@/lib/adminAuth'
 
 export type QuizContendor = {
   id: number
@@ -73,6 +74,7 @@ function sortDistributionDesc(map: Map<string, number>) {
 }
 
 export async function getQuizOverviewAction(): Promise<QuizOverview> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   const { count: totalCount, error: totalError } = await supabase
@@ -154,6 +156,7 @@ export async function getQuizOverviewAction(): Promise<QuizOverview> {
 }
 
 export async function getQuizInsightsAction(days = 14): Promise<QuizInsights> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   const safeDays = Math.min(Math.max(days, 7), 60)
@@ -210,6 +213,7 @@ export async function getQuizInsightsAction(days = 14): Promise<QuizInsights> {
 }
 
 export async function listQuizContendorsAction(filters: QuizFilters = {}): Promise<QuizListResult> {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
   const {
     search,
@@ -264,6 +268,7 @@ export async function listQuizContendorsAction(filters: QuizFilters = {}): Promi
 }
 
 export async function exportQuizCsvAction(filters: Pick<QuizFilters, 'search' | 'resultType' | 'shadowType' | 'mixedOnly'> = {}) {
+  await assertAdmin()
   const supabase = getSupabaseAdmin()
 
   let query = supabase
