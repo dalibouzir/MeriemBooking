@@ -37,10 +37,11 @@ export default function PixelTracker({ debug = false }: PixelTrackerProps) {
 
     isTracking.current = true
 
-    // Retry mechanism for pixel readiness
+    // Retry mechanism for pixel readiness. The pixel script is loaded lazily
+    // (after the page is idle), so keep polling for up to ~15s on slow networks.
     let attempts = 0
-    const maxAttempts = 20
-    const interval = 100
+    const maxAttempts = 60
+    const interval = 250
     let timeoutId: NodeJS.Timeout
 
     const tryTrackPageView = () => {

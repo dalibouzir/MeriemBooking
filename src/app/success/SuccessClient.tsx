@@ -132,7 +132,12 @@ export default function SuccessClient() {
     )
 
     elements.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
+    // Safety net: never leave the page blank if the observer doesn't fire.
+    const fallback = window.setTimeout(revealAll, 1200)
+    return () => {
+      window.clearTimeout(fallback)
+      observer.disconnect()
+    }
   }, [])
 
   useEffect(() => {

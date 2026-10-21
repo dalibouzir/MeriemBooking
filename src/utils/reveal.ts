@@ -25,8 +25,10 @@ export function initRevealOnScroll(rootEl: HTMLElement | null | undefined) {
       })
     },
     {
-      threshold: 0.18,
-      rootMargin: '0px 0px -8% 0px',
+      // Reveal slightly before the section enters the viewport so fast
+      // scrolling never lands on blank space.
+      threshold: 0.05,
+      rootMargin: '0px 0px 12% 0px',
     }
   )
 

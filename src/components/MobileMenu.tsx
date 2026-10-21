@@ -71,7 +71,14 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl,
   if (!container) return null
 
   return createPortal(
-    <div className={`mobile-menu-root${open ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-label="القائمة الجوال">
+    <div
+      className={`mobile-menu-root${open ? ' is-open' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="القائمة الجوال"
+      aria-hidden={!open}
+      inert={!open}
+    >
       <div className="mobile-menu-backdrop" onClick={onClose} />
       <aside className="mobile-menu-panel" dir="rtl">
         <div className="mobile-menu-header">

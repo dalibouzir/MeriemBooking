@@ -57,7 +57,6 @@ export default function FinalCTASection() {
           </button>
 
           <p className="chl-final-trust">وابدئي أول خطوة نحو هدوء حقيقي من الداخل</p>
-          <p className="chl-final-proof">إذا كنتِ تعيشين نفس التوتر كل يوم… فهذا التحدي لك</p>
         </div>
       </div>
     </section>

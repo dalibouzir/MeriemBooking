@@ -98,8 +98,10 @@ p {
   max-width: 800px;
 }
 
-/* ============ Guide list ============ */
-ul {
+/* ============ Guide list ============
+   Only unclassed lists get the default bullet. Lists with a class style
+   their own markers, so this must not leak into them. */
+ul:not([class]) {
   list-style: none;
   padding: 0;
   margin: 1rem 0 2rem;
@@ -107,12 +109,12 @@ ul {
   color: hsl(var(--text));
   line-height: 1.8;
 }
-ul li {
+ul:not([class]) li {
   position: relative;
   padding-right: 1.5rem;
   margin-bottom: 0.8rem;
 }
-ul li::before {
+ul:not([class]) li::before {
   content: '•';
   position: absolute;
   right: 0;

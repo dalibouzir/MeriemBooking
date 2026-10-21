@@ -85,6 +85,17 @@ export default function QuizPageClient({ questions }: QuizPageClientProps) {
 
   const handleStartQuiz = () => {
     resetQuizState(true)
+    // On phones the first question renders below the intro, so bring it into view.
+    // Scroll the window directly: scrollIntoView would target the overflow-hidden
+    // page wrapper instead of the viewport.
+    // Wait for the first card to mount so the page is tall enough to scroll, and
+    // jump instantly: a smooth scroll here gets cancelled by the card's entry animation.
+    window.setTimeout(() => {
+      const section = document.querySelector<HTMLElement>('.quiz-main-section')
+      if (!section) return
+      const top = section.getBoundingClientRect().top + window.scrollY - 76
+      window.scrollTo({ top, behavior: 'auto' })
+    }, 80)
   }
 
   const handleSelectOption = (option: QuizOption) => {

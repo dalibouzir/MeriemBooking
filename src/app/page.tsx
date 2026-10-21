@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import Accordion from '@/components/ui/Accordion'
 import heroImage from '@/assets/hero-image.png'
@@ -62,8 +63,6 @@ const REVIEWS = [
     color: '160, 228, 255',
   },
 ]
-
-const REVIEW_AUTO_SPEED = 0.006
 
 const SESSION_FAQ_ITEMS = [
   {
@@ -399,153 +398,20 @@ export default function HomePage() {
   const featuredDisplay = featuredItems.length ? featuredItems.map(mapResourceToDisplay) : FALLBACK_FEATURES
 
   const landingRootRef = useRef<HTMLElement | null>(null)
-  const reviewsInnerRef = useRef<HTMLDivElement | null>(null)
-  const reviewRotationRef = useRef(0)
-  const reviewAutoFrameRef = useRef<number | null>(null)
-  const reviewResumeTimeoutRef = useRef<number | null>(null)
-  const reviewsPrefersReducedMotionRef = useRef(false)
-  const reviewBasePerspectiveRef = useRef('1000px')
-  const reviewBaseRotateXRef = useRef('-15deg')
-  const isDraggingReviewRef = useRef(false)
-  const dragStartXRef = useRef(0)
+  const reviewsTrackRef = useRef<HTMLDivElement | null>(null)
 
   useRevealOnScroll(landingRootRef, [featuredDisplay.length])
 
-  const applyReviewRotation = useCallback((nextAngle: number) => {
-    const inner = reviewsInnerRef.current
-    if (!inner) return
-    const sanitized = Number.isFinite(nextAngle) ? nextAngle : 0
-    reviewRotationRef.current = sanitized
-    inner.style.setProperty('--rotationY', `${sanitized}deg`)
-    inner.style.transform = `perspective(${reviewBasePerspectiveRef.current}) rotateX(${reviewBaseRotateXRef.current}) rotateY(${sanitized}deg)`
+  // Scroll the testimonial track by one card. The track is RTL, so moving
+  // forward through the content means a negative scrollLeft delta.
+  const scrollReviews = useCallback((direction: 1 | -1) => {
+    const track = reviewsTrackRef.current
+    if (!track) return
+    const card = track.querySelector<HTMLElement>('.review-card')
+    const step = (card?.offsetWidth ?? track.clientWidth * 0.8) + 14
+    const rtl = getComputedStyle(track).direction === 'rtl'
+    track.scrollBy({ left: direction * step * (rtl ? -1 : 1), behavior: 'smooth' })
   }, [])
-
-  const stopReviewAutoRotate = useCallback(() => {
-    if (reviewAutoFrameRef.current) {
-      cancelAnimationFrame(reviewAutoFrameRef.current)
-      reviewAutoFrameRef.current = null
-    }
-  }, [])
-
-  const startReviewAutoRotate = useCallback(() => {
-    if (reviewsPrefersReducedMotionRef.current) return
-    stopReviewAutoRotate()
-    let last = performance.now()
-    const step = (time: number) => {
-      const delta = time - last
-      last = time
-      applyReviewRotation(reviewRotationRef.current + delta * REVIEW_AUTO_SPEED)
-      reviewAutoFrameRef.current = requestAnimationFrame(step)
-    }
-    reviewAutoFrameRef.current = requestAnimationFrame(step)
-  }, [applyReviewRotation, stopReviewAutoRotate])
-
-  const scheduleReviewResume = useCallback(() => {
-    if (reviewsPrefersReducedMotionRef.current) return
-    if (reviewResumeTimeoutRef.current) window.clearTimeout(reviewResumeTimeoutRef.current)
-    reviewResumeTimeoutRef.current = window.setTimeout(() => {
-      startReviewAutoRotate()
-    }, 800)
-  }, [startReviewAutoRotate])
-
-  const rotateReviewsByStep = useCallback(
-    (direction: number) => {
-      stopReviewAutoRotate()
-      applyReviewRotation(reviewRotationRef.current + direction * (360 / REVIEWS.length))
-      scheduleReviewResume()
-    },
-    [applyReviewRotation, scheduleReviewResume, stopReviewAutoRotate]
-  )
-
-  useEffect(() => {
-    const inner = reviewsInnerRef.current
-    if (!inner) return
-
-    const computed = window.getComputedStyle(inner)
-    const perspective = computed.getPropertyValue('--perspective').trim()
-    const rotateX = computed.getPropertyValue('--rotateX').trim()
-    if (perspective) reviewBasePerspectiveRef.current = perspective
-    if (rotateX) reviewBaseRotateXRef.current = rotateX
-
-    applyReviewRotation(reviewRotationRef.current)
-
-    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    reviewsPrefersReducedMotionRef.current = motionQuery.matches
-    if (!motionQuery.matches) startReviewAutoRotate()
-
-    const handleMotionChange = (event: MediaQueryListEvent) => {
-      reviewsPrefersReducedMotionRef.current = event.matches
-      if (event.matches) {
-        stopReviewAutoRotate()
-      } else {
-        startReviewAutoRotate()
-      }
-    }
-
-    const handlePointerDown = (event: PointerEvent) => {
-      stopReviewAutoRotate()
-      if (reviewResumeTimeoutRef.current) window.clearTimeout(reviewResumeTimeoutRef.current)
-      isDraggingReviewRef.current = true
-      dragStartXRef.current = event.clientX
-      inner.setPointerCapture(event.pointerId)
-      inner.dataset.dragging = 'true'
-    }
-
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!isDraggingReviewRef.current) return
-      const deltaX = event.clientX - dragStartXRef.current
-      dragStartXRef.current = event.clientX
-      applyReviewRotation(reviewRotationRef.current + deltaX * 0.35)
-    }
-
-    const handlePointerEnd = (event: PointerEvent) => {
-      if (!isDraggingReviewRef.current) return
-      isDraggingReviewRef.current = false
-      if (inner.hasPointerCapture(event.pointerId)) inner.releasePointerCapture(event.pointerId)
-      inner.dataset.dragging = 'false'
-      scheduleReviewResume()
-    }
-
-    const handleMouseEnter = () => {
-      if (!isDraggingReviewRef.current) stopReviewAutoRotate()
-    }
-
-    const handleMouseLeave = () => {
-      if (!isDraggingReviewRef.current) scheduleReviewResume()
-    }
-
-    const handleFocusIn = () => {
-      stopReviewAutoRotate()
-    }
-
-    const handleFocusOut = () => {
-      scheduleReviewResume()
-    }
-
-    motionQuery.addEventListener('change', handleMotionChange)
-    inner.addEventListener('pointerdown', handlePointerDown)
-    inner.addEventListener('pointermove', handlePointerMove)
-    inner.addEventListener('pointerup', handlePointerEnd)
-    inner.addEventListener('pointercancel', handlePointerEnd)
-    inner.addEventListener('mouseenter', handleMouseEnter)
-    inner.addEventListener('mouseleave', handleMouseLeave)
-    inner.addEventListener('focusin', handleFocusIn)
-    inner.addEventListener('focusout', handleFocusOut)
-
-    return () => {
-      stopReviewAutoRotate()
-      if (reviewResumeTimeoutRef.current) window.clearTimeout(reviewResumeTimeoutRef.current)
-      motionQuery.removeEventListener('change', handleMotionChange)
-      inner.removeEventListener('pointerdown', handlePointerDown)
-      inner.removeEventListener('pointermove', handlePointerMove)
-      inner.removeEventListener('pointerup', handlePointerEnd)
-      inner.removeEventListener('pointercancel', handlePointerEnd)
-      inner.removeEventListener('mouseenter', handleMouseEnter)
-      inner.removeEventListener('mouseleave', handleMouseLeave)
-      inner.removeEventListener('focusin', handleFocusIn)
-      inner.removeEventListener('focusout', handleFocusOut)
-    }
-  }, [applyReviewRotation, scheduleReviewResume, startReviewAutoRotate, stopReviewAutoRotate])
 
   const handleScrollToFeatured = useCallback(() => {
     const el = document.getElementById('featured') ?? document.getElementById('landing-hot')
@@ -568,100 +434,57 @@ export default function HomePage() {
   return (
         <>
           <main className="landing-root" role="main" ref={landingRootRef}>
-            <section
-          className="relative min-h-[75vh] lg:min-h-[85vh] overflow-hidden hero-gradient-bg reveal"
-          dir="rtl"
-          aria-labelledby="landing-hero-title"
-          data-reveal="up"
-        >
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="aurora-blob aurora-blob-1 w-[600px] h-[600px] -top-40 -right-40 animate-aurora-float" />
-            <div
-              className="aurora-blob aurora-blob-2 w-[500px] h-[500px] top-1/3 -left-32 animate-aurora-float"
-              style={{ animationDelay: '-2s' }}
-            />
-            <div
-              className="aurora-blob aurora-blob-3 w-[700px] h-[700px] -bottom-40 right-1/4 animate-aurora-float"
-              style={{ animationDelay: '-4s' }}
-            />
-            <div className="aurora-blob aurora-blob-1 w-[400px] h-[400px] top-1/2 right-1/3 animate-pulse-glow" />
+        {/* The hero is never a reveal target: the first screen must not wait for JS. */}
+        <section className="landing-hero-v2" dir="rtl" aria-labelledby="landing-hero-title">
+          <div className="landing-hero-bg" aria-hidden="true">
+            <span className="blob-a" />
+            <span className="blob-b" />
           </div>
 
-          <div className="relative z-10 container mx-auto px-6 py-16 lg:py-24 landing-hero-shell">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 pt-10">
-              <div className="relative flex-shrink-0 animate-fade-up mt-10 lg:mt-6 order-1 lg:order-2" style={{ animationDelay: '0.2s' }}>
-              <div className="relative w-72 h-72 sm:w-80 sm:h-80 lg:w-[420px] lg:h-[420px] xl:w-[480px] xl:h-[480px] mx-auto">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 via-accent/20 to-primary-glow/30 blur-2xl animate-pulse-glow" />
-                  <div className="absolute -inset-3 rounded-full border border-primary/30 shadow-[0_0_28px_rgba(139,92,246,0.2)] animate-float-gentle" />
-                  <div className="absolute -inset-6 rounded-full border border-primary/20 shadow-[0_0_22px_rgba(139,92,246,0.14)]" />
-                  <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl ring-1 ring-primary/30 animate-float-gentle">
-                    <Image
-                      src={heroImage}
-                      alt={FOUNDER_ALT}
-                      fill
-                      sizes="(max-width: 768px) 90vw, (max-width: 1280px) 420px, 520px"
-                      className="object-cover"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-1 text-center lg:text-right max-w-2xl order-2 lg:order-1">
-                <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
-                  <div className="flex flex-col items-center lg:items-end gap-2" dir="ltr" style={{ textAlign: 'left' }}>
-                    <h1 id="landing-hero-title" className="button hero-title-button" data-text="Fittrah Women">
-                      <span className="actual-text">&nbsp;Fittrah Women&nbsp;</span>
-                      <span aria-hidden="true" className="hover-text">
-                        &nbsp;Fittrah Women&nbsp;
-                      </span>
-                    </h1>
-                    <span className="hero-scratch" aria-hidden="true" />
-                  </div>
-                </div>
-
-                <div className="animate-fade-up mt-6 mb-6" style={{ animationDelay: '0.2s' }}>
-                  <span className="inline-flex items-center justify-center lg:justify-end px-6 py-3 text-base sm:text-lg font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
-                    مساحتك للسكينة والأنوثة والاتزان العاطفي
-                  </span>
-                </div>
-
-                <p
-                  className="hero-description text-3xl sm:text-4xl lg:text-5xl font-semibold leading-relaxed text-text/90 mb-10 animate-fade-up"
-                  style={{ animationDelay: '0.3s' }}
-                >
-                  منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقاتٍ صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا؛
-                  فحين تتّزن المرأة ينعكس نورها على أسرتها، ويمتدّ أثرها إلى الجيل القادم كلّه.
-                </p>
-
-                <div
-                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-6 animate-fade-up"
-                  style={{ animationDelay: '0.4s' }}
-                >
-                  <button type="button" className="btn-hero-primary" onClick={handleScrollToFeatured}>
-                    استكشفي الملفات
-                  </button>
-                  <Link href={WHATSAPP_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="btn-hero-secondary">
-                    انضمي لمجتمعنا المجاني على WhatsApp
-                  </Link>
-                </div>
+          <div className="landing-hero-inner">
+            <div className="landing-hero-figure">
+              <div className="landing-hero-ring">
+                <Image
+                  src={heroImage}
+                  alt={FOUNDER_ALT}
+                  fill
+                  sizes="(max-width: 900px) 60vw, 420px"
+                  className="object-cover"
+                  priority
+                />
               </div>
             </div>
-          </div>
 
-          <div className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden">
-            <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="absolute bottom-0 w-full h-full">
-              <path
-                d="M0,60 C300,120 600,0 900,60 C1050,90 1150,80 1200,60 L1200,120 L0,120 Z"
-                fill="hsl(var(--background))"
-                className="opacity-50"
-              />
-              <path
-                d="M0,80 C200,40 400,100 600,80 C800,60 1000,100 1200,80 L1200,120 L0,120 Z"
-                fill="hsl(var(--background))"
-              />
-            </svg>
+            <div className="landing-hero-copy">
+              <p className="landing-hero-brand" dir="ltr">Fittrah Women</p>
+              <h1 id="landing-hero-title" className="landing-hero-h1">
+                مساحتك للسكينة والأنوثة والاتزان العاطفي
+              </h1>
+              <p className="landing-hero-desc">
+                منصّة تُساعد المرأة على استعادة أنوثتها وفطرتها لتعيش علاقاتٍ صحّية، وبيتًا أهدأ، ومجتمعًا أكثر اتّزانًا؛
+                فحين تتّزن المرأة ينعكس نورها على أسرتها، ويمتدّ أثرها إلى الجيل القادم كلّه.
+              </p>
+
+              <div className="landing-hero-cta">
+                <button type="button" className="landing-btn landing-btn-primary" onClick={handleScrollToFeatured}>
+                  استكشفي الملفات المجانية
+                </button>
+                <Link
+                  href={WHATSAPP_COMMUNITY_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="landing-btn landing-btn-secondary"
+                >
+                  انضمي لمجتمعنا على WhatsApp
+                </Link>
+              </div>
+
+              <ul className="landing-hero-trust" aria-label="ما تجدينه هنا">
+                <li>ملفات مجانية للتحميل</li>
+                <li>جلسات إرشاد فردية</li>
+                <li>مجتمع داعم</li>
+              </ul>
+            </div>
           </div>
         </section>
 
@@ -756,10 +579,12 @@ export default function HomePage() {
                           <p className="landing-file-panel-label">الوصف</p>
                           <p className="landing-file-panel-text">{item.description}</p>
                         </div>
-                        <div className="landing-file-panel-section">
-                          <p className="landing-file-panel-label">لمحة</p>
-                          <p className="landing-file-panel-text">{item.summary ?? item.description}</p>
-                        </div>
+                        {item.summary && item.summary !== item.description ? (
+                          <div className="landing-file-panel-section">
+                            <p className="landing-file-panel-label">لمحة</p>
+                            <p className="landing-file-panel-text">{item.summary}</p>
+                          </div>
+                        ) : null}
                         <div className="landing-file-panel-cta">
                           <Link href={PRODUCTS_ROUTE} className="landing-file-panel-btn">
                             استكشفي الملفات
@@ -784,63 +609,42 @@ export default function HomePage() {
 
         <section
           id="reviews"
-          className="reviews-3d reveal"
+          className="landing-section landing-reviews reveal"
           dir="rtl"
           data-reveal="up"
           aria-labelledby="reviews-title"
         >
-          <div className="reviews-3d-head">
-            <p className="reviews-3d-kicker">قصص نجاح</p>
+          <header className="landing-section-head">
             <div>
+              <p className="landing-section-kicker">قصص نجاح</p>
               <h2 id="reviews-title">آراء وتجارب حقيقية</h2>
             </div>
-          </div>
+            <div className="reviews-nav" aria-label="تصفح الآراء">
+              <button type="button" className="reviews-nav-btn" onClick={() => scrollReviews(-1)} aria-label="المراجعة السابقة">
+                <ChevronRightIcon aria-hidden />
+              </button>
+              <button type="button" className="reviews-nav-btn" onClick={() => scrollReviews(1)} aria-label="المراجعة التالية">
+                <ChevronLeftIcon aria-hidden />
+              </button>
+            </div>
+          </header>
 
-          <div className="reviews-3d-body">
-            <div className="reviews-3d-controls" aria-label="تحكم دوران المراجعات">
-              <button
-                type="button"
-                className="reviews-3d-nav"
-                onClick={() => rotateReviewsByStep(-1)}
-                onFocus={stopReviewAutoRotate}
-                onBlur={scheduleReviewResume}
-                aria-label="التدوير عكسي لعرض المراجعة السابقة"
-              >
-                <span aria-hidden>↺</span>
-              </button>
-              <button
-                type="button"
-                className="reviews-3d-nav"
-                onClick={() => rotateReviewsByStep(1)}
-                onFocus={stopReviewAutoRotate}
-                onBlur={scheduleReviewResume}
-                aria-label="التدوير للأمام لعرض المراجعة التالية"
-              >
-                <span aria-hidden>↻</span>
-              </button>
-            </div>
-            <div className="reviews3d-wrapper">
-              <div
-                className="reviews3d-inner"
-                ref={reviewsInnerRef}
-                style={{ '--quantity': REVIEWS.length } as CSSProperties}
-                tabIndex={0}
-                role="group"
-                aria-label="سلايدر ثلاثي الأبعاد يعرض آراء وتجارب النساء"
-              >
-                {REVIEWS.map((review, index) => (
-                  <div
-                    key={`review-${index}`}
-                    className="reviews3d-card"
-                    style={{ '--index': index, '--color-card': review.color } as CSSProperties}
-                  >
-                    <div className="reviews3d-surface">
-                      <p className="reviews3d-text">{review.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="reviews-track" ref={reviewsTrackRef} role="list" aria-label="آراء النساء">
+            {REVIEWS.map((review, index) => {
+              const isArabic = /[\u0600-\u06FF]/.test(review.text)
+              return (
+                <figure
+                  key={`review-${index}`}
+                  className="review-card"
+                  role="listitem"
+                  dir={isArabic ? 'rtl' : 'ltr'}
+                  style={{ '--review-tint': review.color } as CSSProperties}
+                >
+                  <blockquote className="review-text">{review.text}</blockquote>
+                  <figcaption className="review-meta">من رسائل المشتركات</figcaption>
+                </figure>
+              )
+            })}
           </div>
         </section>
 

@@ -68,7 +68,11 @@ export default function PixelProvider({ children, debug = false }: PixelProvider
       console.log('[PixelProvider] Mounting, consent:', consent)
     }
 
-    if (consent) {
+    // Load fbevents.js once the page is idle so it never competes with the
+    // first paint on phones; PixelTracker keeps polling until it is ready.
+    let idleHandle: number | undefined
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined
+    const loadWhenIdle = () => {
       loadPixel(true).then(() => {
         const ready = isPixelReady()
         setIsReady(ready)
@@ -76,6 +80,14 @@ export default function PixelProvider({ children, debug = false }: PixelProvider
           console.log('[PixelProvider] Pixel loaded, ready:', ready)
         }
       })
+    }
+
+    if (consent) {
+      if ('requestIdleCallback' in window) {
+        idleHandle = window.requestIdleCallback(loadWhenIdle, { timeout: 2500 })
+      } else {
+        fallbackTimer = setTimeout(loadWhenIdle, 1500)
+      }
     } else if (debug) {
       console.log('[PixelProvider] No consent, pixel not loaded')
     }
@@ -90,7 +102,11 @@ export default function PixelProvider({ children, debug = false }: PixelProvider
       }
     })
 
-    return unsubscribe
+    return () => {
+      if (idleHandle !== undefined && 'cancelIdleCallback' in window) window.cancelIdleCallback(idleHandle)
+      if (fallbackTimer !== undefined) clearTimeout(fallbackTimer)
+      unsubscribe()
+    }
   }, [debug]) // Removed isReady from deps to prevent re-render loop
 
   // Track Lead with deduplication (same eventId for Pixel + CAPI)
