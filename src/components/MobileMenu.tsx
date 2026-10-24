@@ -57,7 +57,14 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl 
   useLockBodyScroll(open)
 
   const filteredLinks = useMemo(
-    () => links.filter((item) => item.href !== bookingUrl),
+    () => {
+      const featuredPaths = ['/train-program', '/marriage-workshop']
+      const availableLinks = links.filter((item) => item.href !== bookingUrl)
+      return [
+        ...featuredPaths.flatMap((href) => availableLinks.filter((item) => item.href === href)),
+        ...availableLinks.filter((item) => !featuredPaths.includes(item.href)),
+      ]
+    },
     [links, bookingUrl],
   )
 
