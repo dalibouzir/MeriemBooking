@@ -71,27 +71,14 @@ const nextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
-      ...(!isProd
-        ? [
-            {
-              source: '/_next/static/:path*',
-              headers: [
-                {
-                  key: 'Cache-Control',
-                  value: 'no-store',
-                },
-              ],
-            },
-          ]
-        : []),
       ...(isProd
         ? [
             {
-              source: '/(.*)\\.(js|css|woff2|woff|ttf|otf|ico|png|jpg|jpeg|gif|webp|avif|svg)',
+              source: '/(.*)\\.(ico|png|jpg|jpeg|gif|webp|avif|svg)',
               headers: [
                 {
                   key: 'Cache-Control',
-                  value: 'public, max-age=31536000, immutable',
+                  value: 'public, max-age=86400, stale-while-revalidate=604800',
                 },
               ],
             },

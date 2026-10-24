@@ -1802,62 +1802,28 @@ body.assistant-view .chatbot-widget{
   background: hsla(var(--glass));
   box-shadow: var(--shadow-1);
 }
-.library-sticky-cta{
-  position:fixed;
-  inset-inline:16px;
-  bottom:18px;
-  border-radius:20px;
-  padding:8px 16px;
-  background:
-    linear-gradient(160deg, hsla(var(--surface) / 0.38), hsla(var(--surface-muted) / 0.26)),
-    radial-gradient(circle at 20% 20%, hsla(var(--surface) / 0.14), transparent 70%);
-  background-color: hsla(var(--surface) / 0.2);
-  background-blend-mode: overlay, normal;
-  color:hsl(var(--ink));
-  font-weight:700;
-  font-size:0.85rem;
-  letter-spacing:0.25px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding-inline-start: 18px;
-  padding-inline-end: 18px;
-  direction:ltr;
-  gap:8px;
-  box-shadow: 0 20px 40px rgba(255,255,255,0.15), inset 0 0 0 1px hsla(var(--surface) / 0.3);
-  backdrop-filter: blur(20px) saturate(1.4);
-  z-index:70;
-  max-width: min(360px, calc(100% - 32px));
-  border:1px solid rgba(255,255,255,0.35);
+/* The library CTA belongs to the document flow, below the files. */
+.library-page .library-sticky-cta{
+  position:relative; inset:auto; width:100%; max-width:1120px; margin-inline:auto;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+  padding:24px 28px; direction:rtl; border-radius:22px;
+  background:linear-gradient(135deg, hsl(var(--surface) / .85), hsl(var(--surface-muted) / .65));
+  border:1px solid var(--surface-border);
+  box-shadow:0 12px 32px hsl(var(--primary) / .08), inset 0 1px 0 #ffffff90;
+  -webkit-backdrop-filter:blur(20px) saturate(160%); backdrop-filter:blur(20px) saturate(160%);
 }
-.library-sticky-cta span{
-  flex:1;
-  min-width:0;
-  margin-inline-end:auto;
-  text-align:left;
-  direction:rtl;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  font-size:0.8rem;
-}
+.library-sticky-cta strong{ display:block; color:hsl(var(--text)); font-size:1.15rem; line-height:1.6; }
+.library-sticky-cta p{ margin:4px 0 0; color:hsl(var(--text-dim)); font-size:.95rem; }
 .library-sticky-cta a{
-  color:hsl(var(--ink));
-  text-decoration:none;
-  border-radius:12px;
-  background:hsla(var(--surface) / 0.18);
-  border:1px solid hsla(var(--surface-border) / 0.6);
-  padding:6px 12px;
-  font-weight:700;
-  font-size:0.75rem;
+  display:inline-flex; align-items:center; justify-content:center; gap:16px; flex-shrink:0;
+  min-height:48px; padding:12px 24px; border-radius:14px; text-decoration:none; font-weight:700;
+  background:linear-gradient(135deg, hsl(var(--primary-700)), hsl(var(--accent))); color:#fff;
 }
-@media (max-width: 640px){
-  .library-sticky-cta{
-    padding-inline-end: 90px;
-  }
-}
-@media (min-width: 780px){
-  .library-sticky-cta{ display:none; }
+.library-sticky-cta a svg{ width:20px; height:20px; }
+.library-sticky-cta a:focus-visible{ outline:3px solid hsl(var(--primary)); outline-offset:4px; }
+@media (max-width:640px){
+  .library-page .library-sticky-cta{ padding:22px; flex-direction:column; align-items:stretch; gap:16px; }
+  .library-sticky-cta a{ width:100%; }
 }
 .library-sheet-root{
   position:fixed;
@@ -15001,8 +14967,7 @@ html[class*="theme-d"] .product-card .product-btn-download{
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   inset-inline-start: 16px;
 }
-body:has(.ch-sticky-cta.is-visible) .chatbot-widget,
-body:has(.library-sticky-cta) .chatbot-widget{
+body:has(.ch-sticky-cta.is-visible) .chatbot-widget{
   bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 .chatbot-panel{ max-height: min(70dvh, 560px); }
@@ -15017,33 +14982,6 @@ body:has(.library-sticky-cta) .chatbot-widget{
 @media (min-width: 520px){
   .ch-sticky-cta-content{ flex-direction: row; gap: 16px; }
   .ch-btn-sticky{ width: auto; }
-}
-
-/* Library bottom bar: full-width, same language as the challenge bar */
-@media (max-width: 779px){
-  .library-sticky-cta{
-    inset-inline: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    max-width: none;
-    padding: 8px 8px 8px 16px;
-    border-radius: 18px;
-    background: hsla(var(--glass-strong));
-    border: 1px solid var(--surface-border);
-    box-shadow: 0 18px 40px hsla(var(--primary-700) / 0.18);
-    gap: 10px;
-  }
-  .library-sticky-cta span{ font-size: .86rem; color: hsl(var(--text)); }
-  .library-sticky-cta a{
-    flex-shrink: 0;
-    min-height: 44px;
-    display: inline-flex; align-items: center;
-    padding: 0 16px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, hsl(var(--primary-700)), hsl(var(--accent)));
-    color: #fff;
-    border: none;
-    font-size: .9rem;
-  }
 }
 
 /* Challenge page rhythm on phones */

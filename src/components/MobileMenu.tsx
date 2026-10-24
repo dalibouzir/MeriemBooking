@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import { XMarkIcon, CalendarDaysIcon } from '@heroicons/react/24/outline'
@@ -17,37 +17,48 @@ type MobileMenuProps = {
   links: MobileNavLink[]
   isActive: (href: string) => boolean
   bookingUrl: string
-  assistantUrl: string
 }
 
-export default function MobileMenu({ open, onClose, links, isActive, bookingUrl, assistantUrl }: MobileMenuProps) {
-  const [container, setContainer] = useState<HTMLElement | null>(null)
+const subscribeToHydration = () => () => {}
+const clientSnapshot = () => true
+const serverSnapshot = () => false
+
+export default function MobileMenu({ open, onClose, links, isActive, bookingUrl }: MobileMenuProps) {
+  const mounted = useSyncExternalStore(subscribeToHydration, clientSnapshot, serverSnapshot)
+  const panelRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    const node = document.createElement('div')
-    node.setAttribute('data-mobile-menu-root', '')
-    document.body.appendChild(node)
-    setContainer(node)
-    return () => {
-      document.body.removeChild(node)
-      setContainer(null)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!open) return
+    if (!open || !mounted) return
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const panel = panelRef.current
+    const focusable = () => Array.from(panel?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), [tabindex="0"]') ?? [])
+    focusable()[0]?.focus({ preventScroll: true })
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
+      if (event.key !== 'Tab') return
+      const controls = focusable()
+      const first = controls[0]
+      const last = controls[controls.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last?.focus({ preventScroll: true })
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first?.focus({ preventScroll: true })
+      }
     }
     document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
-  }, [open, onClose])
+    return () => {
+      document.removeEventListener('keydown', handleKey)
+      previousFocus?.focus({ preventScroll: true })
+    }
+  }, [open, onClose, mounted])
 
   useLockBodyScroll(open)
 
   const filteredLinks = useMemo(
-    () => links.filter((item) => item.href !== bookingUrl && item.href !== assistantUrl),
-    [links, bookingUrl, assistantUrl],
+    () => links.filter((item) => item.href !== bookingUrl),
+    [links, bookingUrl],
   )
 
   const navItems = useMemo(
@@ -68,7 +79,7 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl,
     [filteredLinks, isActive, onClose],
   )
 
-  if (!container) return null
+  if (!mounted) return null
 
   return createPortal(
     <div
@@ -80,7 +91,7 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl,
       inert={!open}
     >
       <div className="mobile-menu-backdrop" onClick={onClose} />
-      <aside className="mobile-menu-panel" dir="rtl">
+      <aside ref={panelRef} className="mobile-menu-panel" dir="rtl">
         <div className="mobile-menu-header">
           <button type="button" className="mobile-menu-close" onClick={onClose} aria-label="إغلاق القائمة">
             <XMarkIcon className="mobile-menu-close-icon" />
@@ -101,13 +112,6 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl,
             <CalendarDaysIcon className="mobile-menu-btn-icon" aria-hidden />
             <span>حجز الجلسة الآن</span>
           </Link>
-          <Link
-            href={assistantUrl}
-            className="btn btn-primary mobile-menu-btn"
-            onClick={onClose}
-          >
-            <span>مساعد الذكاء الاصطناعي</span>
-          </Link>
           <Link href="/products" className="btn mobile-menu-btn secondary" onClick={onClose}>
             المكتبة الرقمية
           </Link>
@@ -116,6 +120,6 @@ export default function MobileMenu({ open, onClose, links, isActive, bookingUrl,
         <TopbarAuth variant="mobile" onNavigate={onClose} />
       </aside>
     </div>,
-    container,
+    document.body,
   )
 }

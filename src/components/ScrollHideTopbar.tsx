@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Bars3Icon, CalendarDaysIcon, ChatBubbleLeftRightIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import ThemeSwitcher, { THEME_SWITCHER_CLOSE_EVENT } from './ThemeSwitcher'
 import TopbarAuth from './TopbarAuth'
 import MobileMenu from './MobileMenu'
@@ -20,22 +20,22 @@ const NAV_LINKS: NavLink[] = [
   { href: '/products', label: 'المكتبة' },
   { href: '/quiz', label: 'اختبار التربية' },
   { href: '/challenge', label: 'تحدي اونلاين' },
-  { href: '/assistant', label: 'مساعد الذكاء الاصطناعي' },
   { href: '/session', label: 'حجز الجلسة' },
   { href: '/train-program', label: 'بـرنـامـج تـدريـبـي' },
+  { href: '/marriage-workshop', label: 'ورشة زواج على الفطرة' },
 ]
 
 const BOOKING_URL = '/session'
-const ASSISTANT_URL = '/assistant'
 const TOPBAR_LOGO_SRC = '/logo/Logo.png'
 
 export default function ScrollHideTopbar() {
+  const pathname = usePathname()
   const [hidden, setHidden] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [openMenuPath, setOpenMenuPath] = useState<string | null>(null)
+  const menuOpen = openMenuPath === pathname
   const lastY = useRef(0)
   const frame = useRef<number | null>(null)
   const hiddenRef = useRef(hidden)
-  const pathname = usePathname()
 
   useEffect(() => {
     hiddenRef.current = hidden
@@ -85,10 +85,6 @@ export default function ScrollHideTopbar() {
   }, [applyHidden])
 
   useEffect(() => {
-    setMenuOpen(false)
-  }, [pathname])
-
-  useEffect(() => {
     if (menuOpen) window.dispatchEvent(new Event(THEME_SWITCHER_CLOSE_EVENT))
   }, [menuOpen])
 
@@ -115,10 +111,10 @@ export default function ScrollHideTopbar() {
     [isActive],
   )
 
-  const handleMenuToggle = () => setMenuOpen((prev) => !prev)
-  const closeMenu = () => setMenuOpen(false)
+  const handleMenuToggle = () => setOpenMenuPath((prev) => prev === pathname ? null : pathname)
+  const closeMenu = useCallback(() => setOpenMenuPath(null), [])
   const handleThemePanel = (open: boolean) => {
-    if (open) setMenuOpen(false)
+    if (open) setOpenMenuPath(null)
   }
   return (
     <header className={`topbar${hidden ? ' is-hidden' : ''}`}>
@@ -157,7 +153,6 @@ export default function ScrollHideTopbar() {
         links={NAV_LINKS}
         isActive={isActive}
         bookingUrl={BOOKING_URL}
-        assistantUrl={ASSISTANT_URL}
       />
     </header>
   )

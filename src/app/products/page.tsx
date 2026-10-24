@@ -1,7 +1,7 @@
 import { type CSSProperties } from 'react'
 import Link from 'next/link'
 import Accordion from '@/components/ui/Accordion'
-import ChatbotWidget from '@/components/ChatbotWidget'
+import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import ProductsLibraryClient from './ProductsLibraryClient'
 import ProductWhoForSection from './ProductWhoForSection'
 
@@ -48,8 +48,12 @@ const CTA_ROUTE = '/download'
 
 export default function ProductsPage() {
   return (
-    <main className="library-page" dir="rtl">
+    <div className="library-page" dir="rtl">
       <ProductsLibraryClient />
+      <aside className="library-sticky-cta" aria-label="ملفات مجانية للتحميل">
+        <div><strong>كل الملفات مجانية للتحميل</strong><p>اختاري ما يناسبك وابدئي بخطوة بسيطة.</p></div>
+        <Link href={CTA_ROUTE}>ابدئي الآن<ArrowLeftIcon aria-hidden="true" /></Link>
+      </aside>
       {/* Product WhoFor Section */}
       <section className="library-whofor" style={{ marginTop: 32 }}>
         <div className="library-section-head appear-on-scroll is-visible">
@@ -103,12 +107,7 @@ export default function ProductsPage() {
         <Accordion items={FAQ_ITEMS} allowMultiple={false} />
       </section>
 
-      <ChatbotWidget />
 
-      <div className="library-sticky-cta" aria-live="polite">
-        <span>كل الملفات مجانية للتحميل</span>
-        <Link href={CTA_ROUTE}>ابدئي الآن</Link>
-      </div>
-    </main>
+    </div>
   )
 }

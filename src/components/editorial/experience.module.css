@@ -1,0 +1,64 @@
+.page { position: relative; }
+:global(.site-bg--image):has(.page) { overflow: clip; }
+.progress { position: fixed; top: 0; inset-inline: 0; height: 3px; background: hsl(var(--primary)); transform-origin: right; z-index: 80; pointer-events: none; }
+.chapters { position: sticky; top: 64px; z-index: 30; display: flex; justify-content: center; background: hsl(var(--surface) / .96); backdrop-filter: blur(12px); border-block: 1px solid hsl(var(--primary) / .2); }
+.chapters a { position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 66px; padding: 12px clamp(20px, 3vw, 48px); color: hsl(var(--text-dim)); text-decoration: none; font-size: .9rem; transition: color .2s, background .2s; }
+.chapters a > span:first-child { font: .7rem Georgia, serif; opacity: .65; }
+.chapters a:hover, .chapters a[aria-current] { color: hsl(var(--text)); background: hsl(var(--primary) / .08); }
+.chapterLine { position: absolute; inset-inline: 20px; bottom: 0; height: 2px; background: hsl(var(--primary)); transform: scaleX(0); transform-origin: right; transition: transform .25s; }
+.chapters a[aria-current] .chapterLine { transform: scaleX(1); }
+.chapters a:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -5px; }
+.portraitStage { position: relative; perspective: 1000px; padding: 18px 8px 40px; min-width: 0; }
+.training { color: #efd3e8; }
+.portraitCard { position: relative; aspect-ratio: 4 / 5; border-radius: 6px; overflow: hidden; background: hsl(var(--surface-muted)); box-shadow: 0 30px 70px #13051d25; }
+.portraitImage { position: absolute; inset: -18px 0; }
+.portraitImage img { object-fit: cover; object-position: center 25%; }
+.portraitOutline { position: absolute; inset: 0 26px 58px -12px; border: 1px solid currentColor; opacity: .25; transform: rotate(-5deg); }
+.imageFooter { position: absolute; inset-inline: 0; bottom: 0; padding: 54px 24px 20px; background: linear-gradient(transparent, #170e2499); color: #fff; display: flex; justify-content: space-between; align-items: end; gap: 16px; }
+.imageFooter > span:first-child { font-family: var(--program-display, var(--workshop-display, Georgia)), serif; font-size: 1.65rem; }
+.imageFooter > span:last-child { font: .6rem Arial, sans-serif; letter-spacing: .16em; line-height: 2; }
+.portraitIndex { position: absolute; bottom: 0; inset-inline-start: -24px; background: #ead0e4; color: #3a1c43; border: 1px solid #ffffff55; padding: 16px 22px; display: flex; align-items: center; gap: 18px; }
+.portraitIndex strong { font: 5.5rem/.9 Georgia, serif; font-weight: 400; }
+.portraitIndex > span { line-height: 1.8; font-size: .9rem; }
+.workshop .portraitCard { border-radius: 160px 160px 6px 6px; aspect-ratio: 4 / 5.1; }
+.workshop .portraitOutline { border-radius: 170px 170px 4px 4px; }
+.workshop .portraitImage img { object-position: center 27%; }
+.workshop .portraitIndex { background: hsl(var(--surface)); color: hsl(var(--text)); display: grid; gap: 0; inset-inline-start: auto; inset-inline-end: -30px; bottom: -4px; padding: 14px 26px; }
+.workshop .portraitIndex strong { font: 2.7rem/1.4 var(--workshop-display), Georgia, serif; color: hsl(var(--primary)); }
+.workshop .portraitIndex > span { font-family: var(--workshop-display), Georgia, serif; font-size: 1.2rem; }
+.signaturePanel { position: relative; padding: 40px; border: 1px solid hsl(var(--primary) / .24); background: hsl(var(--primary) / .06); text-align: center; color: hsl(var(--text)); display: grid; justify-items: center; overflow: hidden; }
+.signaturePanel::before { content: ''; position: absolute; width: 220px; height: 220px; border: 1px solid hsl(var(--primary) / .15); border-radius: 50%; inset-inline-start: -120px; bottom: -80px; }
+.signaturePanel > span:first-child { font: .65rem Arial, sans-serif; letter-spacing: .2em; }
+.signaturePanel strong { font: 8rem/1.2 Georgia, serif; font-weight: 400; color: hsl(var(--primary)); margin-top: 18px; }
+.signaturePanel > span { font-size: .9rem; }
+.signaturePanel > div { font: 2rem/1.8 var(--program-display, var(--workshop-display, Georgia)), serif; margin-top: 32px; }
+.signaturePanel > span:last-child { font: italic .9rem Georgia, serif; opacity: .7; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .page > section:not(:first-of-type) { animation: sectionEntry linear both; animation-timeline: view(); animation-range: entry 0% entry 18%; }
+  }
+}
+@keyframes sectionEntry { from { opacity: .65; translate: 0 24px; } to { opacity: 1; translate: 0 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .portraitCard { animation: portraitEntry .4s cubic-bezier(.2,.65,.3,1) both; }
+  @keyframes portraitEntry { from { opacity: .65; clip-path: inset(8% 0 0 0); } to { opacity: 1; clip-path: inset(0); } }
+}
+@media (max-width: 800px) {
+  .page { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+  .chapters { top: 64px; justify-content: center; }
+  .chapters a { min-height: 58px; padding-inline: 12px; font-size: .8rem; white-space: nowrap; gap: 8px; flex: 1 1 0; }
+  .portraitStage { padding: 8px 0 16px; }
+  .portraitCard { aspect-ratio: 3 / 4.6; border-radius: 70px 8px 8px 8px; box-shadow: 0 18px 35px #13051d25; }
+  .workshop .portraitCard { aspect-ratio: 3 / 4.3; border-radius: 80px 80px 8px 8px; }
+  .portraitOutline { inset: 0 8px 25px -8px; border-radius: 80px 8px 8px 8px; }
+  .portraitIndex { inset-inline-start: -10px; bottom: 0; padding: 10px 14px; gap: 10px; border-radius: 12px; }
+  .portraitIndex strong { font-size: 2.8rem; }
+  .portraitIndex > span { font-size: .65rem; }
+  .workshop .portraitIndex, .imageFooter { display: none; }
+  .signaturePanel { padding: 28px; max-width: 440px; width: 100%; margin-inline: auto; }
+  .signaturePanel strong { font-size: 6rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  :global(html):has(.page) { scroll-behavior: smooth; }
+}
+@media (prefers-reduced-motion: reduce) { .chapterLine, .chapters a { transition: none; } }

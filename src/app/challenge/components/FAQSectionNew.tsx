@@ -8,9 +8,9 @@ interface FAQSectionNewProps {
 }
 
 export default function FAQSectionNew({ faqs }: FAQSectionNewProps) {
-  if (faqs.length === 0) return null;
-
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  if (faqs.length === 0) return null;
 
   const handleToggle = (idx: number) => {
     setOpenIndex(openIndex === idx ? null : idx);

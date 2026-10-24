@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const url = req.nextUrl
   const p = url.pathname
 
@@ -12,8 +12,9 @@ export function middleware(req: NextRequest) {
   }
 
   // Enforce HTTPS redirect (for non-localhost)
-  const host = req.headers.get('host') || ''
-  if (!host.includes('localhost') && req.headers.get('x-forwarded-proto') !== 'https') {
+  const hostname = url.hostname
+  const isLocal = ['localhost', '127.0.0.1', '[::1]', '::1'].includes(hostname)
+  if (!isLocal && req.headers.get('x-forwarded-proto') !== 'https') {
     const httpsUrl = new URL(req.url)
     httpsUrl.protocol = 'https:'
     return NextResponse.redirect(httpsUrl, 308)

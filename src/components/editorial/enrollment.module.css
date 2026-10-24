@@ -1,0 +1,30 @@
+.dock { display: none; }
+@media (max-width: 800px) {
+  .dock {
+    position: fixed; inset-inline: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 75;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; direction: rtl;
+    padding: 10px 14px 10px 10px; border-radius: 24px;
+    background: linear-gradient(145deg, hsl(var(--surface) / .88), hsl(var(--surface-muted) / .76));
+    border: 1px solid hsl(var(--primary) / .22);
+    box-shadow: 0 12px 36px hsl(var(--primary-700) / .18), inset 0 1px 0 #ffffff90, inset 0 -1px 0 #ffffff30;
+    -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
+    transition: opacity .2s, translate .2s, visibility .2s;
+  }
+  .dock[data-hidden='true'] { visibility: hidden; opacity: 0; translate: 0 12px; pointer-events: none; }
+  .copy { display: grid; gap: 4px; min-width: 0; }
+  .copy strong { font-size: .9rem; color: hsl(var(--text)); line-height: 1.5; }
+  .copy span { font-size: .7rem; color: hsl(var(--text-dim)); line-height: 1.5; }
+  .dock a { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex-shrink: 0; border-radius: 16px; padding: 12px 16px; background: linear-gradient(135deg, hsl(var(--primary-700)), color-mix(in srgb, hsl(var(--primary-700)) 65%, #ad397a)); box-shadow: 0 6px 18px hsl(var(--primary-700) / .22), inset 0 1px 0 #ffffff30; color: #fff; font-size: .83rem; font-weight: 700; text-decoration: none; }
+  .dock a svg { width: 17px; height: 17px; }
+  .dock a:focus-visible { outline: 3px solid hsl(var(--primary)); outline-offset: 3px; }
+  :global(body):has(.dock:not([data-hidden='true'])) :global(.chatbot-widget) { bottom: calc(108px + env(safe-area-inset-bottom, 0px)); }
+  :global(body):has(:global(.mobile-menu-root.is-open)) .dock { visibility: hidden; opacity: 0; pointer-events: none; }
+  :global(body):has(:global(.chatbot-panel)) .dock { visibility: hidden; opacity: 0; pointer-events: none; }
+}
+@media (max-width: 360px) {
+  .dock { gap: 8px; padding-inline: 10px; }
+  .dock a { padding-inline: 12px; font-size: .78rem; }
+  .copy strong { font-size: .83rem; }
+  .copy span { font-size: .65rem; }
+}
+@media (prefers-reduced-motion: reduce) { .dock { transition: none; } }
