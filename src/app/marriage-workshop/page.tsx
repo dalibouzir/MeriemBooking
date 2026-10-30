@@ -119,7 +119,7 @@ export default function MarriageWorkshopPage() {
           <span className={styles.sectionNumber} aria-hidden="true">05</span>
           <h2 id="details-title">ورشة الزواج</h2>
           <p className={styles.zoom}><VideoCameraIcon aria-hidden="true" />مباشرة عبر Zoom</p>
-          <p className={styles.schedule}>الاثنين و الثلاثاء السادسة مساءا بتوقيت تونس و فرنسا</p>
+          <p className={styles.schedule}>الاثنين 16 والثلاثاء 17 نوفمبر السادسة مساءا بتوقيت تونس و فرنسا</p>
 
           <div className={styles.pricingIntro}>
             <h3>اختاري الباقة المناسبة لكِ</h3>
@@ -165,7 +165,7 @@ export default function MarriageWorkshopPage() {
           <a className={styles.primaryButton} href={whatsappLink('السلام عليكم، أرغب في التسجيل في ورشة الزواج. أرجو إرسال تفاصيل الباقات وطريقة الدفع.')} target="_blank" rel="noopener noreferrer">للحجز والدفع عبر WhatsApp<ArrowLeftIcon aria-hidden="true" /></a>
         </div>
       </section>
-      <MobileEnrollment target="workshop-details" hideAt="workshop-payment-note" actionHref={whatsappLink('السلام عليكم، أرغب في التسجيل في ورشة الزواج. أرجو إرسال تفاصيل الباقات وطريقة الدفع.')} title="ورشة الزواج" subtitle="الاثنين و الثلاثاء السادسة مساءا بتوقيت تونس و فرنسا" label="للحجز والدفع عبر WhatsApp" />
+      <MobileEnrollment target="workshop-details" hideAt="workshop-payment-note" actionHref={whatsappLink('السلام عليكم، أرغب في التسجيل في ورشة الزواج. أرجو إرسال تفاصيل الباقات وطريقة الدفع.')} title="ورشة الزواج" subtitle="الاثنين 16 والثلاثاء 17 نوفمبر" label="للحجز والدفع عبر WhatsApp" />
     </EditorialPage>
   )
 }

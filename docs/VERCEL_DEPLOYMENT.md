@@ -55,6 +55,5 @@ buttons open WhatsApp with the selected package in a prefilled message; booking
 and payment are arranged in that conversation. The workshop does not process
 payment or collect registration on the site.
 
-Confirm the calendar dates for the two workshop days before publishing the
-event schedule. Do not add event structured data containing the training
-sample dates or prices.
+Do not add event structured data containing the training sample dates or
+prices.
