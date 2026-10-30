@@ -191,7 +191,7 @@ const SOCIAL_LINKS: SocialLink[] = [
   { href: 'https://linktr.ee/meriembouzir', label: 'لينك تري', icon: '🌿', variant: 'linktree' },
   { href: 'https://www.instagram.com/fittrah.moms', label: 'إنستغرام', icon: '📸' },
   { href: 'https://www.youtube.com/@fittrahmoms', label: 'يوتيوب', icon: '▶️' },
-  { href: 'https://wa.me/33665286368', label: 'واتساب (+33 6 65 28 63 68)', icon: '💬' },
+  { href: 'https://wa.me/21653498444', label: 'واتساب (+216 53 498 444)', icon: '💬' },
 ]
 
 type LandingDisplay = {

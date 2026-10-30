@@ -66,7 +66,7 @@ const QUICK_REPLIES: QuickReplyConfig[] = [
     label: 'أريد التحدث مع فريق الدعم الآن',
     response: 'يسرّنا مساعدتك مباشرة. بإمكانك فتح دردشة واتساب فورية أو زيارة صفحة الدعم لإرسال طلب متابعة.',
     actions: [
-      { label: 'دردشة واتساب', href: 'https://wa.me/21629852313', external: true },
+      { label: 'دردشة واتساب', href: 'https://wa.me/21653498444', external: true },
       { label: 'صفحة الدعم والنماذج', href: '/chat' },
     ],
     keywords: ['دعم', 'واتساب', 'تحدث', 'support'],

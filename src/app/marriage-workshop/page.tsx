@@ -7,7 +7,7 @@ import MobileEnrollment from '@/components/editorial/MobileEnrollment'
 import styles from './workshop.module.css'
 
 const amiri = Amiri({ subsets: ['arabic'], weight: ['400', '700'], display: 'swap', variable: '--workshop-display' })
-const WHATSAPP_NUMBER = '33665286368'
+const WHATSAPP_NUMBER = '21653498444'
 const whatsappLink = (message: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
 
 export const metadata: Metadata = {

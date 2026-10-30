@@ -94,11 +94,11 @@ function LiveChatPanel() {
           راسلينا الآن عبر الواتساب{' '}
           <a
             className="chat-link"
-            href="https://wa.me/21629852313"
+            href="https://wa.me/21653498444"
             target="_blank"
             rel="noopener noreferrer"
           >
-            +216 29 852 313
+            +216 53 498 444
           </a>
           . نرد عادة خلال 10 دقائق بين الساعة 9 صباحًا و6 مساءً بتوقيت تونس.
         </p>

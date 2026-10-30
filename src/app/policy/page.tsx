@@ -176,7 +176,7 @@ export default function PolicyPage() {
           </p>
           <ul style={{ paddingRight: '1.5rem', lineHeight: 2, marginTop: '0.75rem' }}>
             <li><strong>البريد الإلكتروني:</strong> meriembouzir05@gmail.com</li>
-            <li><strong>واتساب:</strong> +33 6 65 28 63 68</li>
+            <li><strong>واتساب:</strong> +216 53 498 444</li>
           </ul>
         </section>
 
