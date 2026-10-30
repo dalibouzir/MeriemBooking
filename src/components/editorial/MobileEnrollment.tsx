@@ -9,12 +9,12 @@ const subscribe = () => () => {}
 const clientSnapshot = () => true
 const serverSnapshot = () => false
 
-export default function MobileEnrollment({ target, title, subtitle, label }: { target: string; title: string; subtitle: string; label: string }) {
+export default function MobileEnrollment({ target, title, subtitle, label, actionHref, hideAt }: { target: string; title: string; subtitle: string; label: string; actionHref?: string; hideAt?: string }) {
   const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot)
   const [detailsVisible, setDetailsVisible] = useState(false)
   const [heroActionVisible, setHeroActionVisible] = useState(false)
   useEffect(() => {
-    const el = document.getElementById(target)
+    const el = document.getElementById(hideAt ?? target)
     if (!el) return
     const observer = new IntersectionObserver(([entry]) => setDetailsVisible(entry.isIntersecting), { threshold: 0 })
     observer.observe(el)
@@ -23,12 +23,12 @@ export default function MobileEnrollment({ target, title, subtitle, label }: { t
     const heroObserver = new IntersectionObserver(([entry]) => setHeroActionVisible(entry.isIntersecting), { rootMargin: '-128px 0px 0px 0px', threshold: 0 })
     if (heroAction) heroObserver.observe(heroAction)
     return () => { observer.disconnect(); heroObserver.disconnect() }
-  }, [target])
+  }, [target, hideAt])
   if (!mounted) return null
   return createPortal(
     <aside className={s.dock} data-hidden={detailsVisible || heroActionVisible} aria-label={title} inert={detailsVisible || heroActionVisible}>
       <div className={s.copy}><strong>{title}</strong><span>{subtitle}</span></div>
-      <a href={`#${target}`}>{label}<ArrowLeftIcon aria-hidden="true" /></a>
+      <a href={actionHref ?? `#${target}`} target={actionHref ? '_blank' : undefined} rel={actionHref ? 'noopener noreferrer' : undefined}>{label}<ArrowLeftIcon aria-hidden="true" /></a>
     </aside>, document.body,
   )
 }

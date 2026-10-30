@@ -26,8 +26,11 @@ immutable for an entire year.
   warnings** in older files. These were exposed by repairing the ESLint
   configuration; rules were not disabled to hide them. The conditional-hook
   bug in the challenge FAQ and shared navigation lint errors were fixed.
-- Registration remains a clearly labeled preview: real workshop/program
-  dates, fees and registration destinations have not been supplied.
+- Training enrollment remains a clearly labeled preview with sample dates and
+  fees. The marriage workshop now shows the supplied schedule, early-bird
+  deadline and package prices, and opens WhatsApp with a package-specific
+  booking/payment inquiry. Payment is arranged in that conversation; there is
+  no online checkout.
 - No deployment was made and no hosted Vercel build was claimed. This checkout
   has no linked/authenticated Vercel project, so remote environment variables,
   integrations and the actual hosted build still require verification.

@@ -22,9 +22,9 @@
   :global(body):has(:global(.chatbot-panel)) .dock { visibility: hidden; opacity: 0; pointer-events: none; }
 }
 @media (max-width: 360px) {
-  .dock { gap: 8px; padding-inline: 10px; }
-  .dock a { padding-inline: 12px; font-size: .78rem; }
-  .copy strong { font-size: .83rem; }
-  .copy span { font-size: .65rem; }
+  .dock { gap: 8px; padding: 8px 10px; border-radius: 20px; }
+  .dock a { padding-inline: 10px; font-size: .74rem; }
+  .copy strong { max-width: 70px; font-size: .8rem; }
+  .copy span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .dock { transition: none; } }

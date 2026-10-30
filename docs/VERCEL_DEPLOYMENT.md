@@ -46,13 +46,15 @@ exposes existing issues in older application files; do not disable rules to
 make that backlog appear clean. The changed page and navigation components
 can be checked independently while the legacy backlog is addressed.
 
-## Enrollment is still a preview
+## Enrollment behavior
 
 Training dates, hours, platform and price are sample values and are visibly
-labeled as non-final. Workshop date and price remain placeholders. Both final
-registration buttons are disabled. The mobile bars navigate to the details;
-they do not create a registration or payment.
+labeled as non-final. The marriage workshop displays the supplied Monday and
+Tuesday schedule, early-registration deadline and package prices. Its package
+buttons open WhatsApp with the selected package in a prefilled message; booking
+and payment are arranged in that conversation. The workshop does not process
+payment or collect registration on the site.
 
-Before opening paid enrollment, replace the preview values, supply the real
-registration destination and explicitly enable the final buttons. Do not add
-event structured data containing the sample dates or prices.
+Confirm the calendar dates for the two workshop days before publishing the
+event schedule. Do not add event structured data containing the training
+sample dates or prices.

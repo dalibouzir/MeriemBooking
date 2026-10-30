@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import { Amiri } from 'next/font/google'
-import { ArrowLeftIcon, ChatBubbleLeftRightIcon, MapIcon, HeartIcon, VideoCameraIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon, ChatBubbleLeftRightIcon, MapIcon, HeartIcon, VideoCameraIcon, CheckIcon, XMarkIcon, ClockIcon } from '@heroicons/react/24/outline'
 import { ChapterNav, EditorialPage, PortraitStage, SignaturePanel } from '@/components/editorial/Experience'
 import WorkshopReveal from './WorkshopReveal'
 import MobileEnrollment from '@/components/editorial/MobileEnrollment'
 import styles from './workshop.module.css'
 
 const amiri = Amiri({ subsets: ['arabic'], weight: ['400', '700'], display: 'swap', variable: '--workshop-display' })
+const WHATSAPP_NUMBER = '33665286368'
+const whatsappLink = (message: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
 
 export const metadata: Metadata = {
   title: 'ورشة زواج على الفطرة مع مريم بوزير',
@@ -115,16 +117,55 @@ export default function MarriageWorkshopPage() {
       <section id="workshop-details" className={styles.details} aria-labelledby="details-title">
         <div className={styles.detailsInner}>
           <span className={styles.sectionNumber} aria-hidden="true">05</span>
-          <h2 id="details-title">تفاصيل اللقاء</h2>
+          <h2 id="details-title">ورشة الزواج</h2>
           <p className={styles.zoom}><VideoCameraIcon aria-hidden="true" />مباشرة عبر Zoom</p>
-          <p id="workshop-schedule" className={styles.schedule}>[التاريخ والتوقيت] · [السعر]</p>
+          <p className={styles.schedule}>الاثنين و الثلاثاء السادسة مساءا بتوقيت تونس و فرنسا</p>
+
+          <div className={styles.pricingIntro}>
+            <h3>اختاري الباقة المناسبة لكِ</h3>
+            <p>يومان من التعلّم والتفاعل حول السّعي إلى الزواج ، في مساحة تجمع بين الفهم والنقاش والتطبيق.</p>
+            <div className={styles.earlyNotice}><ClockIcon aria-hidden="true" /><span>تسجيل مبكر إلى غاية 07/11/2026</span></div>
+          </div>
+
+          <div className={styles.packageGrid}>
+            <article className={styles.packageCard} aria-labelledby="basic-title">
+              <div className={styles.packageHeading}><span className={styles.packageIndex}>01</span><h3 id="basic-title">الباقة الأساسية</h3></div>
+              <div className={styles.pricePair} aria-label="25 يورو بدل 35 يورو"><div className={styles.priceCurrent}>25 <span>€</span></div><div className={styles.priceOld}><XMarkIcon aria-hidden="true" />35 €</div></div>
+              <div className={styles.pricePair} aria-label="59 دينار تونسي بدل 79 دينار تونسي"><div className={styles.priceCurrent}>59 <span>د.ت</span></div><div className={styles.priceOld}><XMarkIcon aria-hidden="true" />79 د.ت</div></div>
+              <ul className={styles.packageFeatures}>
+                <li><CheckIcon aria-hidden="true" />حضور اليوم الأول والثاني (4 ساعات)</li>
+                <li><CheckIcon aria-hidden="true" />المشاركة في النقاش والتفاعل المباشر</li>
+              </ul>
+              <a className={styles.whatsappButton} href={whatsappLink('السلام عليكم، أرغب في التسجيل في ورشة الزواج واختيار الباقة الأساسية. أرجو إرسال طريقة الدفع وتأكيد التسجيل.')} target="_blank" rel="noopener noreferrer">للحجز والدفع عبر WhatsApp<ArrowLeftIcon aria-hidden="true" /></a>
+            </article>
+
+            <article className={`${styles.packageCard} ${styles.vipCard}`} aria-labelledby="vip-title">
+              <div className={styles.packageHeading}><span className={styles.packageIndex}>02</span><h3 id="vip-title">باقة VIP</h3></div>
+              <div className={styles.pricePair} aria-label="35 يورو بدل 45 يورو"><div className={styles.priceCurrent}>35 <span>€</span></div><div className={styles.priceOld}><XMarkIcon aria-hidden="true" />45 €</div></div>
+              <div className={styles.pricePair} aria-label="79 دينار تونسي بدل 99 دينار تونسي"><div className={styles.priceCurrent}>79 <span>د.ت</span></div><div className={styles.priceOld}><XMarkIcon aria-hidden="true" />99 د.ت</div></div>
+              <p className={styles.included}>كل ما تتضمنه الباقة الأساسية، بالإضافة إلى:</p>
+              <ul className={styles.packageFeatures}>
+                <li><CheckIcon aria-hidden="true" />كتيّب خاص بالورشة يتضمن ملخصات وتمارين تطبيقية</li>
+                <li><CheckIcon aria-hidden="true" />تسجيل اليومين للعودة إلى المحتوى ومراجعته.</li>
+              </ul>
+              <a className={styles.whatsappButton} href={whatsappLink('السلام عليكم، أرغب في التسجيل في ورشة الزواج واختيار باقة VIP. أرجو إرسال طريقة الدفع وتأكيد التسجيل.')} target="_blank" rel="noopener noreferrer">للحجز والدفع عبر WhatsApp<ArrowLeftIcon aria-hidden="true" /></a>
+            </article>
+          </div>
+
+          <aside id="workshop-payment-note" className={styles.paymentNote} aria-labelledby="payment-note-title">
+            <h3 id="payment-note-title">ملاحظة حول التسجيل والدفع</h3>
+            <p>الأسعار باليورو للمشاركات من خارج تونس.</p>
+            <p>الأسعار بالدينار التونسي للمشاركات من داخل تونس.</p>
+            <p>عرض التسجيل المبكر متاح لمدة 7 أيام فقط 07/11/2026. وبعدها تُطبّق الأسعار العادية.</p>
+          </aside>
+
           <div className={styles.detailsRule} />
           <p className={styles.closing}>امنحي رغبتكِ في الزواج طريقًا أوضح.</p>
-          {/* Enable registration once the workshop date, price and booking destination are decided. */}
-          <button type="button" className={styles.primaryButton} disabled aria-describedby="workshop-schedule">أحجز مكان<ArrowLeftIcon aria-hidden="true" /></button>
+          {/* Keep registration disabled until the booking destination is provided. */}
+          <a className={styles.primaryButton} href={whatsappLink('السلام عليكم، أرغب في التسجيل في ورشة الزواج. أرجو إرسال تفاصيل الباقات وطريقة الدفع.')} target="_blank" rel="noopener noreferrer">للحجز والدفع عبر WhatsApp<ArrowLeftIcon aria-hidden="true" /></a>
         </div>
       </section>
-      <MobileEnrollment target="workshop-details" title="زواج على الفطرة" subtitle="مع مريم بوزير" label="تفاصيل الورشة" />
+      <MobileEnrollment target="workshop-details" hideAt="workshop-payment-note" actionHref={whatsappLink('السلام عليكم، أرغب في التسجيل في ورشة الزواج. أرجو إرسال تفاصيل الباقات وطريقة الدفع.')} title="ورشة الزواج" subtitle="الاثنين و الثلاثاء السادسة مساءا بتوقيت تونس و فرنسا" label="للحجز والدفع عبر WhatsApp" />
     </EditorialPage>
   )
 }
